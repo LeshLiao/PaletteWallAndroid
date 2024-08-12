@@ -18,8 +18,9 @@ fun MainScreen(viewModel: TopBarViewModel) {
         modifier = Modifier.fillMaxSize()
     ) {
         Box {
-            TopBar(viewModel)
             ScrollingContent(viewModel)
+            TopBar(viewModel)
+
         }
     }
 }

@@ -2,6 +2,7 @@ package com.palettex.palettewall.view
 
 import TopBarViewModel
 import androidx.compose.animation.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
@@ -10,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalAnimationApi::class, ExperimentalMaterial3Api::class)
@@ -18,7 +20,7 @@ fun TopBar(viewModel: TopBarViewModel) {
     AnimatedVisibility(
         visible = viewModel.isTopBarVisible,
         enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
-        exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut()
+        exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut(),
     ) {
         TopAppBar(
             title = {
@@ -42,7 +44,11 @@ fun TopBar(viewModel: TopBarViewModel) {
                     Icon(Icons.Default.Search, contentDescription = "Search")
                 }
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = Color.Transparent, // Set the background to transparent
+                titleContentColor = Color.Black // Set the title color if needed
+            )
         )
     }
 }
