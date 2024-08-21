@@ -1,8 +1,9 @@
 package com.palettex.palettewall.view
 import TopBarViewModel
-import android.widget.Space
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,28 +22,37 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.distinctUntilChanged
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import coil.compose.rememberAsyncImagePainter
 import com.palettex.palettewall.R
+import com.palettex.palettewall.model.Wallpaper
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
+import kotlin.random.Random
 
 @Composable
-fun ScrollingContent(viewModel: TopBarViewModel) {
+fun ScrollingContent(viewModel: TopBarViewModel, navController: NavController) {
+
     val listState = rememberLazyListState()
     val lastScrollOffset = remember { mutableStateOf(0) }
 
@@ -62,6 +72,7 @@ fun ScrollingContent(viewModel: TopBarViewModel) {
                 .padding(32.dp)
                 .fillMaxWidth())
         }
+
         item {
             LazyRow {
                 repeat(5) { index ->
@@ -99,46 +110,50 @@ fun ScrollingContent(viewModel: TopBarViewModel) {
                     }
                 }
             }
-
-
         }
-        items(50) {
-            Row (modifier = Modifier.fillMaxWidth()) {
-                Text("Item #$it", modifier = Modifier
-                    .padding(16.dp)
-                    )
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add",
 
-                )
+        val wallpapers = List(12) {
+            val size = Random.nextInt(200, 300) // Generates a random value between 200 (inclusive) and 300 (inclusive)
+            Wallpaper("https://picsum.photos/$size")
+        }
+
+        items(wallpapers.chunked(3)) { rowItems ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                rowItems.forEach { wallpaper ->
+                    Card(
+                        modifier = Modifier
+                            .weight(1f)
+                            .aspectRatio(0.75f)
+                            .clickable {
+                                val encodedUrl = URLEncoder.encode(
+                                    wallpaper.imageUrl,
+                                    StandardCharsets.UTF_8.name()
+                                )
+                                navController.navigate("fullscreen/$encodedUrl")
+                            },
+
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        // Replace with your image loading logic
+                        Image(
+                            painter = rememberAsyncImagePainter(model = wallpaper.imageUrl),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                }
+                if (rowItems.size < 3) {
+                    repeat(3 - rowItems.size) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+                }
             }
-
-        }
-    }
-}
-
-@Composable
-fun CounterExample() {
-    // Declare a state variable to hold the count value
-    var count by remember { mutableIntStateOf(0) }
-
-    // UI that displays the count and a button to increase it
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        // Display the current count
-        Text(
-            text = "Count: $count",
-        )
-
-        // Button to increase the count
-        Button(
-            onClick = {
-                count++  // Increase the count when button is clicked
-            },
-        ) {
-            Text(text = "Increase Count")
         }
     }
 }

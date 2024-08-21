@@ -12,7 +12,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalAnimationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -28,9 +30,12 @@ fun TopBar(viewModel: TopBarViewModel) {
                     modifier = Modifier
                         .fillMaxSize()
                 ) {
+                    // val (height, width) = LocalConfiguration.current.run { screenHeightDp.dp to screenWidthDp.dp }
                     Text(
+                        // text = "PaletteWall$height $width",
                         text = "PaletteWall",
-                        modifier = Modifier.align(Alignment.Center)
+                        modifier = Modifier.align(Alignment.Center),
+                        fontSize = 20.sp,
                     )
                 }
             },

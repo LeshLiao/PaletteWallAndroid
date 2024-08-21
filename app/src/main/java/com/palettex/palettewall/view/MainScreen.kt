@@ -2,25 +2,40 @@ package com.palettex.palettewall.view
 
 import TopBarViewModel
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 
 @Composable
 fun MainScreen(viewModel: TopBarViewModel) {
+    val navController = rememberNavController()
+
     Surface(
         modifier = Modifier.fillMaxSize()
     ) {
-        Box {
-            ScrollingContent(viewModel)
-            TopBar(viewModel)
-
+        NavHost(navController = navController, startDestination = "main") {
+            composable("main") {
+                Box {
+                    ScrollingContent(viewModel, navController)
+                    TopBar(viewModel)
+                }
+            }
+            composable(
+                route = "fullscreen/{encodedUrl}",
+                arguments = listOf(navArgument("encodedUrl") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val encodedUrl = backStackEntry.arguments?.getString("encodedUrl")
+                val imageUrl = encodedUrl?.let { URLDecoder.decode(it, StandardCharsets.UTF_8.name()) }
+                imageUrl?.let { FullscreenScreen(it, navController) }
+            }
         }
     }
 }
