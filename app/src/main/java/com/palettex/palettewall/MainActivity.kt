@@ -1,6 +1,7 @@
 package com.palettex.palettewall
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -30,11 +31,15 @@ import com.palettex.palettewall.view.BottomNavBar
 import com.palettex.palettewall.view.FavoriteScreen
 import com.palettex.palettewall.view.MainScreen
 import com.palettex.palettewall.viewmodel.MainViewModel
+import com.palettex.palettewall.viewmodel.WallpaperViewModel
+
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
+    private val wallpaperViewModel: WallpaperViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d("GDT","onCreate")
         enableEdgeToEdge()
         setContent {
             PaletteWallTheme {
@@ -59,7 +64,7 @@ class MainActivity : ComponentActivity() {
                         Modifier.padding(customPadding) // Add padding to avoid overlapping with BottomNavBar
                     ) {
                         composable("Home") {
-                            MainScreen(viewModel.topBarViewModel)
+                            MainScreen(viewModel.topBarViewModel, wallpaperViewModel)
                         }
                         composable("Favorite") {
                             FavoriteScreen("This is Favorite")

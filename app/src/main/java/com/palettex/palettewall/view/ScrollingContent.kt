@@ -23,7 +23,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.distinctUntilChanged
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -31,6 +33,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
@@ -46,15 +49,17 @@ import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.palettex.palettewall.R
 import com.palettex.palettewall.model.Wallpaper
+import com.palettex.palettewall.viewmodel.WallpaperViewModel
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import kotlin.random.Random
 
 @Composable
-fun ScrollingContent(viewModel: TopBarViewModel, navController: NavController) {
+fun ScrollingContent(viewModel: TopBarViewModel, navController: NavController, wallpaperViewModel: WallpaperViewModel, ) {
 
     val listState = rememberLazyListState()
     val lastScrollOffset = remember { mutableStateOf(0) }
+    val wallpapers by wallpaperViewModel.wallpapers.collectAsState()
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemScrollOffset }
@@ -112,36 +117,38 @@ fun ScrollingContent(viewModel: TopBarViewModel, navController: NavController) {
             }
         }
 
-        val wallpapers = List(12) {
-            val size = Random.nextInt(200, 300) // Generates a random value between 200 (inclusive) and 300 (inclusive)
-            Wallpaper("https://picsum.photos/$size")
-        }
-
         items(wallpapers.chunked(3)) { rowItems ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    .padding(0.dp)
+//                    .border(
+//                        width = 1.dp,
+//                        color = Color.Black
+//                    ),
+                ,horizontalArrangement = Arrangement.spacedBy(0.dp)
             ) {
                 rowItems.forEach { wallpaper ->
                     Card(
                         modifier = Modifier
                             .weight(1f)
-                            .aspectRatio(0.75f)
+                            .fillMaxHeight()
+                            .aspectRatio(0.5f)
+//                            .border(
+//                                width = 1.dp,
+//                                color = Color.Red
+//                            )
                             .clickable {
                                 val encodedUrl = URLEncoder.encode(
-                                    wallpaper.imageUrl,
+                                    wallpaperViewModel.getThumbnailUrl(wallpaper),
                                     StandardCharsets.UTF_8.name()
                                 )
                                 navController.navigate("fullscreen/$encodedUrl")
                             },
-
                         shape = RoundedCornerShape(8.dp)
                     ) {
-                        // Replace with your image loading logic
                         Image(
-                            painter = rememberAsyncImagePainter(model = wallpaper.imageUrl),
+                            painter = rememberAsyncImagePainter(model = wallpaperViewModel.getThumbnailUrl(wallpaper)),
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.fillMaxSize()
@@ -155,5 +162,6 @@ fun ScrollingContent(viewModel: TopBarViewModel, navController: NavController) {
                 }
             }
         }
+
     }
 }
