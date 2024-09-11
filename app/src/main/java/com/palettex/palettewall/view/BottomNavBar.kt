@@ -16,15 +16,17 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.palettex.palettewall.R
-
-
 @Composable
 fun BottomNavBar(navController: NavHostController) {
-    val items = listOf("Home", "Favorite", "AI")
-    NavigationBar(modifier = Modifier.height(80.dp))
-    {
+//    val items = listOf("Home", "Favorite", "AI")
+    val items = listOf("Home", "Favorite")
+    NavigationBar(
+        modifier = Modifier.height(80.dp),
+        containerColor = Color.Black // Set the background color to black
+    ) {
         items.forEachIndexed { index, item ->
             NavigationBarItem(
                 icon = {
@@ -32,15 +34,17 @@ fun BottomNavBar(navController: NavHostController) {
                         imageVector = when (item) {
                             "Home" -> ImageVector.vectorResource(id = R.drawable.ic_home)
                             "Favorite" -> ImageVector.vectorResource(id = R.drawable.ic_favorite)
-                            "AI" -> ImageVector.vectorResource(id = R.drawable.ic_ai)
+//                            "AI" -> ImageVector.vectorResource(id = R.drawable.ic_ai)
                             else -> ImageVector.vectorResource(id = R.drawable.ic_home)
                         },
                         contentDescription = item,
-                        modifier = Modifier.size(25.dp) // Set the size of the icon
+                        modifier = Modifier.size(25.dp), // Set the size of the icon
+                        tint = Color.White // Set the icon color to white
                     )
                 },
 //                label = { Text(item) },
-                selected = navController.currentDestination?.route == item,
+//                selected = navController.currentDestination?.route == item,
+                selected = false,
                 onClick = {
                     navController.navigate(item) {
                         popUpTo(navController.graph.startDestinationId)
