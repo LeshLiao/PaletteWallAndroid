@@ -64,8 +64,8 @@ fun ScrollingContent(
                 viewModel.onScroll(delta.toFloat())
 
                 // Check if scrolled to the top (first item and no offset)
-                Log.d("GDT",listState.firstVisibleItemIndex.toString() + "," + currentScrollOffset.toString())
-                if (listState.firstVisibleItemIndex == 0) {
+//                Log.d("GDT",listState.firstVisibleItemIndex.toString() + "," + currentScrollOffset.toString())
+                if (listState.firstVisibleItemIndex <= 1) {
                     viewModel.showTopBar()  // Call showTopBar when at the top
                 }
 

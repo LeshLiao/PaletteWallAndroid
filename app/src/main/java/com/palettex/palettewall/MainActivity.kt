@@ -54,8 +54,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import com.google.android.gms.ads.MobileAds
+import com.palettex.palettewall.view.DrawerContent
 import com.palettex.palettewall.view.MyBottomBarTest
 import com.palettex.palettewall.view.MyTopBarTest
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 
@@ -69,6 +73,13 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         Log.d("GDT","onCreate")
         enableEdgeToEdge()
+
+        val backgroundScope = CoroutineScope(Dispatchers.IO)
+        backgroundScope.launch {
+            // Initialize the Google Mobile Ads SDK on a background thread.
+            MobileAds.initialize(this@MainActivity) {}
+        }
+
         setContent {
             PaletteWallTheme {
                 val scope = rememberCoroutineScope()
@@ -126,41 +137,5 @@ class MainActivity : ComponentActivity() {
 
             }
         }
-    }
-}
-
-@Composable
-fun DrawerContent(navController: NavController, drawerState: DrawerState) {
-    val scope = rememberCoroutineScope() // Create a coroutine scope to handle drawer operations
-
-    Column () {
-        Spacer(modifier = Modifier.height(56.dp))
-        Text(
-            text = "About Us",
-            modifier = Modifier
-                .padding(16.dp)
-                .clickable {
-                    navController.navigate("Favorite")
-                    scope.launch {
-                        drawerState.close()
-                    }
-                }
-        )
-//        Text(text = "Item 2", modifier = Modifier.padding(16.dp))
-        Spacer(modifier = Modifier.weight(1f))
-        Text(
-            text = "Close (X)",
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .padding(16.dp)
-                .width(100.dp)
-                .clickable {
-                    // Close the drawer using the coroutine scope
-                    scope.launch {
-                        drawerState.close()
-                    }
-                }
-        )
-        Spacer(modifier = Modifier.height(100.dp))
     }
 }
