@@ -11,6 +11,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -29,6 +30,8 @@ import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 
 import androidx.compose.material3.*
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
@@ -40,10 +43,12 @@ import androidx.compose.ui.Alignment
 //import androidx.compose.material3.icons.Icons
 //import androidx.compose.material3.icons.filled.ArrowBack
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.palettex.palettewall.R
 import com.palettex.palettewall.view.component.BottomModal
@@ -70,9 +75,12 @@ fun FullscreenScreen(
     var DownloadImage: String? = wallpaperViewModel?.getDownloadListLinkByItemId(itemId)
     var showModel by remember { mutableStateOf(false) }
 
+    val downloadBtnStatus by wallpaperViewModel?.downloadBtnStatus?.collectAsState() ?: remember { mutableStateOf(0) }
 
-
-
+    // Reset downloadBtnStatus to 0 when the screen is launched
+    LaunchedEffect(itemId) {
+        wallpaperViewModel?.updateDownloadBtnStatus(0)
+    }
 
     Scaffold(
         topBar = {},
@@ -98,7 +106,10 @@ fun FullscreenScreen(
 
                 FloatingActionButton(
                     onClick = {
-                        showModel = true
+                        if (downloadBtnStatus == 0) {
+                            showModel = true
+                        }
+
 //                        downloadImage(context, DownloadImage) { myMsg ->
 //                            msg = myMsg
 //                            isDialogVisible = true // Show dialog after download starts
@@ -106,20 +117,38 @@ fun FullscreenScreen(
                     },
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(bottom = 50.dp),
+                        .padding(bottom = 56.dp)
+                        .size(46.dp),
                     containerColor = Color.Transparent,  // Set background to transparent
                     shape = CircleShape,  // Makes the button round
                 ) {
-                    Card(
-                        modifier = Modifier.size(48.dp),
-                        shape = CircleShape,
+
+                    Column (
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
                     ) {
-                        Image(
-                            painterResource(R.drawable.download2),
-                            contentDescription = "",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
+                        when (downloadBtnStatus) {
+                            1 -> {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(32.dp),
+                                    color = Color.White,
+                                    strokeWidth = 5.dp
+                                )
+                            }
+                            2 -> {
+//                                Text("V", color = Color.White, fontSize = 24.sp)
+
+                            }
+                            else -> {
+                                Image(
+                                    painterResource(R.drawable.download2),
+                                    contentDescription = "",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+                        }
                     }
                 }
 
@@ -136,6 +165,8 @@ fun FullscreenScreen(
             context = context,
             onDismissRequest = { showModel = false },
             onAdWatched = {
+//                downloadBtnStatus = 1
+                wallpaperViewModel?.updateDownloadBtnStatus(1)
                 // Call downloadImage() after ad is watched
                 wallpaperViewModel?.getDownloadListLinkByItemId(itemId)?.let {
                     Log.d("GDT","onAdWatched")

@@ -70,15 +70,6 @@ fun BottomModal(
     var isAdReady by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
 
-//    // Function to show the ad
-//    fun showRewardedAd() {
-//        rewardedAd?.show(context as Activity) { rewardItem ->
-//            // Ad was watched; trigger the next step
-//            onAdWatched()
-//            onDismissRequest()  // Dismiss the modal after ad is watched
-//        }
-//    }
-
     fun showRewardedAd() {
         rewardedAd?.fullScreenContentCallback = object : FullScreenContentCallback() {
             override fun onAdShowedFullScreenContent() {
@@ -90,7 +81,6 @@ fun BottomModal(
                 // The ad was closed
                 onAdWatched()
                 Log.d("GDT", "Ad was dismissed.")
-//                Toast.makeText(context, "Ad was closed.", Toast.LENGTH_SHORT).show()
                 rewardedAd = null  // Set rewardedAd to null after it is closed
             }
 
@@ -114,7 +104,7 @@ fun BottomModal(
         val adRequest = AdRequest.Builder().build()
         RewardedAd.load(
             context,
-            "ca-app-pub-2358475138249813/9227567103",  // Ad Unit ID
+            "ca-app-pub-6980436502917839/7518909356",
             adRequest,
             object : RewardedAdLoadCallback() {
                 override fun onAdLoaded(ad: RewardedAd) {
@@ -131,6 +121,7 @@ fun BottomModal(
                     Log.d("GDT", "Ad failed to load: ${adError.message}")
                     rewardedAd = null
                     isLoading = false  // Stop loading if failed
+                    Toast.makeText(context, "Msg: ${adError.message}, please try again.", Toast.LENGTH_SHORT).show()
                 }
 
             }

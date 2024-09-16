@@ -1,7 +1,13 @@
 package com.palettex.palettewall
 
+import android.app.DownloadManager
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -49,6 +55,7 @@ import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.rememberDrawerState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
@@ -80,11 +87,21 @@ class MainActivity : ComponentActivity() {
             MobileAds.initialize(this@MainActivity) {}
         }
 
+        // Dynamically register the receiver for ACTION_DOWNLOAD_COMPLETE
+        registerReceiver(downloadCompletedReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),
+            RECEIVER_EXPORTED
+        )
+
+
+
         setContent {
             PaletteWallTheme {
                 val scope = rememberCoroutineScope()
                 val drawerState = rememberDrawerState(DrawerValue.Closed)
                 val navController = rememberNavController()
+
+                // Create SnackbarHostState to handle Snackbar actions
+                val snackbarHostState = remember { SnackbarHostState() }
 
                 ModalNavigationDrawer(
                     drawerState = drawerState,
@@ -104,7 +121,8 @@ class MainActivity : ComponentActivity() {
                 ) {
                     Scaffold(
                         topBar = { MyTopBarTest(topViewModel, scope, drawerState) },
-                        bottomBar = { MyBottomBarTest(topViewModel, navController) }
+                        bottomBar = { MyBottomBarTest(topViewModel, navController) },
+                        snackbarHost = { SnackbarHost(snackbarHostState) }
                     ) { innerPadding ->
                         // Apply custom padding values to reduce space
                         val customPadding = PaddingValues(
@@ -134,8 +152,35 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }
-
+                // Trigger Snackbar on download complete
+                wallpaperViewModel.downloadCompleteEvent.observe(this) {
+                    scope.launch {
+                        snackbarHostState.showSnackbar("Download completed successfully!")
+                    }
+                }
             }
         }
+    }
+
+    // Define your BroadcastReceiver as a field in the MainActivity
+    private val downloadCompletedReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == "android.intent.action.DOWNLOAD_COMPLETE") {
+                val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L)
+                Log.d("DownloadReceiver", "Download complete with ID: $id")
+
+                if (id != -1L) {
+                    wallpaperViewModel.updateDownloadBtnStatus(2)
+//                    Toast.makeText(context, "MainActivity: Downloaded successfully!!!", Toast.LENGTH_SHORT).show()
+                    wallpaperViewModel.notifyDownloadComplete()
+                }
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Unregister the receiver to prevent memory leaks
+        unregisterReceiver(downloadCompletedReceiver)
     }
 }

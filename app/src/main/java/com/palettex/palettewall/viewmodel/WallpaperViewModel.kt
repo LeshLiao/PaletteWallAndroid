@@ -1,5 +1,7 @@
 package com.palettex.palettewall.viewmodel
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.palettex.palettewall.model.WallpaperItem
@@ -13,6 +15,22 @@ class WallpaperViewModel() : ViewModel() {
 
     private val _wallpapers = MutableStateFlow<List<WallpaperItem>>(emptyList())
     val wallpapers: StateFlow<List<WallpaperItem>> = _wallpapers
+
+    private val _downloadBtnStatus = MutableStateFlow(0)
+    val downloadBtnStatus: StateFlow<Int> = _downloadBtnStatus
+
+    // Example method to update download button status
+    fun updateDownloadBtnStatus(status: Int) {
+        _downloadBtnStatus.value = status
+    }
+
+    // LiveData or StateFlow to notify download completion
+    private val _downloadCompleteEvent = MutableLiveData<Unit>()
+    val downloadCompleteEvent: LiveData<Unit> = _downloadCompleteEvent
+
+    fun notifyDownloadComplete() {
+        _downloadCompleteEvent.value = Unit
+    }
 
     init {
         fetchShuffledWallpapersApi()
@@ -56,8 +74,6 @@ class WallpaperViewModel() : ViewModel() {
             }
         }
     }
-
-
 
     fun getThumbnailUrl(wallpaper: WallpaperItem): String {
         return if (wallpaper.thumbnail.contains("https")) {
