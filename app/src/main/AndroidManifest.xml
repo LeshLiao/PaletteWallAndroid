@@ -7,9 +7,9 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/ic_launcher_palettex"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@mipmap/ic_launcher_palettex_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.PaletteWall"
         tools:targetApi="31">
@@ -18,7 +18,10 @@
             android:exported="true"
             android:label="@string/app_name"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.PaletteWall">
+
+            android:theme="@style/SplashTheme"
+            >
+<!--            android:theme="@style/Theme.PaletteWall"-->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

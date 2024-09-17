@@ -11,6 +11,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,8 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsIgnoringVisibility
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -45,6 +48,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -77,7 +81,6 @@ fun FullscreenScreen(
 
     val downloadBtnStatus by wallpaperViewModel?.downloadBtnStatus?.collectAsState() ?: remember { mutableStateOf(0) }
 
-    // Reset downloadBtnStatus to 0 when the screen is launched
     LaunchedEffect(itemId) {
         wallpaperViewModel?.updateDownloadBtnStatus(0)
     }
@@ -89,13 +92,7 @@ fun FullscreenScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .clickable {
-                        val currentTime = System.currentTimeMillis()
-                        if (currentTime - lastClickTime > debounceTime) {
-                            navController?.popBackStack()
-                            lastClickTime = currentTime
-                        }
-                    }
+                    .background(Color.Black)
             ) {
                 Image(
                     painter = rememberAsyncImagePainter(model = ThumbnailImage),
@@ -104,53 +101,75 @@ fun FullscreenScreen(
                     modifier = Modifier.fillMaxSize()
                 )
 
-                FloatingActionButton(
-                    onClick = {
-                        if (downloadBtnStatus == 0) {
-                            showModel = true
+                // Transparent Box for pop back
+                val boxHeight = LocalConfiguration.current.screenHeightDp.dp * 4 / 5
+                val interactionSource = remember { MutableInteractionSource() }
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(boxHeight)
+                        .clickable(
+                            interactionSource = interactionSource,
+                            indication = null // Disable click animation
+                        ) {
+                            val currentTime = System.currentTimeMillis()
+                            if (currentTime - lastClickTime > debounceTime) {
+                                navController?.popBackStack()
+                                lastClickTime = currentTime
+                            }
                         }
+                )
+
+                if (downloadBtnStatus != 2) {
+                    FloatingActionButton(
+                        onClick = {
+                            if (downloadBtnStatus == 0) {
+                                showModel = true
+                            }
 
 //                        downloadImage(context, DownloadImage) { myMsg ->
 //                            msg = myMsg
 //                            isDialogVisible = true // Show dialog after download starts
 //                        }
-                    },
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 56.dp)
-                        .size(46.dp),
-                    containerColor = Color.Transparent,  // Set background to transparent
-                    shape = CircleShape,  // Makes the button round
-                ) {
-
-                    Column (
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                        },
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 56.dp)
+                            .size(46.dp),
+                        containerColor = Color.Transparent,  // Set background to transparent
+                        shape = CircleShape,  // Makes the button round
                     ) {
-                        when (downloadBtnStatus) {
-                            1 -> {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(32.dp),
-                                    color = Color.White,
-                                    strokeWidth = 5.dp
-                                )
-                            }
-                            2 -> {
+
+                        Column (
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            when (downloadBtnStatus) {
+                                1 -> {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(32.dp),
+                                        color = Color.White,
+                                        strokeWidth = 5.dp
+                                    )
+                                }
+                                2 -> {
 //                                Text("V", color = Color.White, fontSize = 24.sp)
 
-                            }
-                            else -> {
-                                Image(
-                                    painterResource(R.drawable.download2),
-                                    contentDescription = "",
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier.fillMaxSize()
-                                )
+                                }
+                                else -> {
+                                    Image(
+                                        painterResource(R.drawable.download2),
+                                        contentDescription = "",
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                }
                             }
                         }
                     }
                 }
+
 
                 // Show the dialog when download starts
                 if (isDialogVisible) {
@@ -165,7 +184,6 @@ fun FullscreenScreen(
             context = context,
             onDismissRequest = { showModel = false },
             onAdWatched = {
-//                downloadBtnStatus = 1
                 wallpaperViewModel?.updateDownloadBtnStatus(1)
                 // Call downloadImage() after ad is watched
                 wallpaperViewModel?.getDownloadListLinkByItemId(itemId)?.let {
@@ -187,29 +205,4 @@ fun downloadImage(context: Context, imageUrl: String?, onDownloadEnqueued: (Stri
     }
     val downloader = AndroidDownloader(context)
     downloader.downloadFile(imageUrl)
-
-//    val request = DownloadManager.Request(Uri.parse(imageUrl))
-//        .setTitle("Downloading Image")
-//        .setDescription("Saving image to device")
-//        .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-//        .setAllowedOverMetered(true)
-//        .setAllowedOverRoaming(true)
-//        .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "image.jpg") // Save in Downloads folder
-//
-//    val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-//    val downloadId = downloadManager.enqueue(request)
-
-    // Pass the downloadId to track the download
-//    onDownloadEnqueued("Download Image.")
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewFullscreenScreen() {
-    FullscreenScreen(
-        "https://firebasestorage.googleapis.com/v0/b/palettex-37930.appspot.com/o/images%2Fitems%2F100047%2F210cc724-df6e-4ef1-91f9-61413cec25fe100047-1.jpg?alt=media&token=562929f0-f622-4134-b591-8b708e367919",
-        null,
-        null,
-        null
-    )
 }

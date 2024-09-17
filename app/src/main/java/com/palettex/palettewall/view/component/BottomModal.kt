@@ -92,8 +92,7 @@ fun BottomModal(
         }
 
         rewardedAd?.show(context as Activity) { rewardItem ->
-            // Ad was watched; trigger the next step
-//            onAdWatched()
+            // onAdWatched()
             onDismissRequest()  // Dismiss the modal after ad is watched
         }
     }
@@ -105,6 +104,7 @@ fun BottomModal(
         RewardedAd.load(
             context,
             "ca-app-pub-6980436502917839/7518909356",
+//            "ca-app-pub-6980436502917839/2711706746",  // Award2
             adRequest,
             object : RewardedAdLoadCallback() {
                 override fun onAdLoaded(ad: RewardedAd) {
@@ -112,9 +112,7 @@ fun BottomModal(
                     rewardedAd = ad
                     isAdReady = true
                     isLoading = false  // Stop loading once ad is ready
-
-                    // Automatically show the ad once it's loaded
-                    showRewardedAd()
+                    showRewardedAd() // Automatically show the ad once it's loaded
                 }
 
                 override fun onAdFailedToLoad(adError: LoadAdError) {
@@ -142,13 +140,17 @@ fun BottomModal(
 
             Button(
                 onClick = {
-                    coroutineScope.launch {
-                        startLoadAd()
+                    if (!isLoading && !isAdReady) {
+                        coroutineScope.launch {
+                            Log.d("GDT", "click startLoadAd()")
+                            startLoadAd()
+                        }
                     }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 12.dp, horizontal = 10.dp),
+                    .height(46.dp)
+                .padding(horizontal = 10.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = colorResource(id = R.color.purple_500)
                 ),
@@ -165,7 +167,7 @@ fun BottomModal(
                             strokeWidth = 3.dp
                         )
                     } else {
-                        Text(text = "Watch Ads", color = Color.White, fontSize = 16.sp)
+                        Text(text = "Watch Ads (Download Free)", color = Color.White, fontSize = 16.sp)
                     }
                 }
             }
