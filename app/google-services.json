@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "73926915976",
+    "project_id": "palettex-37930",
+    "storage_bucket": "palettex-37930.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:73926915976:android:0012b689d4e23d2733ec3d",
+        "android_client_info": {
+          "package_name": "com.palettex.palettewall"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBmUtPSX0qKEg9ofJXWCaDbeR7UgO7-agA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

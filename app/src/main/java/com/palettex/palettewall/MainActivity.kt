@@ -62,6 +62,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.google.android.gms.ads.MobileAds
+import com.google.android.gms.tasks.Task
+import com.google.firebase.messaging.FirebaseMessaging
 import com.palettex.palettewall.view.DrawerContent
 import com.palettex.palettewall.view.MyBottomBarTest
 import com.palettex.palettewall.view.MyTopBarTest
@@ -92,7 +94,16 @@ class MainActivity : ComponentActivity() {
             RECEIVER_EXPORTED
         )
 
-
+        FirebaseMessaging.getInstance().token
+            .addOnCompleteListener { task: Task<String> ->
+                if (!task.isSuccessful) {
+                    Log.w("GDT", "Fetching FCM registration token failed", task.exception)
+                    return@addOnCompleteListener
+                }
+                // Get new FCM registration token
+                val token = task.result
+                Log.d("GDT", "FCM Token: $token")
+            }
 
         setContent {
             PaletteWallTheme {
