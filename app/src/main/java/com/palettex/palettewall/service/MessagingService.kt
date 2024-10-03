@@ -22,6 +22,7 @@ class MessagingService : FirebaseMessagingService() {
         super.onMessageReceived(remoteMessage)
         remoteMessage.run {
             var msg = StringBuffer()
+            Log.d("GDT", "msg.toString="+msg.toString())
             notification?.let {
                 Log.d("GDT", "msg title:${it.title}, body:${it.body}")
                 msg = msg.append("msg title:${it.title}, body:${it.body}\n")
