@@ -19,6 +19,13 @@ class WallpaperViewModel() : ViewModel() {
     private val _downloadBtnStatus = MutableStateFlow(0)
     val downloadBtnStatus: StateFlow<Int> = _downloadBtnStatus
 
+    private val _versionName = MutableStateFlow("")
+    val versionName: StateFlow<String> = _versionName
+
+    fun setVersionName(version: String) {
+        _versionName.value = version
+    }
+
     // Example method to update download button status
     fun updateDownloadBtnStatus(status: Int) {
         _downloadBtnStatus.value = status

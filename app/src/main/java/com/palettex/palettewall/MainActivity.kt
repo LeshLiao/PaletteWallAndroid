@@ -5,6 +5,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageInfo
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -15,37 +17,33 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.*
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.palettex.palettewall.ui.theme.PaletteWallTheme
-import com.palettex.palettewall.view.AIScreen
-import com.palettex.palettewall.view.FavoriteScreen
-import com.palettex.palettewall.view.MainScreen
-import com.palettex.palettewall.viewmodel.MainViewModel
-import com.palettex.palettewall.viewmodel.WallpaperViewModel
-import androidx.compose.material3.*
-import androidx.compose.ui.graphics.Color
-import com.palettex.palettewall.viewmodel.TopBarViewModel
-import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.ModalDrawerSheet
-import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.rememberDrawerState
-import androidx.compose.runtime.remember
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.tasks.Task
 import com.google.firebase.messaging.FirebaseMessaging
+import com.palettex.palettewall.ui.theme.PaletteWallTheme
+import com.palettex.palettewall.view.AIScreen
 import com.palettex.palettewall.view.DrawerContent
+import com.palettex.palettewall.view.FavoriteScreen
+import com.palettex.palettewall.view.MainScreen
 import com.palettex.palettewall.view.MyBottomBarTest
 import com.palettex.palettewall.view.MyTopBarTest
+import com.palettex.palettewall.viewmodel.MainViewModel
+import com.palettex.palettewall.viewmodel.TopBarViewModel
+import com.palettex.palettewall.viewmodel.WallpaperViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+
 
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
@@ -80,6 +78,15 @@ class MainActivity : ComponentActivity() {
                 Log.d("GDT", "FCM Token: $token")
             }
 
+        try {
+            val pInfo: PackageInfo = getPackageManager().getPackageInfo(getPackageName(), 0)
+            val version = pInfo.versionName
+            wallpaperViewModel.setVersionName(version)
+            Log.d("GDT","version="+ version)
+        } catch (e: PackageManager.NameNotFoundException) {
+            e.printStackTrace()
+        }
+
         setContent {
             PaletteWallTheme {
                 val scope = rememberCoroutineScope()
@@ -99,7 +106,7 @@ class MainActivity : ComponentActivity() {
                             drawerContentColor = Color.White,
 
                         ) {
-                            DrawerContent(navController = navController,drawerState = drawerState )
+                            DrawerContent(navController = navController,drawerState = drawerState, viewModel = wallpaperViewModel)
                         }
                     },
                     gesturesEnabled = false,
