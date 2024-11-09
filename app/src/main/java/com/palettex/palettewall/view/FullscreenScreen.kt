@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 
 import androidx.compose.material3.*
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -83,6 +84,16 @@ fun FullscreenScreen(
 
     LaunchedEffect(itemId) {
         wallpaperViewModel?.updateDownloadBtnStatus(0)
+        Log.d("GDT", "FullscreenScreen Init")
+        wallpaperViewModel?.setFullScreenStatus(true)
+    }
+
+    // Disposal log
+    DisposableEffect(itemId) {
+        onDispose {
+            Log.d("GDT", "FullscreenScreen dispose")
+            wallpaperViewModel?.setFullScreenStatus(false)
+        }
     }
 
     Scaffold(
@@ -116,6 +127,7 @@ fun FullscreenScreen(
                             if (currentTime - lastClickTime > debounceTime) {
                                 navController?.popBackStack()
                                 lastClickTime = currentTime
+                                viewModel?.showTopBar()
                             }
                         }
                 )

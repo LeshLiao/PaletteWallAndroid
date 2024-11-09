@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -87,17 +89,20 @@ class MainActivity : ComponentActivity() {
             e.printStackTrace()
         }
 
+
         setContent {
             PaletteWallTheme {
                 val scope = rememberCoroutineScope()
                 val drawerState = rememberDrawerState(DrawerValue.Closed)
                 val navController = rememberNavController()
+                val isFullScreen by wallpaperViewModel.isFullScreen.collectAsState()
 
                 // Create SnackbarHostState to handle Snackbar actions
                 val snackbarHostState = remember { SnackbarHostState() }
 
                 ModalNavigationDrawer(
                     drawerState = drawerState,
+                    gesturesEnabled = !isFullScreen,
                     drawerContent = {
                         ModalDrawerSheet(
                             drawerShape = MaterialTheme.shapes.medium,
@@ -109,7 +114,6 @@ class MainActivity : ComponentActivity() {
                             DrawerContent(navController = navController,drawerState = drawerState, viewModel = wallpaperViewModel)
                         }
                     },
-                    gesturesEnabled = false,
                     scrimColor = Color(0x99000000), // Semi-transparent black scrim
                 ) {
                     Scaffold(

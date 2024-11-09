@@ -19,11 +19,18 @@ class WallpaperViewModel() : ViewModel() {
     private val _downloadBtnStatus = MutableStateFlow(0)
     val downloadBtnStatus: StateFlow<Int> = _downloadBtnStatus
 
+    private val _isFullScreen = MutableStateFlow(false)
+    val isFullScreen: StateFlow<Boolean> = _isFullScreen
+
     private val _versionName = MutableStateFlow("")
     val versionName: StateFlow<String> = _versionName
 
     fun setVersionName(version: String) {
         _versionName.value = version
+    }
+
+    fun setFullScreenStatus(status: Boolean) {
+        _isFullScreen.value = status
     }
 
     // Example method to update download button status
