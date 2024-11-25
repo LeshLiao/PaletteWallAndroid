@@ -1,5 +1,6 @@
 package com.palettex.palettewall.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -36,14 +37,6 @@ class WallpaperViewModel() : ViewModel() {
     // Example method to update download button status
     fun updateDownloadBtnStatus(status: Int) {
         _downloadBtnStatus.value = status
-    }
-
-    // LiveData or StateFlow to notify download completion
-    private val _downloadCompleteEvent = MutableLiveData<Unit>()
-    val downloadCompleteEvent: LiveData<Unit> = _downloadCompleteEvent
-
-    fun notifyDownloadComplete() {
-        _downloadCompleteEvent.value = Unit
     }
 
     init {

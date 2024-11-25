@@ -9,6 +9,7 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -149,12 +150,6 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }
-                // Trigger Snackbar on download complete
-                wallpaperViewModel.downloadCompleteEvent.observe(this) {
-                    scope.launch {
-                        snackbarHostState.showSnackbar("Download completed successfully!")
-                    }
-                }
             }
         }
     }
@@ -164,15 +159,18 @@ class MainActivity : ComponentActivity() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == "android.intent.action.DOWNLOAD_COMPLETE") {
                 val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L)
-                Log.d("DownloadReceiver", "Download complete with ID: $id")
+                Log.d("GDT", "Download complete with ID: $id")
 
                 if (id != -1L) {
                     wallpaperViewModel.updateDownloadBtnStatus(2)
-//                    Toast.makeText(context, "MainActivity: Downloaded successfully!!!", Toast.LENGTH_SHORT).show()
-                    wallpaperViewModel.notifyDownloadComplete()
+                    showDownloadCompleted()
                 }
             }
         }
+    }
+
+    private fun showDownloadCompleted() {
+        Toast.makeText(this, "Download completed successfully!!!", Toast.LENGTH_LONG).show()
     }
 
     override fun onDestroy() {
