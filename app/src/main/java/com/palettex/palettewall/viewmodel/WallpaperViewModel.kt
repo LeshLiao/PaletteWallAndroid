@@ -108,4 +108,13 @@ class WallpaperViewModel() : ViewModel() {
         val wallpaperItem = _wallpapers.value.find { it.itemId == itemId }
         return wallpaperItem?.downloadList?.firstOrNull()?.link
     }
+
+    fun fetchWallpaperBy(param: String) {
+        viewModelScope.launch {
+            try {
+                _wallpapers.value = RetrofitInstance.api.getWallpaperBy(param)
+            } catch (e: Exception) {
+            }
+        }
+    }
 }

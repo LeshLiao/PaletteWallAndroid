@@ -53,7 +53,6 @@ class MainActivity : ComponentActivity() {
     private val wallpaperViewModel: WallpaperViewModel by viewModels()
     private val topViewModel: TopBarViewModel by viewModels()
 
-    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d("GDT","onCreate")

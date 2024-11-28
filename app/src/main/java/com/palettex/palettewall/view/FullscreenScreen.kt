@@ -7,6 +7,13 @@ import android.net.Uri
 import android.os.Environment
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.animation.animateColor
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -61,8 +68,6 @@ import com.palettex.palettewall.viewmodel.AndroidDownloader
 import com.palettex.palettewall.viewmodel.TopBarViewModel
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
 
-
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun FullscreenScreen(
@@ -127,61 +132,26 @@ fun FullscreenScreen(
                             if (currentTime - lastClickTime > debounceTime) {
                                 navController?.popBackStack()
                                 lastClickTime = currentTime
-                                viewModel?.showTopBar()
+//                                viewModel?.showTopBar()
                             }
                         }
                 )
 
                 if (downloadBtnStatus != 2) {
-                    FloatingActionButton(
+                    AnimatedFloatingActionButton(
                         onClick = {
                             if (downloadBtnStatus == 0) {
                                 showModel = true
                             }
-
-//                        downloadImage(context, DownloadImage) { myMsg ->
-//                            msg = myMsg
-//                            isDialogVisible = true // Show dialog after download starts
-//                        }
                         },
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
                             .padding(bottom = 56.dp)
-                            .size(46.dp),
-                        containerColor = Color.Transparent,  // Set background to transparent
-                        shape = CircleShape,  // Makes the button round
-                    ) {
+                            .size(52.dp),
 
-                        Column (
-                            modifier = Modifier.fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            when (downloadBtnStatus) {
-                                1 -> {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(32.dp),
-                                        color = Color.White,
-                                        strokeWidth = 5.dp
-                                    )
-                                }
-                                2 -> {
-//                                Text("V", color = Color.White, fontSize = 24.sp)
-
-                                }
-                                else -> {
-                                    Image(
-                                        painterResource(R.drawable.download2),
-                                        contentDescription = "",
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier.fillMaxSize()
-                                    )
-                                }
-                            }
-                        }
-                    }
+                        isLoading = downloadBtnStatus == 1
+                    )
                 }
-
 
                 // Show the dialog when download starts
                 if (isDialogVisible) {
@@ -217,4 +187,55 @@ fun downloadImage(context: Context, imageUrl: String?, onDownloadEnqueued: (Stri
     }
     val downloader = AndroidDownloader(context)
     downloader.downloadFile(imageUrl)
+}
+
+@Composable
+fun AnimatedFloatingActionButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    isLoading: Boolean = false
+) {
+    // Define a list of colors for the animation
+    val colors = listOf(
+        Color.White,
+        Color.Transparent
+    )
+
+    // InfiniteTransition to cycle through colors
+    val transition = rememberInfiniteTransition(label = "")
+    val animatedColor = transition.animateColor(
+        initialValue = colors.first(),
+        targetValue = colors.last(),
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ), label = ""
+    )
+
+    FloatingActionButton(
+        onClick = onClick,
+        modifier = modifier,
+        containerColor = animatedColor.value,
+        shape = CircleShape,
+    ) {
+        Box (
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(32.dp),
+                    color = Color.White,
+                    strokeWidth = 5.dp
+                )
+            } else {
+                Image(
+                    painterResource(R.drawable.download2),
+                    contentDescription = "",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.size(50.dp)
+                )
+            }
+        }
+    }
 }

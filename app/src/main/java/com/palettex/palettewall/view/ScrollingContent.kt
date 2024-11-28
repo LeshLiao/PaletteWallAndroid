@@ -65,6 +65,21 @@ fun ScrollingContent(
     val lastScrollOffset = remember { mutableIntStateOf(0) }
     val wallpapers by wallpaperViewModel.wallpapers.collectAsState()
 
+    // Pre-initialize the AdMobBannerView for early initialization
+    val context = LocalContext.current
+    val adMobBannerView = remember {
+        AdView(context).apply {
+            setAdSize(AdSize.BANNER)
+            adUnitId = "ca-app-pub-6980436502917839/4038861167"
+        }
+    }
+
+    // Load the AdMob ad early
+    LaunchedEffect(adMobBannerView) {
+        val adRequest = AdRequest.Builder().build()
+        adMobBannerView.loadAd(adRequest)
+    }
+
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemScrollOffset }
             .distinctUntilChanged()
@@ -84,13 +99,7 @@ fun ScrollingContent(
     }
 
     LazyColumn(state = listState) {
-        item {
-            Spacer(
-                modifier = Modifier
-                    .height(80.dp)
-                    .fillMaxWidth()
-            )
-        }
+        item { Spacer(modifier = Modifier.height(80.dp).fillMaxWidth()) }
 
         val listOfImages: List<Pair<String, String>> = listOf(
             "Wallpapers" to "https://firebasestorage.googleapis.com/v0/b/palettex-37930.appspot.com/o/images%2Flayout%2Fall.jpeg?alt=media&token=d7d90309-c950-40ca-92aa-cbae24e38212",
@@ -98,7 +107,9 @@ fun ScrollingContent(
             "City" to "https://firebasestorage.googleapis.com/v0/b/palettex-37930.appspot.com/o/images%2Flayout%2Fcity.jpeg?alt=media&token=4f22eee5-ac9d-45b2-963f-dc1a331cc2cc",
             "Painting" to "https://firebasestorage.googleapis.com/v0/b/palettex-37930.appspot.com/o/images%2Flayout%2Fpainting.jpeg?alt=media&token=e3d01014-a0be-45f2-a818-6fbadd3f78af"
         )
+
         item { Spacer(modifier = Modifier.height(16.dp)) }
+
         item {
             LazyRow () {
                 items(listOfImages) { item ->
@@ -116,11 +127,8 @@ fun ScrollingContent(
                                 .width(80.dp)
                                 .clickable {
                                     when (item.first) {
-                                        "Anime" -> wallpaperViewModel.fetchAnimeApi()
                                         "Wallpapers" -> wallpaperViewModel.fetchShuffledWallpapersApi()
-                                        "City" -> wallpaperViewModel.fetchCityApi()
-                                        "Painting" -> wallpaperViewModel.fetchPaintingApi()
-                                        else -> { /* Handle unknown cases */ }
+                                        else -> wallpaperViewModel.fetchWallpaperBy(item.first)
                                     }
                                 },
                             elevation = CardDefaults.cardElevation(8.dp),
@@ -149,6 +157,8 @@ fun ScrollingContent(
                 }
             }
         }
+
+        item { Spacer(modifier = Modifier.height(6.dp)) }
 
         var count = 0
         itemsIndexed(wallpapers.chunked(3)) { index,rowItems ->
@@ -189,35 +199,14 @@ fun ScrollingContent(
                 }
             }
         }
-//        item {
-//            AdMobBannerView(adUnitId = "ca-app-pub-6980436502917839/4038861167")
-//            Spacer(modifier = Modifier.height(24.dp))
-//        }
-    }
-}
-@Composable
-fun AdMobBannerView(adUnitId: String) {
-    val context = LocalContext.current
-    // Create and initialize the AdView outside the Composable to prevent multiple ad requests
-    val adView = remember {
-        AdView(context).apply {
-            setAdSize(AdSize.FULL_BANNER)
-            this.adUnitId = adUnitId
+        // AdMobBannerView as the last item
+        item {
+            Spacer(modifier = Modifier.height(12.dp))
+            AndroidView(
+                modifier = Modifier.fillMaxWidth(),
+                factory = { adMobBannerView }
+            )
+            Spacer(modifier = Modifier.height(80.dp))
         }
     }
-
-    // Load the ad only once using remember
-    LaunchedEffect(adView) {
-        val adRequest = AdRequest.Builder().build()
-        adView.loadAd(adRequest)
-    }
-
-    // Display the AdView inside the AndroidView
-    AndroidView(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(50.dp)
-            .border(width = 1.dp, color = Color.Gray, shape = RectangleShape),
-        factory = { adView }
-    )
 }
