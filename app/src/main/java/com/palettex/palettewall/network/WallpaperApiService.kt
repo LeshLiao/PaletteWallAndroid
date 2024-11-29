@@ -1,5 +1,6 @@
 package com.palettex.palettewall.network
 
+import com.palettex.palettewall.model.CatalogItem
 import com.palettex.palettewall.model.WallpaperItem
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -20,4 +21,7 @@ interface WallpaperApiService {
     // Function to dynamically pass a parameter
     @GET("items/tag/{param}")
     suspend fun getWallpaperBy(@Path("param") param: String): List<WallpaperItem>
+
+    @GET("items/catalogs/top")
+    suspend fun getCatalogs(): List<CatalogItem>
 }

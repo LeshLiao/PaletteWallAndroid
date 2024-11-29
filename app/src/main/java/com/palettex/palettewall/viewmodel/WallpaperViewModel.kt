@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.palettex.palettewall.model.CatalogItem
 import com.palettex.palettewall.model.WallpaperItem
 import com.palettex.palettewall.network.RetrofitInstance
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,6 +14,9 @@ import kotlinx.coroutines.launch
 
 
 class WallpaperViewModel() : ViewModel() {
+
+    private val _catalogs = MutableStateFlow<List<CatalogItem>>(emptyList())
+    val catalogs: StateFlow<List<CatalogItem>> = _catalogs
 
     private val _wallpapers = MutableStateFlow<List<WallpaperItem>>(emptyList())
     val wallpapers: StateFlow<List<WallpaperItem>> = _wallpapers
@@ -26,6 +30,11 @@ class WallpaperViewModel() : ViewModel() {
     private val _versionName = MutableStateFlow("")
     val versionName: StateFlow<String> = _versionName
 
+    init {
+        getCatalogs()
+        fetchShuffledWallpapersApi()
+    }
+
     fun setVersionName(version: String) {
         _versionName.value = version
     }
@@ -37,10 +46,6 @@ class WallpaperViewModel() : ViewModel() {
     // Example method to update download button status
     fun updateDownloadBtnStatus(status: Int) {
         _downloadBtnStatus.value = status
-    }
-
-    init {
-        fetchShuffledWallpapersApi()
     }
 
     fun fetchShuffledWallpapersApi() {
@@ -114,6 +119,16 @@ class WallpaperViewModel() : ViewModel() {
             try {
                 _wallpapers.value = RetrofitInstance.api.getWallpaperBy(param)
             } catch (e: Exception) {
+            }
+        }
+    }
+
+    fun getCatalogs() {
+        viewModelScope.launch {
+            try {
+                _catalogs.value = RetrofitInstance.api.getCatalogs()
+            } catch (e: Exception) {
+                Log.e("GDT", "Error(getCatalogs):$e")
             }
         }
     }
