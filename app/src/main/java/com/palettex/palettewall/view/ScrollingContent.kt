@@ -1,7 +1,5 @@
 package com.palettex.palettewall.view
 
-import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -52,10 +50,6 @@ import com.palettex.palettewall.viewmodel.TopBarViewModel
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
 
-import com.google.android.gms.ads.AdListener
-import com.google.android.gms.ads.LoadAdError
-import com.palettex.palettewall.BuildConfig
-
 @Composable
 fun ScrollingContent(
     viewModel: TopBarViewModel,
@@ -69,43 +63,17 @@ fun ScrollingContent(
 
     // Pre-initialize the AdMobBannerView for early initialization
     val context = LocalContext.current
-    val isBottomAdsLoaded by wallpaperViewModel.isBottomAdsLoaded.collectAsState()
-
     val adMobBannerView = remember {
         AdView(context).apply {
             setAdSize(AdSize.BANNER)
-            adUnitId = if (BuildConfig.DEBUG_MODE) {
-                "ca-app-pub-3940256099942544/6300978111" // Test ad unit ID
-            } else {
-                "ca-app-pub-6980436502917839/4038861167" // Real ad unit ID
-            }
+            adUnitId = "ca-app-pub-6980436502917839/4038861167"
         }
     }
 
     // Load the AdMob ad early
-    LaunchedEffect(isBottomAdsLoaded) {
-        if (!isBottomAdsLoaded) {
-            val adRequest = AdRequest.Builder().build()
-            adMobBannerView.loadAd(adRequest)
-            Log.d("GDT", "adMobBannerView.loadAd(adRequest)")
-            // Update the ViewModel state when the ad is loaded
-            adMobBannerView.adListener = object : AdListener() {
-                override fun onAdLoaded() {
-                    super.onAdLoaded()
-                    Log.d("GDT", "adMobBannerView onAdLoaded()")
-                    wallpaperViewModel.setBottomAdsLoaded(true)
-                }
-
-                override fun onAdFailedToLoad(adError: LoadAdError) {
-                    Log.d("GDT", "Ad failed to load: ${adError.message}")
-                    Toast.makeText(
-                        context,
-                        "Msg: ${adError.message}, please try again.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            }
-        }
+    LaunchedEffect(adMobBannerView) {
+        val adRequest = AdRequest.Builder().build()
+        adMobBannerView.loadAd(adRequest)
     }
 
     LaunchedEffect(listState) {
