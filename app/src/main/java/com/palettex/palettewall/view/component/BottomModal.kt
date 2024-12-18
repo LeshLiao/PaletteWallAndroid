@@ -54,6 +54,7 @@ import com.google.android.gms.ads.rewarded.RewardedAd
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 import com.palettex.palettewall.R
 import kotlinx.coroutines.launch
+import com.palettex.palettewall.BuildConfig
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -100,15 +101,21 @@ fun BottomModal(
     fun startLoadAd() {
         isLoading = true
 
+        // Use test ad unit ID if in debug mode, otherwise use the production ad unit ID
+        val adUnitId = if (BuildConfig.DEBUG_MODE) {
+            "ca-app-pub-3940256099942544/5224354917" // Official Google test ad unit ID for Rewarded Ads
+        } else {
+            "ca-app-pub-6980436502917839/7518909356" // Your production ad unit ID
+        }
+
         val adRequest = AdRequest.Builder().build()
         RewardedAd.load(
             context,
-            "ca-app-pub-6980436502917839/7518909356",
-//            "ca-app-pub-6980436502917839/2711706746",  // Award2
+            adUnitId,
             adRequest,
             object : RewardedAdLoadCallback() {
                 override fun onAdLoaded(ad: RewardedAd) {
-                    Log.d("GDT", "onAdLoaded()...")
+                    Log.d("GDT", "RewardedAd onAdLoaded()...")
                     rewardedAd = ad
                     isAdReady = true
                     isLoading = false  // Stop loading once ad is ready
@@ -121,10 +128,10 @@ fun BottomModal(
                     isLoading = false  // Stop loading if failed
                     Toast.makeText(context, "Msg: ${adError.message}, please try again.", Toast.LENGTH_SHORT).show()
                 }
-
             }
         )
     }
+
 
     ModalBottomSheet(
         containerColor = Color.Transparent,

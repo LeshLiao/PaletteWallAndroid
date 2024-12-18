@@ -1,7 +1,9 @@
 package com.palettex.palettewall
 
 import android.app.DownloadManager
+import android.app.WallpaperManager
 import android.content.BroadcastReceiver
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -14,11 +16,20 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.*
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -33,6 +44,7 @@ import androidx.navigation.compose.rememberNavController
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.tasks.Task
 import com.google.firebase.messaging.FirebaseMessaging
+import com.palettex.palettewall.service.ParallaxWallpaperService
 import com.palettex.palettewall.ui.theme.PaletteWallTheme
 import com.palettex.palettewall.view.AIScreen
 import com.palettex.palettewall.view.DrawerContent
@@ -139,12 +151,29 @@ class MainActivity : ComponentActivity() {
                             }
                             composable("Favorite") {
                                 FavoriteScreen("This is Favorite", navController)
+
+                                Box(
+                                    modifier = Modifier.fillMaxSize(), // Ensure the Box takes up the entire screen
+                                    contentAlignment = androidx.compose.ui.Alignment.Center // Center content inside the Box
+                                ) {
+                                    androidx.compose.material3.Button(
+                                        onClick = {
+                                            val intent = Intent(WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER).apply {
+                                                putExtra(
+                                                    WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT,
+                                                    ComponentName(this@MainActivity, ParallaxWallpaperService::class.java)
+                                                )
+                                            }
+                                            Log.d("GDT","startActivity(intent)")
+                                            startActivity(intent)
+                                        }
+                                    ) {
+                                        androidx.compose.material3.Text("Set Live Wallpaper")
+                                    }
+                                }
                             }
                             composable("AI") {
                                 AIScreen("This is AI")
-                            }
-                            composable("FullScreenImage") {
-//                                FullScreen2(navController, "https://www.palettex.ca/images/items/100002/100002.jpg")
                             }
                         }
                     }

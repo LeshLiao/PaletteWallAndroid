@@ -30,9 +30,16 @@ class WallpaperViewModel() : ViewModel() {
     private val _versionName = MutableStateFlow("")
     val versionName: StateFlow<String> = _versionName
 
+    private val _isBottomAdsLoaded = MutableStateFlow(false)
+    val isBottomAdsLoaded: StateFlow<Boolean> = _isBottomAdsLoaded
+
     init {
         getCatalogs()
         fetchShuffledWallpapersApi()
+    }
+
+    fun setBottomAdsLoaded(isLoaded: Boolean) {
+        _isBottomAdsLoaded.value = isLoaded
     }
 
     fun setVersionName(version: String) {
