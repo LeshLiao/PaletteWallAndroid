@@ -37,8 +37,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.modifier.modifierLocalMapOf
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -64,7 +66,7 @@ fun ScrollingContent(
 ) {
     val listState = rememberLazyListState()
     val lastScrollOffset = remember { mutableIntStateOf(0) }
-    val catalogs by wallpaperViewModel.catalogs.collectAsState()
+//    val catalogs by wallpaperViewModel.catalogs.collectAsState()
     val wallpapers by wallpaperViewModel.wallpapers.collectAsState()
 
     // Pre-initialize the AdMobBannerView for early initialization
@@ -131,53 +133,20 @@ fun ScrollingContent(
         item { Spacer(modifier = Modifier.height(16.dp)) }
 
         item {
-            Row(
-                modifier = Modifier.horizontalScroll(rememberScrollState())
-            ) {
-                catalogs.forEach { item ->
-                    Column(
-                        modifier = Modifier
-                            .padding(2.dp)
-                            .width(100.dp),  // Removed height constraint
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Card(
-                            modifier = Modifier
-                                .padding(top = 16.dp, bottom = 0.dp)
-                                .height(item.height.dp)
-                                .width(item.width.dp)
-                                .clickable {
-                                    when (item.key) {
-                                        "Wallpapers" -> wallpaperViewModel.fetchShuffledWallpapersApi()
-                                        else -> wallpaperViewModel.fetchWallpaperBy(item.key)
-                                    }
-                                },
-                            elevation = CardDefaults.cardElevation(8.dp),
-                            shape = RoundedCornerShape(8.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = colorResource(id = R.color.black)
-                            )
-                        ) {
-                            Image(
-                                painter = rememberAsyncImagePainter(model = item.photoUrl),
-                                contentDescription = item.title,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        }
+            CatalogRow(wallpaperViewModel)
+        }
+        item {
+            Text(
+                modifier = Modifier.padding(16.dp,16.dp,0.dp,2.dp),
+                text = "Popular Collections ",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.W600,
+                color = Color.White,
 
-                        Spacer(modifier = Modifier.height(2.dp))
-
-                        Text(
-                            text = item.title,
-                            fontSize = 14.sp,
-                            color = Color.White,
-                            modifier = Modifier.padding(2.dp)
-                        )
-                    }
-                }
-            }
+            )
+        }
+        item {
+            PopularWallpapers(viewModel, navController,wallpaperViewModel )
         }
 
         item { Spacer(modifier = Modifier.height(6.dp)) }
