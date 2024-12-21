@@ -1,8 +1,6 @@
 package com.palettex.palettewall.viewmodel
 
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.palettex.palettewall.model.AppSettings
@@ -13,8 +11,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-
 class WallpaperViewModel() : ViewModel() {
+
+    companion object {
+        private val TAG = WallpaperViewModel::class.java.simpleName + "_GDT"
+    }
 
     private val _appSettings = MutableStateFlow(AppSettings())
     val appSettings: StateFlow<AppSettings> = _appSettings
@@ -43,12 +44,24 @@ class WallpaperViewModel() : ViewModel() {
     private val _currentCatalog = MutableStateFlow<String>("")
     val currentCatalog: StateFlow<String> = _currentCatalog
 
+    private val _scrollToTopTrigger = MutableStateFlow(false)
+    val scrollToTopTrigger: StateFlow<Boolean> = _scrollToTopTrigger
+
     init {
         viewModelScope.launch {
             getAppSettings()
             getCatalogs()
             fetchShuffledWallpapersApi()
             setCurrentCatalog("Wallpapers") // main catalog
+        }
+    }
+
+    fun scrollToTop() {
+        viewModelScope.launch {
+            // Trigger scrolling to the top
+            _scrollToTopTrigger.value = true
+            fetchShuffledWallpapersApi()
+            setCurrentCatalog("Wallpapers")
         }
     }
 
@@ -71,6 +84,10 @@ class WallpaperViewModel() : ViewModel() {
 
     fun setCurrentCatalog(status: String) {
         _currentCatalog.value = status
+    }
+
+    fun setScrollToTopTrigger(status: Boolean) {
+        _scrollToTopTrigger.value = status
     }
 
     fun fetchShuffledWallpapersApi() {
@@ -158,7 +175,7 @@ class WallpaperViewModel() : ViewModel() {
             try {
                 _catalogs.value = RetrofitInstance.api.getCatalogs()
             } catch (e: Exception) {
-                Log.e("GDT", "Error(getCatalogs):$e")
+                Log.e(TAG, "Error(getCatalogs):$e")
             }
         }
     }
@@ -168,7 +185,7 @@ class WallpaperViewModel() : ViewModel() {
             try {
                 _appSettings.value = RetrofitInstance.api.getAppSettings()
             } catch (e: Exception) {
-                Log.e("GDT", "Error(getAppSettings):$e")
+                Log.e(TAG, "Error(getAppSettings):$e")
             }
         }
     }

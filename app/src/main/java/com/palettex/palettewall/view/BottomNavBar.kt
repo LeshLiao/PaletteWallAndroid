@@ -19,8 +19,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.palettex.palettewall.R
+import com.palettex.palettewall.viewmodel.WallpaperViewModel
+
 @Composable
-fun BottomNavBar(navController: NavHostController) {
+fun BottomNavBar(navController: NavHostController, wallpaperViewModel: WallpaperViewModel) {
 //    val items = listOf("Home", "Favorite", "AI")
     val items = listOf("Home", "Favorite")
     NavigationBar(
@@ -49,6 +51,9 @@ fun BottomNavBar(navController: NavHostController) {
                     navController.navigate(item) {
                         popUpTo(navController.graph.startDestinationId)
                         launchSingleTop = true
+                    }
+                    if (item == "Home") {
+                        wallpaperViewModel.scrollToTop()
                     }
                 }
             )
