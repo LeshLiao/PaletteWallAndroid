@@ -96,22 +96,15 @@ fun BottomModal(
     fun startLoadAd() {
         isLoading = true
 
-        // Use test ad unit ID if in debug mode, otherwise use the production ad unit ID
-        val adUnitId = if (BuildConfig.DEBUG_MODE) {
-            "ca-app-pub-3940256099942544/5224354917" // Official Google test ad unit ID for Rewarded Ads
-        } else {
-            "ca-app-pub-6980436502917839/7518909356" // Your production ad unit ID
-        }
-
-
         val adRequest = AdRequest.Builder().build()
         RewardedAd.load(
             context,
-            adUnitId,
+            "ca-app-pub-6980436502917839/7518909356",
+//            "ca-app-pub-6980436502917839/2711706746",  // Award2
             adRequest,
             object : RewardedAdLoadCallback() {
                 override fun onAdLoaded(ad: RewardedAd) {
-                    Log.d("GDT", "RewardedAd onAdLoaded()...")
+                    Log.d("GDT", "onAdLoaded()...")
                     rewardedAd = ad
                     isAdReady = true
                     isLoading = false  // Stop loading once ad is ready

@@ -52,10 +52,6 @@ class WallpaperViewModel() : ViewModel() {
         }
     }
 
-    fun setBottomAdsLoaded(isLoaded: Boolean) {
-        _isBottomAdsLoaded.value = isLoaded
-    }
-
     fun setVersionName(version: String) {
         _versionName.value = version
     }

@@ -1,7 +1,5 @@
 package com.palettex.palettewall.view
 
-import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -69,11 +67,7 @@ fun ScrollingContent(
     val adMobBannerView = remember {
         AdView(context).apply {
             setAdSize(AdSize.BANNER)
-            adUnitId = if (BuildConfig.DEBUG_MODE) {
-                "ca-app-pub-3940256099942544/6300978111" // Test ad unit ID
-            } else {
-                "ca-app-pub-6980436502917839/4038861167" // Real ad unit ID
-            }
+            adUnitId = "ca-app-pub-6980436502917839/4038861167"
         }
     }
 
