@@ -4,9 +4,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -15,13 +13,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -31,32 +25,29 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.modifier.modifierLocalMapOf
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
-import com.palettex.palettewall.R
+import com.google.android.gms.ads.LoadAdError
+import com.palettex.palettewall.BuildConfig
 import com.palettex.palettewall.viewmodel.TopBarViewModel
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
-
-import com.google.android.gms.ads.AdListener
-import com.google.android.gms.ads.LoadAdError
-import com.palettex.palettewall.BuildConfig
 
 @Composable
 fun ScrollingContent(
@@ -66,12 +57,14 @@ fun ScrollingContent(
 ) {
     val listState = rememberLazyListState()
     val lastScrollOffset = remember { mutableIntStateOf(0) }
-//    val catalogs by wallpaperViewModel.catalogs.collectAsState()
+    val appSettings by wallpaperViewModel.appSettings.collectAsState()
     val wallpapers by wallpaperViewModel.wallpapers.collectAsState()
+    val currentCatalog by wallpaperViewModel.currentCatalog.collectAsState()
 
     // Pre-initialize the AdMobBannerView for early initialization
     val context = LocalContext.current
     val isBottomAdsLoaded by wallpaperViewModel.isBottomAdsLoaded.collectAsState()
+    var showPopular by remember { mutableStateOf(false) }
 
     val adMobBannerView = remember {
         AdView(context).apply {
@@ -85,8 +78,8 @@ fun ScrollingContent(
     }
 
     // Load the AdMob ad early
-    LaunchedEffect(isBottomAdsLoaded) {
-        if (!isBottomAdsLoaded) {
+    LaunchedEffect(isBottomAdsLoaded, appSettings) {
+        if (!isBottomAdsLoaded && appSettings.adsLevel > 3) {
             val adRequest = AdRequest.Builder().build()
             adMobBannerView.loadAd(adRequest)
             Log.d("GDT", "adMobBannerView.loadAd(adRequest)")
@@ -128,6 +121,14 @@ fun ScrollingContent(
             }
     }
 
+    LaunchedEffect(wallpapers) {
+        if (currentCatalog == "Wallpapers") {
+            showPopular = true
+        } else {
+            showPopular = false
+        }
+    }
+
     LazyColumn(state = listState) {
         item { Spacer(modifier = Modifier.height(80.dp).fillMaxWidth()) }
         item { Spacer(modifier = Modifier.height(16.dp)) }
@@ -135,21 +136,20 @@ fun ScrollingContent(
         item {
             CatalogRow(wallpaperViewModel)
         }
-        item {
-            Text(
-                modifier = Modifier.padding(16.dp,16.dp,0.dp,2.dp),
-                text = "Popular Collections ",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.W600,
-                color = Color.White,
 
-            )
-        }
-        item {
-            PopularWallpapers(viewModel, navController,wallpaperViewModel )
+        if (showPopular) {
+            item {
+                Titles(
+                    title = "Popular Collections",
+                    modifier = Modifier.padding(16.dp, 16.dp, 16.dp, 2.dp)
+                )
+            }
+            item {
+                PopularWallpapers(viewModel, navController, wallpaperViewModel)
+            }
         }
 
-        item { Spacer(modifier = Modifier.height(6.dp)) }
+        item { Spacer(modifier = Modifier.height(10.dp)) }
 
         itemsIndexed(wallpapers.chunked(3)) { index,rowItems ->
             Row(
@@ -168,7 +168,7 @@ fun ScrollingContent(
                                 viewModel.hideTopBar()
                                 navController.navigate("fullscreen/${wallpaper.itemId}")
                             },
-                        shape = RoundedCornerShape(8.dp),
+                        shape = RoundedCornerShape(0.dp),
                         colors = CardDefaults.cardColors(
                             containerColor = Color.Black
                         )
@@ -198,5 +198,26 @@ fun ScrollingContent(
             )
             Spacer(modifier = Modifier.height(80.dp))
         }
+    }
+}
+
+@Composable
+fun Titles(title: String, modifier: Modifier) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = title,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.W600,
+            color = Color.White,
+        )
+        Text(
+            text = ">",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.W600,
+            color = Color.White,
+        )
     }
 }

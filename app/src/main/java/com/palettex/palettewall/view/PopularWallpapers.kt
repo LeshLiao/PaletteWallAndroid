@@ -30,23 +30,26 @@ import com.palettex.palettewall.model.WallpaperItem
 import com.palettex.palettewall.viewmodel.TopBarViewModel
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
 import kotlin.random.Random
-
 @Composable
 fun PopularWallpapers(
     viewModel: TopBarViewModel,
     navController: NavController,
     wallpaperViewModel: WallpaperViewModel,
 ) {
-    val wallpapers by wallpaperViewModel.wallpapers.collectAsState()
+    val topTenWallpapers by wallpaperViewModel.topTenWallpapers.collectAsState()
 
-    // Initialize shuffledWallpapers as a mutable state with an empty list
-    val shuffledWallpapers = remember { mutableStateOf<List<WallpaperItem>>(emptyList()) }
-
-    LaunchedEffect(wallpapers) {
-        if (shuffledWallpapers.value.isEmpty()) {
-            shuffledWallpapers.value = wallpapers.shuffled()
-        }
-    }
+    val borderColorList = listOf(
+//        Color(0xFF1C1C1C), // Near Black
+//        Color(0xFF333333), // Very Dark Gray
+//        Color(0xFF4B4B4B), // Charcoal Gray
+//        Color(0xFF636363), // Dark Gray
+        Color(0xFF7A7A7A), // Medium-Dark Gray
+//        Color(0xFF919191), // Neutral Gray
+//        Color(0xFFA9A9A9), // Light Gray
+//        Color(0xFFC0C0C0), // Silver
+//        Color(0xFFD6D6D6), // Soft Light Gray
+//        Color(0xFFECECEC)  // Very Light Gray
+    )
 
     LazyRow(
         modifier = Modifier
@@ -54,21 +57,16 @@ fun PopularWallpapers(
             .padding(10.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        shuffledWallpapers.value.forEach { wallpaper ->
+        topTenWallpapers.forEachIndexed { index, wallpaper ->
             item {
-                // Generate a random color for the border
-                val randomColor = Color(
-                    red = Random.nextFloat(),
-                    green = Random.nextFloat(),
-                    blue = Random.nextFloat(),
-                    alpha = 1f
-                )
+                // Use the color from the rainbow list in cyclic order
+                val rainbowColor = borderColorList[index % borderColorList.size]
 
                 Card(
                     modifier = Modifier
                         .fillMaxHeight()
                         .aspectRatio(0.5f)
-                        .border(2.dp, randomColor, RoundedCornerShape(8.dp)) // Add border
+                        .border(2.dp, rainbowColor, RoundedCornerShape(8.dp)) // Add border
                         .clickable {
                             viewModel.hideTopBar()
                             navController.navigate("fullscreen/${wallpaper.itemId}")

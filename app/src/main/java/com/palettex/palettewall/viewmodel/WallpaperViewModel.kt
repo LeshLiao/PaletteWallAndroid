@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.palettex.palettewall.model.AppSettings
 import com.palettex.palettewall.model.CatalogItem
 import com.palettex.palettewall.model.WallpaperItem
 import com.palettex.palettewall.network.RetrofitInstance
@@ -14,6 +15,9 @@ import kotlinx.coroutines.launch
 
 
 class WallpaperViewModel() : ViewModel() {
+
+    private val _appSettings = MutableStateFlow(AppSettings())
+    val appSettings: StateFlow<AppSettings> = _appSettings
 
     private val _catalogs = MutableStateFlow<List<CatalogItem>>(emptyList())
     val catalogs: StateFlow<List<CatalogItem>> = _catalogs
@@ -33,9 +37,19 @@ class WallpaperViewModel() : ViewModel() {
     private val _isBottomAdsLoaded = MutableStateFlow(false)
     val isBottomAdsLoaded: StateFlow<Boolean> = _isBottomAdsLoaded
 
+    private val _topTenWallpapers = MutableStateFlow<List<WallpaperItem>>(emptyList())
+    val topTenWallpapers: StateFlow<List<WallpaperItem>> = _topTenWallpapers
+
+    private val _currentCatalog = MutableStateFlow<String>("")
+    val currentCatalog: StateFlow<String> = _currentCatalog
+
     init {
-        getCatalogs()
-        fetchShuffledWallpapersApi()
+        viewModelScope.launch {
+            getAppSettings()
+            getCatalogs()
+            fetchShuffledWallpapersApi()
+            setCurrentCatalog("Wallpapers") // main catalog
+        }
     }
 
     fun setBottomAdsLoaded(isLoaded: Boolean) {
@@ -55,12 +69,21 @@ class WallpaperViewModel() : ViewModel() {
         _downloadBtnStatus.value = status
     }
 
+    fun setCurrentCatalog(status: String) {
+        _currentCatalog.value = status
+    }
+
     fun fetchShuffledWallpapersApi() {
         viewModelScope.launch {
             try {
                 // Fetch the wallpapers and shuffle the list before assigning
                 _wallpapers.value = RetrofitInstance.api.getWallpapers().shuffled()
-                val test = 0
+
+                // get 10 random wallpapers and shuffle it.
+                // Assign to _topTenWallpapers only if it is empty
+                if (_topTenWallpapers.value.isEmpty()) {
+                    _topTenWallpapers.value = _wallpapers.value.shuffled().take(10)
+                }
             } catch (e: Exception) {
                 // Handle the exception (e.g., log error)
             }
@@ -130,12 +153,22 @@ class WallpaperViewModel() : ViewModel() {
         }
     }
 
-    fun getCatalogs() {
+    private fun getCatalogs() {
         viewModelScope.launch {
             try {
                 _catalogs.value = RetrofitInstance.api.getCatalogs()
             } catch (e: Exception) {
                 Log.e("GDT", "Error(getCatalogs):$e")
+            }
+        }
+    }
+
+    private fun getAppSettings() {
+        viewModelScope.launch {
+            try {
+                _appSettings.value = RetrofitInstance.api.getAppSettings()
+            } catch (e: Exception) {
+                Log.e("GDT", "Error(getAppSettings):$e")
             }
         }
     }

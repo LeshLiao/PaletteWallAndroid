@@ -13,8 +13,8 @@ android {
         applicationId = "com.palettex.palettewall"
         minSdk = 30
         targetSdk = 34
-        versionCode = 109
-        versionName = "1.09"
+        versionCode = 200
+        versionName = "2.00"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
