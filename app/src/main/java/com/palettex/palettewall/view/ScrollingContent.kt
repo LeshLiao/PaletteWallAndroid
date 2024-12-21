@@ -65,6 +65,7 @@ fun ScrollingContent(
     val context = LocalContext.current
     val isBottomAdsLoaded by wallpaperViewModel.isBottomAdsLoaded.collectAsState()
     var showPopular by remember { mutableStateOf(false) }
+    val scrollToTopTrigger by wallpaperViewModel.scrollToTopTrigger.collectAsState()
 
     val adMobBannerView = remember {
         AdView(context).apply {
@@ -126,6 +127,13 @@ fun ScrollingContent(
             showPopular = true
         } else {
             showPopular = false
+        }
+    }
+
+    LaunchedEffect(scrollToTopTrigger) {
+        if (scrollToTopTrigger) {
+            listState.animateScrollToItem(0)
+            wallpaperViewModel.setScrollToTopTrigger(false)
         }
     }
 

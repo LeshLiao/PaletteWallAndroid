@@ -23,13 +23,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavHostController
 import com.palettex.palettewall.viewmodel.TopBarViewModel
+import com.palettex.palettewall.viewmodel.WallpaperViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyBottomBarTest(topViewModel: TopBarViewModel, navController: NavHostController) {
+fun MyBottomBarTest(topViewModel: TopBarViewModel, wallpaperViewModel: WallpaperViewModel, navController: NavHostController) {
     AnimatedVisibility(
         visible = topViewModel.isTopBarVisible,
         enter = slideInVertically(
@@ -41,6 +42,6 @@ fun MyBottomBarTest(topViewModel: TopBarViewModel, navController: NavHostControl
             animationSpec = tween(durationMillis = 2000)
         ) + fadeOut(animationSpec = tween(durationMillis = 2000))
     ) {
-        BottomNavBar(navController = navController)
+        BottomNavBar(navController = navController, wallpaperViewModel)
     }
 }

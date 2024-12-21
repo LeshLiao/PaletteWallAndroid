@@ -55,7 +55,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d("GDT","onCreate")
         enableEdgeToEdge()
 
         val backgroundScope = CoroutineScope(Dispatchers.IO)
@@ -118,7 +117,7 @@ class MainActivity : ComponentActivity() {
                 ) {
                     Scaffold(
                         topBar = { MyTopBarTest(topViewModel, scope, drawerState) },
-                        bottomBar = { MyBottomBarTest(topViewModel, navController) },
+                        bottomBar = { MyBottomBarTest(topViewModel, wallpaperViewModel, navController) },
                         snackbarHost = { SnackbarHost(snackbarHostState) }
                     ) { innerPadding ->
                         // Apply custom padding values to reduce space
