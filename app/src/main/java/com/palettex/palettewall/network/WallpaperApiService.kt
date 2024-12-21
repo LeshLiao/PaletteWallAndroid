@@ -1,5 +1,6 @@
 package com.palettex.palettewall.network
 
+import com.palettex.palettewall.model.AppSettings
 import com.palettex.palettewall.model.CatalogItem
 import com.palettex.palettewall.model.WallpaperItem
 import retrofit2.http.GET
@@ -24,4 +25,7 @@ interface WallpaperApiService {
 
     @GET("items/catalogs/top")
     suspend fun getCatalogs(): List<CatalogItem>
+
+    @GET("items/settings/init")
+    suspend fun getAppSettings(): AppSettings
 }

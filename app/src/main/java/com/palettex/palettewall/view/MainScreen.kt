@@ -1,11 +1,7 @@
 package com.palettex.palettewall.view
 
-import android.util.Log
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -15,10 +11,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.palettex.palettewall.viewmodel.WallpaperViewModel
-import java.net.URLDecoder
-import java.nio.charset.StandardCharsets
 import com.palettex.palettewall.viewmodel.TopBarViewModel
+import com.palettex.palettewall.viewmodel.WallpaperViewModel
 
 @Composable
 fun MainScreen(viewModel: TopBarViewModel, wallpaperViewModel: WallpaperViewModel ) {
@@ -32,21 +26,16 @@ fun MainScreen(viewModel: TopBarViewModel, wallpaperViewModel: WallpaperViewMode
             composable("main") {
                 Box {
                     ScrollingContent(viewModel, navController, wallpaperViewModel)
-//                    TopBar(viewModel)
                 }
-//                viewModel.showTopBar()
             }
             composable(
                 route = "fullscreen/{itemId}",
                 arguments = listOf(navArgument("itemId") { type = NavType.StringType })
             ) { backStackEntry ->
                 val itemId = backStackEntry.arguments?.getString("itemId")
-//                val url = itemId?.let { wallpaperViewModel.getThumbnailByItemId(it) }
-//                if (url != null) {
                 if (itemId != null) {
-                    FullscreenScreen(itemId, navController, viewModel, wallpaperViewModel)
+                    FullscreenScreen(itemId, navController, wallpaperViewModel)
                 }
-//                }
             }
         }
     }
