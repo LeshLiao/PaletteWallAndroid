@@ -66,15 +66,19 @@ fun FullscreenScreen(
     var isDialogVisible by remember { mutableStateOf(false) }
     var msg by remember { mutableStateOf("") }
     var currentItemId by remember { mutableStateOf(itemId) }
-    var ThumbnailImage: String? = wallpaperViewModel?.getThumbnailByItemId(currentItemId)
     var showModel by remember { mutableStateOf(false) }
     var isButtonVisible by remember { mutableStateOf(true) }
     val downloadBtnStatus by wallpaperViewModel.downloadBtnStatus.collectAsState()
+    val currentImage by wallpaperViewModel.currentImage.collectAsState()
     val wallpapers by wallpaperViewModel.wallpapers.collectAsState()
 
     val dragState = rememberDraggableState { delta ->
         // Add horizontal drag gesture state
         // Handle drag delta
+    }
+
+    LaunchedEffect(itemId) {
+        wallpaperViewModel.setThumbnailImageByItemId(currentItemId)
     }
 
     LaunchedEffect(currentItemId) {
@@ -109,10 +113,12 @@ fun FullscreenScreen(
                                 if (velocity > 0) {  // Swipe right - previous wallpaper
                                     if (currentIndex > 0) {
                                         currentItemId = wallpapers[currentIndex - 1].itemId
+                                        wallpaperViewModel.setThumbnailImageByItemId(currentItemId)
                                     }
                                 } else {  // Swipe left - next wallpaper
                                     if (currentIndex < wallpapers.size - 1) {
                                         currentItemId = wallpapers[currentIndex + 1].itemId
+                                        wallpaperViewModel.setThumbnailImageByItemId(currentItemId)
                                     }
                                 }
                             }
@@ -120,7 +126,7 @@ fun FullscreenScreen(
                     )
             ) {
                 Image(
-                    painter = rememberAsyncImagePainter(model = ThumbnailImage),
+                    painter = rememberAsyncImagePainter(model = currentImage),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()

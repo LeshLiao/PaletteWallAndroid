@@ -47,6 +47,9 @@ class WallpaperViewModel() : ViewModel() {
     private val _scrollToTopTrigger = MutableStateFlow(false)
     val scrollToTopTrigger: StateFlow<Boolean> = _scrollToTopTrigger
 
+    private val _currentImage = MutableStateFlow("")
+    var currentImage: StateFlow<String> = _currentImage
+
     init {
         viewModelScope.launch {
             getAppSettings()
@@ -88,6 +91,10 @@ class WallpaperViewModel() : ViewModel() {
 
     fun setScrollToTopTrigger(status: Boolean) {
         _scrollToTopTrigger.value = status
+    }
+
+    fun setCurrentImage() {
+
     }
 
     fun fetchShuffledWallpapersApi() {
@@ -139,6 +146,17 @@ class WallpaperViewModel() : ViewModel() {
             wallpaper.thumbnail
         } else {
             "https://www.palettex.ca/images/items/${wallpaper.itemId}/${wallpaper.thumbnail}"
+        }
+    }
+
+    fun setThumbnailImageByItemId(itemId: String) {
+        val wallpaper = _wallpapers.value.find { it.itemId == itemId }
+        if (wallpaper != null) {
+            if (wallpaper.thumbnail.contains("https")) {
+                _currentImage.value = wallpaper.thumbnail
+            } else {
+                _currentImage.value = "https://www.palettex.ca/images/items/${wallpaper.itemId}/${wallpaper.thumbnail}"
+            }
         }
     }
 
