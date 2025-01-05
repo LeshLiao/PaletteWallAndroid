@@ -23,9 +23,39 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
+
+
 class MainActivity : ComponentActivity() {
     private val wallpaperViewModel: WallpaperViewModel by viewModels()
     private val topViewModel: TopBarViewModel by viewModels()
+
+    private lateinit var sensorManager: SensorManager
+    private var accelerometer: Sensor? = null
+
+    private val accelerometerListener = object : SensorEventListener {
+        override fun onSensorChanged(event: SensorEvent?) {
+            event?.let {
+                val x = it.values[0]
+                val y = it.values[1]
+                val z = it.values[2]
+
+                // Set a threshold to detect taps
+                val threshold = 15.0f
+                if (x > threshold || y > threshold || z > threshold) {
+                    Log.d("GDT", "Tap gesture detected")
+                    // Trigger actions, e.g., play next song or previous song
+                }
+            }
+        }
+
+        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+            // Handle accuracy changes if needed
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,6 +75,15 @@ class MainActivity : ComponentActivity() {
                     topViewModel = topViewModel
                 )
             }
+        }
+
+        // Initialize SensorManager and accelerometer
+        sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
+        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+
+        // Register the accelerometer listener
+        accelerometer?.let {
+            sensorManager.registerListener(accelerometerListener, it, SensorManager.SENSOR_DELAY_NORMAL)
         }
     }
 
