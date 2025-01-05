@@ -1,9 +1,11 @@
 package com.palettex.palettewall.view
 
-import androidx.activity.viewModels
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
@@ -23,9 +25,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.palettex.palettewall.viewmodel.TopBarViewModel
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -55,30 +59,48 @@ fun PaletteWallPage(
         },
         scrimColor = Color(0x55000000),
     ) {
-        Scaffold(
-            topBar = { MyTopBarTest(topViewModel, coroutineScope, drawerState) },
-            bottomBar = { MyBottomBarTest(topViewModel, wallpaperViewModel, navController) },
-            snackbarHost = { SnackbarHost(snackBarHostState) }
-        ) { innerPadding ->
-            val customPadding = PaddingValues(
-                start = innerPadding.calculateStartPadding(LocalLayoutDirection.current),
-                top = 0.dp,
-                end = innerPadding.calculateEndPadding(LocalLayoutDirection.current)
-            )
-            NavHost(
-                navController = navController,
-                startDestination = startDestination,
-                Modifier.padding(customPadding)
-            ) {
-                composable("Home") {
-                    MainScreen(topViewModel, wallpaperViewModel)
-                }
-                composable("Favorite") {
-                    FavoriteScreen("",navController)
-                    // WallpaperScreen("",navController)
-                }
-                composable("AI") {
-                    AIScreen("")
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black) // Set the background color to black
+        ) {
+            Scaffold(
+//                modifier = Modifier.fillMaxSize().background(Color.Red),  // Add background color
+                containerColor = Color.Black,  // Set container color to black
+                topBar = { MyTopBarTest(topViewModel, coroutineScope, drawerState) },
+                bottomBar = { MyBottomBarTest(topViewModel, wallpaperViewModel, navController) },
+                snackbarHost = { SnackbarHost(snackBarHostState) }
+            ) { innerPadding ->
+                val customPadding = PaddingValues(
+                    start = innerPadding.calculateStartPadding(LocalLayoutDirection.current),
+                    top = 0.dp,
+                    end = innerPadding.calculateEndPadding(LocalLayoutDirection.current)
+                )
+                NavHost(
+                    navController = navController,
+                    startDestination = startDestination,
+                    Modifier.padding(customPadding)
+                ) {
+                    composable("Home") {
+//                        MainScreen(topViewModel, wallpaperViewModel)
+                        ScrollingContent(topViewModel, navController, wallpaperViewModel)
+                    }
+                    composable("Favorite") {
+                        FavoriteScreen(topViewModel, navController)
+                        // WallpaperScreen("",navController)
+                    }
+                    composable("AI") {
+                        AIScreen("")
+                    }
+                    composable(
+                        route = "fullscreen/{itemId}",
+                        arguments = listOf(navArgument("itemId") { type = NavType.StringType })
+                    ) { backStackEntry ->
+                        val itemId = backStackEntry.arguments?.getString("itemId")
+                        if (itemId != null) {
+                            FullscreenScreen(itemId, navController, wallpaperViewModel)
+                        }
+                    }
                 }
             }
         }
