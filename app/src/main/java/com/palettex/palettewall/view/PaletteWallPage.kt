@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -46,9 +47,13 @@ fun PaletteWallPage(
         drawerState = drawerState,
         gesturesEnabled = !isFullScreen,
         drawerContent = {
-            DrawerContent(navController, drawerState, wallpaperViewModel)
+            ModalDrawerSheet(
+                drawerContainerColor =  Color(0xCC000000) // Set the drawer background color to black
+            ) {
+                DrawerContent(navController, drawerState, wallpaperViewModel)
+            }
         },
-        scrimColor = Color(0x99000000),
+        scrimColor = Color(0x55000000),
     ) {
         Scaffold(
             topBar = { MyTopBarTest(topViewModel, coroutineScope, drawerState) },
@@ -70,6 +75,7 @@ fun PaletteWallPage(
                 }
                 composable("Favorite") {
                     FavoriteScreen("",navController)
+                    // WallpaperScreen("",navController)
                 }
                 composable("AI") {
                     AIScreen("")
