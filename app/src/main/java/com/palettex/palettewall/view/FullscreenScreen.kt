@@ -52,6 +52,7 @@ import com.palettex.palettewall.R
 import com.palettex.palettewall.view.component.BottomModal
 import com.palettex.palettewall.view.utility.throttleClick
 import com.palettex.palettewall.viewmodel.AndroidDownloader
+import com.palettex.palettewall.viewmodel.TopBarViewModel
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
 import kotlin.math.abs
 
@@ -60,7 +61,8 @@ import kotlin.math.abs
 fun FullscreenScreen(
     itemId: String,
     navController: NavController?,
-    wallpaperViewModel: WallpaperViewModel
+    wallpaperViewModel: WallpaperViewModel,
+    viewModel: TopBarViewModel,
 ) {
     val context = LocalContext.current
     var isDialogVisible by remember { mutableStateOf(false) }
@@ -141,6 +143,7 @@ fun FullscreenScreen(
 //                            .border(1.dp,Color.White, RectangleShape)
                             .padding(start = 26.dp)
                             .throttleClick {
+                                viewModel.showTopBar()
                                 navController?.popBackStack()
                             },
                         contentAlignment = Alignment.CenterStart
@@ -289,5 +292,6 @@ fun GetBackButton() {
 @Composable
 fun PreviewFullscreenScreen() {
     val mockWallpaperViewModel = WallpaperViewModel().apply {}
-    FullscreenScreen(itemId = "mockItemId", null, mockWallpaperViewModel)
+    val mockTopBarViewModel = TopBarViewModel().apply {}
+    FullscreenScreen(itemId = "mockItemId", null, mockWallpaperViewModel, mockTopBarViewModel)
 }

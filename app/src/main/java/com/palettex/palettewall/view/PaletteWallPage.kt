@@ -29,6 +29,8 @@ import com.palettex.palettewall.viewmodel.TopBarViewModel
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
 import kotlinx.coroutines.CoroutineScope
 import androidx.compose.material3.ModalDrawerSheet
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 
 @Composable
 fun PaletteWallPage(
@@ -73,10 +75,19 @@ fun PaletteWallPage(
                 }
                 composable("Favorite") {
                     // FavoriteScreen("",navController)
-                    WallpaperScreen("", navController)
+                    WallpaperScreen("", navController, wallpaperViewModel, topViewModel)
                 }
                 composable("AI") {
                     AIScreen("")
+                }
+                composable(
+                    route = "fullscreen/{itemId}",
+                    arguments = listOf(navArgument("itemId") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val itemId = backStackEntry.arguments?.getString("itemId")
+                    if (itemId != null) {
+                        FullscreenScreen(itemId, navController, wallpaperViewModel, topViewModel)
+                    }
                 }
             }
         }
