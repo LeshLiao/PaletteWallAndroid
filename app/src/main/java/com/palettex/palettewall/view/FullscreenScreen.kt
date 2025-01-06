@@ -18,6 +18,8 @@ import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -36,6 +38,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,7 +52,10 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.palettex.palettewall.R
+import com.palettex.palettewall.data.WallpaperDatabase
 import com.palettex.palettewall.view.component.BottomModal
+import com.palettex.palettewall.view.component.LikeButton
+import com.palettex.palettewall.view.component.ShareButton
 import com.palettex.palettewall.view.utility.throttleClick
 import com.palettex.palettewall.viewmodel.AndroidDownloader
 import com.palettex.palettewall.viewmodel.TopBarViewModel
@@ -73,6 +79,10 @@ fun FullscreenScreen(
     val downloadBtnStatus by wallpaperViewModel.downloadBtnStatus.collectAsState()
     val currentImage by wallpaperViewModel.currentImage.collectAsState()
     val wallpapers by wallpaperViewModel.wallpapers.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
+
+    val database = remember { WallpaperDatabase.getDatabase(context) }
+    val dao = remember { database.likedWallpaperDao() }
 
     val dragState = rememberDraggableState { delta ->
         // Add horizontal drag gesture state
@@ -172,19 +182,28 @@ fun FullscreenScreen(
 //                            .border(1.dp,Color.White, RectangleShape)
                             .throttleClick {}
                     ) {
+                        val isLiked by dao.isWallpaperLiked(itemId)
+                            .collectAsState(initial = false)
+
                         if (downloadBtnStatus != 2) {
                             if (isButtonVisible) {
-                                AnimatedFloatingActionButton(
-                                    onClick = {
-                                        if (downloadBtnStatus == 0) {
-                                            showModel = true
-                                        }
-                                    },
-                                    modifier = Modifier
-                                        .align(Alignment.Center)
-                                        .size(52.dp),
-                                    isLoading = downloadBtnStatus == 1
-                                )
+                                Row(
+                                    modifier = Modifier.align(Alignment.Center)
+                                ) {
+                                    ShareButton(itemId, wallpaperViewModel)
+                                    Spacer(Modifier.size(16.dp))
+                                    AnimatedFloatingActionButton(
+                                        onClick = {
+                                            if (downloadBtnStatus == 0) {
+                                                showModel = true
+                                            }
+                                        },
+                                        modifier = Modifier.size(52.dp),
+                                        isLoading = downloadBtnStatus == 1
+                                    )
+                                    Spacer(Modifier.size(16.dp))
+                                    LikeButton(isLiked, dao, itemId, wallpaperViewModel, coroutineScope)
+                                }
                             }
                         }
                     }
