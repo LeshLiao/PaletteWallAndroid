@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -33,6 +32,9 @@ import androidx.navigation.navArgument
 import com.palettex.palettewall.viewmodel.TopBarViewModel
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
 import kotlinx.coroutines.CoroutineScope
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 
 @Composable
 fun PaletteWallPage(
@@ -51,9 +53,7 @@ fun PaletteWallPage(
         drawerState = drawerState,
         gesturesEnabled = !isFullScreen,
         drawerContent = {
-            ModalDrawerSheet(
-                drawerContainerColor =  Color(0xCC000000) // Set the drawer background color to black
-            ) {
+            ModalDrawerSheet(drawerContainerColor =  Color(0xCC000000)) {
                 DrawerContent(navController, drawerState, wallpaperViewModel)
             }
         },
@@ -86,7 +86,7 @@ fun PaletteWallPage(
                         ScrollingContent(topViewModel, navController, wallpaperViewModel)
                     }
                     composable("Favorite") {
-                        FavoriteScreen(topViewModel, navController)
+                        FavoriteScreen("", navController, wallpaperViewModel, topViewModel)
                         // WallpaperScreen("",navController)
                     }
                     composable("AI") {
@@ -100,6 +100,15 @@ fun PaletteWallPage(
                         if (itemId != null) {
                             FullscreenScreen(itemId, navController, wallpaperViewModel)
                         }
+                    }
+                }
+                composable(
+                    route = "fullscreen/{itemId}",
+                    arguments = listOf(navArgument("itemId") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val itemId = backStackEntry.arguments?.getString("itemId")
+                    if (itemId != null) {
+                        FullscreenScreen(itemId, navController, wallpaperViewModel, topViewModel)
                     }
                 }
             }

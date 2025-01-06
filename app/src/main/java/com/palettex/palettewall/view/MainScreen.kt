@@ -15,7 +15,7 @@ import com.palettex.palettewall.viewmodel.TopBarViewModel
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
 
 @Composable
-fun MainScreen(viewModel: TopBarViewModel, wallpaperViewModel: WallpaperViewModel ) {
+fun MainScreen(viewModel: TopBarViewModel, wallpaperViewModel: WallpaperViewModel) {
     val navController = rememberNavController()
 
     Surface(
@@ -34,7 +34,7 @@ fun MainScreen(viewModel: TopBarViewModel, wallpaperViewModel: WallpaperViewMode
             ) { backStackEntry ->
                 val itemId = backStackEntry.arguments?.getString("itemId")
                 if (itemId != null) {
-                    FullscreenScreen(itemId, navController, wallpaperViewModel)
+                    FullscreenScreen(itemId, navController, wallpaperViewModel, viewModel)
                 }
             }
         }

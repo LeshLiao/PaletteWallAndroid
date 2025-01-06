@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class WallpaperViewModel() : ViewModel() {
+open class WallpaperViewModel() : ViewModel() {
 
     companion object {
         private val TAG = WallpaperViewModel::class.java.simpleName + "_GDT"
