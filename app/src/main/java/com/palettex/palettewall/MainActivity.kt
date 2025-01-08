@@ -36,7 +36,11 @@ class MainActivity : ComponentActivity() {
         fetchFirebaseToken()
         initializeVersionName()
 
-        registerReceiver(downloadCompletedReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE), RECEIVER_EXPORTED)
+        registerReceiver(
+            downloadCompletedReceiver,
+            IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),
+            RECEIVER_EXPORTED
+        )
 
         setContent {
             PaletteWallTheme {
