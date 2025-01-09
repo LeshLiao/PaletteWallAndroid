@@ -1,6 +1,7 @@
 package com.palettex.palettewall.view
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,6 +22,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -36,6 +39,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
@@ -57,47 +61,84 @@ fun CarouselPage(
     topViewModel: TopBarViewModel,
 ) {
     val context: Context = LocalContext.current
-    val wallpapers by wallpaperViewModel.wallpapers.collectAsState()
-    val database = remember { WallpaperDatabase.getDatabase(context) }
-    val dao = remember { database.likedWallpaperDao() }
+    val allWallpapers by wallpaperViewModel.wallpapers.collectAsState()
+    val filterWallpapers by wallpaperViewModel.filterWallpapers.collectAsState()
+    val firstSelectedColor by wallpaperViewModel.firstSelectedColor.collectAsState()
+    val secondSelectedColor by wallpaperViewModel.secondSelectedColor.collectAsState()
 
     LaunchedEffect(Unit) {
         topViewModel.showTopBar()
-
+        if (filterWallpapers.isEmpty()) {
+            wallpaperViewModel.updateFilteredWallpapers()
+        }
     }
-
-//    val wallpapers = listOf(
-//        "https://fastly.picsum.photos/id/240/300/600.jpg?hmac=LAkt9UXHs1HHjNbJ7jrWrwRZ4OI0Rk-0ef3-MAkz0_E",
-//        "https://fastly.picsum.photos/id/61/300/600.jpg?hmac=9yuTI9wZRaa_XbDn9T3glKjq4bw99MHI91kJInO8Ey8",
-//        "https://fastly.picsum.photos/id/847/300/600.jpg?hmac=xYyeCFbSHqdeQDqPOO8_uoYbWVx5RRJ_zq-_aj--678",
-//        "https://fastly.picsum.photos/id/61/300/600.jpg?hmac=9yuTI9wZRaa_XbDn9T3glKjq4bw99MHI91kJInO8Ey8",
-//        "https://fastly.picsum.photos/id/174/300/600.jpg?hmac=N7PTKsEZ7AlKrxi6lxH9gLzAe4AMXM1Yvq0bsqWZe38",
-//    )
 
     Column {
         Spacer(modifier = Modifier.height(topOffset))
-        ColorPaletteMatrix{}
+        ColorPaletteMatrix(wallpaperViewModel)
+//        ColorInfoDisplay(firstSelectedColor, secondSelectedColor)
         Box(modifier = Modifier.fillMaxSize()) {
-            WallpaperCarousel2(wallpapers, wallpaperViewModel, bottomOffset) { itemId ->
+            WallpaperCarousel2(filterWallpapers, wallpaperViewModel, bottomOffset) { itemId ->
                 topViewModel.hideTopBar()
                 navController.navigate("fullscreen/${itemId}")
+                Log.d("GDT","itemId=$itemId")
             }
         }
     }
+}
+@Composable
+fun ColorInfoDisplay(
+    firstSelectedColor: Color?,
+    secondSelectedColor: Color?
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(1.dp, Color.Red)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween // Ensures space between elements
+    ) {
+        firstSelectedColor?.let { color ->
+            Text(
+                text = "First Color: ${colorToARGBString(color)}",
+                fontSize = 14.sp,
+                modifier = Modifier.padding(vertical = 2.dp),
+                color = Color.White
+            )
+        }
+        secondSelectedColor?.let { color ->
+            Text(
+                text = "Second Color: ${colorToARGBString(color)}",
+                fontSize = 14.sp,
+                modifier = Modifier.padding(vertical = 2.dp),
+                color = Color.White
+            )
+        }
+    }
+}
+
+private fun colorToARGBString(color: Color): String {
+    return String.format(
+        "#%08X",
+        (color.alpha * 255).toInt() shl 24 or
+                ((color.red * 255).toInt() shl 16) or
+                ((color.green * 255).toInt() shl 8) or
+                (color.blue * 255).toInt()
+    )
 }
 
 @Composable
 fun WallpaperCarousel2(
 //    wallpapers: List<String>,
-    wallpapers: List<WallpaperItem>,
+    filterWallpapers: List<WallpaperItem>,
     wallpaperViewModel: WallpaperViewModel,
     bottomOffset: Dp,
     onWallpaperSelected: (String) -> Unit,
 ) {
-    val middlePageIndex = wallpapers.size / 2
+    val middlePageIndex = filterWallpapers.size / 2
     val pagerState = rememberPagerState(
         initialPage = middlePageIndex,
-        pageCount = { wallpapers.size }
+        pageCount = { filterWallpapers.size }
     )
     val scope = rememberCoroutineScope()
 
@@ -124,7 +165,7 @@ fun WallpaperCarousel2(
                     ).absoluteValue
             val scale = 1f - (pageOffset * 0.15f).coerceIn(0f, 0.15f)
             val alpha = 1f - (pageOffset * 0.5f).coerceIn(0f, 0.5f)
-            val itemId = wallpapers[page].itemId
+            val itemId = filterWallpapers[page].itemId
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
@@ -166,7 +207,7 @@ fun WallpaperCarousel2(
                 .height(110.dp)
                 .padding(vertical = 8.dp)
         ) {
-            items(wallpapers.size) { index ->
+            items(filterWallpapers.size) { index ->
                 Box(
                     modifier = Modifier
                         .width(50.dp)
@@ -184,7 +225,7 @@ fun WallpaperCarousel2(
                             }
                         }
                 ) {
-                    val imageUrl = wallpaperViewModel.getThumbnailByItemId(wallpapers[index].itemId)
+                    val imageUrl = wallpaperViewModel.getThumbnailByItemId(filterWallpapers[index].itemId)
                     Image(
                         painter = rememberAsyncImagePainter(imageUrl),
                         contentDescription = "Thumbnail ${index + 1}",
