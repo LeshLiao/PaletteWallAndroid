@@ -180,7 +180,7 @@ fun ScrollingContent(
                             .clickable {
                                 topViewModel.hideTopBar()
                                 navController.navigate("fullscreen/${wallpaper.itemId}")
-                                Log.d("GDT","itemId=${wallpaper.itemId}")
+//                                Log.d("GDT","itemId=${wallpaper.itemId}")
                             },
                     ) {
                         Image(

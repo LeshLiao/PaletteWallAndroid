@@ -59,7 +59,7 @@ fun MyTopBarTest(
         TopAppBar(
             modifier = Modifier.onSizeChanged { size ->
                 val topHeight = with(density) { size.height.toDp() }
-                Log.d("GDT","TopAppBar onBannerHeightMeasured height = " + topHeight)
+//                Log.d("GDT","TopAppBar onBannerHeightMeasured height = " + topHeight)
                 onBannerHeightMeasured(topHeight)
             },
             title = {

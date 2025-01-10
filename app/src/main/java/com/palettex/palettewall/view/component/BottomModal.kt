@@ -100,9 +100,8 @@ fun BottomModal(
         val adUnitId = if (BuildConfig.DEBUG_MODE) {
             "ca-app-pub-3940256099942544/5224354917" // Official Google test ad unit ID for Rewarded Ads
         } else {
-            "ca-app-pub-6980436502917839/7518909356" // Your production ad unit ID
+            "ca-app-pub-6980436502917839/7518909356" // DownloadReward Real ad unit ID
         }
-
 
         val adRequest = AdRequest.Builder().build()
         RewardedAd.load(

@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlin.math.min
 import kotlin.math.sqrt
 
 open class WallpaperViewModel() : ViewModel() {
@@ -114,6 +115,7 @@ open class WallpaperViewModel() : ViewModel() {
             try {
                 // Fetch the wallpapers and shuffle the list before assigning
                 _wallpapers.value = RetrofitInstance.api.getWallpapers().shuffled()
+//                _wallpapers.value = RetrofitInstance.api.getWallpapers()
 
                 // get 10 random wallpapers and shuffle it.
                 // Assign to _topTenWallpapers only if it is empty
@@ -262,7 +264,6 @@ open class WallpaperViewModel() : ViewModel() {
         // Find the best matching pair of colors
         var minTotalDistance = Double.MAX_VALUE
 
-        // Try matching colors in both orders to find the best match
         for (wallpaperColor in wallpaperColors) {
             val dist1 = calculateColorSimilarity(targetColor1, wallpaperColor)
             for (otherWallpaperColor in wallpaperColors) {
@@ -275,7 +276,6 @@ open class WallpaperViewModel() : ViewModel() {
                 }
             }
         }
-
         return minTotalDistance
     }
 
@@ -304,7 +304,7 @@ open class WallpaperViewModel() : ViewModel() {
                         .map { it.first }
                 }
                 first != null -> {
-                    // Filter by single color
+                    // Filter by first color only
                     _wallpapers.value
                         .map { wallpaper ->
                             val wallpaperColors = getWallpaperColors(wallpaper)
@@ -317,9 +317,25 @@ open class WallpaperViewModel() : ViewModel() {
                         .take(10)
                         .map { it.first }
                 }
+                second != null -> {
+                    // Filter by second color only
+                    _wallpapers.value
+                        .map { wallpaper ->
+                            val wallpaperColors = getWallpaperColors(wallpaper)
+                            val similarity = wallpaperColors.minOfOrNull {
+                                calculateColorSimilarity(second, it)
+                            } ?: Double.MAX_VALUE
+                            wallpaper to similarity
+                        }
+                        .sortedBy { it.second }
+                        .take(10)
+                        .map { it.first }
+                }
                 else -> {
                     // No color selected - show 30 random wallpapers
                     _wallpapers.value.shuffled().take(30)
+//                    _wallpapers.value.take(30)
+//                    _wallpapers.value // all
                 }
             }
 
