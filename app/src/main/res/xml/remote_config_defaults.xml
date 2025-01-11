@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<defaultsMap>
+  <entry>
+    <key>mode_DownloadReward</key>
+    <value>0</value>
+  </entry>
+  <entry>
+    <key>AdUnitID_DownloadReward</key>
+    <value>ca-app-pub-6980436502917839/7518909356</value>
+  </entry>
+  <entry>
+    <key>mode_BottomBanner</key>
+    <value>0</value>
+  </entry>
+  <entry>
+    <key>AdUnitID_BottomBanner</key>
+    <value>ca-app-pub-6980436502917839/4038861167</value>
+  </entry>
+</defaultsMap>

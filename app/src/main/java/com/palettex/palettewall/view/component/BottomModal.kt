@@ -47,6 +47,7 @@ import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 import com.palettex.palettewall.R
 import kotlinx.coroutines.launch
 import com.palettex.palettewall.BuildConfig
+import com.palettex.palettewall.data.PaletteRemoteConfig
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -96,11 +97,18 @@ fun BottomModal(
     fun startLoadAd() {
         isLoading = true
 
-        // Use test ad unit ID if in debug mode, otherwise use the production ad unit ID
-        val adUnitId = if (BuildConfig.DEBUG_MODE) {
-            "ca-app-pub-3940256099942544/5224354917" // Official Google test ad unit ID for Rewarded Ads
-        } else {
-            "ca-app-pub-6980436502917839/7518909356" // DownloadReward Real ad unit ID
+        // Get ad unit ID based on remote config mode
+        // BuildConfig.DEBUG_MODE
+        val adUnitId = when {
+            BuildConfig.DEBUG_MODE || PaletteRemoteConfig.isDebugMode() -> {
+                "ca-app-pub-3940256099942544/5224354917" // Test ad unit ID
+            }
+            PaletteRemoteConfig.shouldShowAds() -> {
+                PaletteRemoteConfig.getAdUnitId() // Production ad unit ID
+            }
+            else -> {
+                "" // No ads mode
+            }
         }
 
         val adRequest = AdRequest.Builder().build()
@@ -144,9 +152,8 @@ fun BottomModal(
                 onClick = {
                     if (!isLoading && !isAdReady) {
                         coroutineScope.launch {
-                            Log.d("GDT", "click startLoadAd()," +
-                                    "adsLevel="+ appSettings.adsLevel)
-                            if (appSettings.adsLevel == 0) {
+                            // If no ads should be shown, skip ad loading
+                            if (!PaletteRemoteConfig.shouldShowAds()) {
                                 onDismissRequest()
                                 onAdWatchedAndStartDownload()
                             } else {
