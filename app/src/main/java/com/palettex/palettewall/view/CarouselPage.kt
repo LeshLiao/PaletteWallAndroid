@@ -1,7 +1,6 @@
 package com.palettex.palettewall.view
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -21,9 +20,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,7 +38,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.modifier.modifierLocalMapOf
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -65,13 +63,13 @@ fun CarouselPage(
     wallpaperViewModel: WallpaperViewModel,
     topViewModel: TopBarViewModel,
 ) {
-    val context: Context = LocalContext.current
-    val allWallpapers by wallpaperViewModel.wallpapers.collectAsState()
     val filterWallpapers by wallpaperViewModel.filterWallpapers.collectAsState()
     val firstSelectedColor by wallpaperViewModel.firstSelectedColor.collectAsState()
     val secondSelectedColor by wallpaperViewModel.secondSelectedColor.collectAsState()
     var colorSelectedList by remember { mutableStateOf<List<Color>>(emptyList()) }
     var colorBrowseList by remember { mutableStateOf<List<Color>>(emptyList()) }
+    var carouselPagerState: PagerState? by remember { mutableStateOf(null) }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         topViewModel.showTopBar()
@@ -86,13 +84,22 @@ fun CarouselPage(
         firstSelectedColor?.let { newList.add(it) }
         secondSelectedColor?.let { newList.add(it) }
         colorSelectedList = newList
+
+        // Scroll to target page when clicking
+        if (newList.isNotEmpty() && filterWallpapers.size > 1) {
+            carouselPagerState?.let { pagerState ->
+                scope.launch {
+                    pagerState.animateScrollToPage(2)
+                }
+            }
+        }
     }
 
     Column {
         Spacer(modifier = Modifier.height(topOffset))
         ColorPaletteMatrix(wallpaperViewModel)
-//        ColorInfoDisplay(colorSelectedList)
-//        ColorInfoDisplay(colorBrowseList)
+//        ColorInfoDisplay(colorSelectedList) // Palette selected color
+//        ColorInfoDisplay(colorBrowseList) // Carousel Target color
         Box(modifier = Modifier.fillMaxSize()) {
             WallpaperCarousel2(
                 filterWallpapers = filterWallpapers,
@@ -104,6 +111,10 @@ fun CarouselPage(
                 },
                 onColorTagsChanged = { tags ->
                     colorBrowseList = tags
+                },
+                onPagerStateAvailable = { pagerState ->
+                    // Store the PagerState when it becomes available
+                    carouselPagerState = pagerState
                 }
             )
         }
@@ -161,7 +172,8 @@ fun WallpaperCarousel2(
     wallpaperViewModel: WallpaperViewModel,
     bottomOffset: Dp,
     onWallpaperSelected: (String) -> Unit,
-    onColorTagsChanged: (List<Color>) -> Unit = {}
+    onColorTagsChanged: (List<Color>) -> Unit = {},
+    onPagerStateAvailable: (PagerState) -> Unit = {}
 ) {
     // Check if the list is empty first
     if (filterWallpapers.isEmpty()) { return }
@@ -171,6 +183,11 @@ fun WallpaperCarousel2(
         initialPage = middlePageIndex,
         pageCount = { filterWallpapers.size }
     )
+
+    // Notify parent about the PagerState
+    LaunchedEffect(pagerState) {
+        onPagerStateAvailable(pagerState)
+    }
 
     LaunchedEffect(pagerState.currentPage, filterWallpapers) {
         val currentWallpaper = filterWallpapers[pagerState.currentPage]
