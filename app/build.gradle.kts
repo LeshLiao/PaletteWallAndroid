@@ -1,4 +1,4 @@
-import java.util.Properties
+ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
@@ -25,24 +25,24 @@ android {
     }
 
 
-    android {
-        signingConfigs {
-            create("release") {
-                val localPropertiesFile = rootProject.file("local.properties")
-                if (localPropertiesFile.exists()) {
-                    val properties = Properties()
-                    localPropertiesFile.inputStream().use { properties.load(it) }
+        android {
+            signingConfigs {
+                create("release") {
+                    val localPropertiesFile = rootProject.file("local.properties")
+                    if (localPropertiesFile.exists()) {
+                        val properties = Properties()
+                        localPropertiesFile.inputStream().use { properties.load(it) }
 
-                    storeFile = file(properties.getProperty("STORE_FILE") ?: "")
-                    storePassword = properties.getProperty("STORE_PASSWORD") ?: ""
-                    keyAlias = properties.getProperty("KEY_ALIAS") ?: ""
-                    keyPassword = properties.getProperty("KEY_PASSWORD") ?: ""
-                } else {
-                    println("Warning: local.properties file is missing.")
+                        storeFile = file(properties.getProperty("STORE_FILE") ?: "")
+                        storePassword = properties.getProperty("STORE_PASSWORD") ?: ""
+                        keyAlias = properties.getProperty("KEY_ALIAS") ?: ""
+                        keyPassword = properties.getProperty("KEY_PASSWORD") ?: ""
+                    } else {
+                        println("Warning: local.properties file is missing.")
+                    }
                 }
             }
         }
-    }
 
 
     buildTypes {
@@ -51,7 +51,7 @@ android {
             isDebuggable = true
         }
         release {
-            signingConfig = signingConfigs.getByName("release")
+             signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
