@@ -66,7 +66,7 @@ fun PaletteWallPage(
                 startDestination = startDestination,
             ) {
                 composable("Home") {
-                    ScrollingContent(topViewModel, navController, wallpaperViewModel)
+                    ScrollingContent(bottomOffset, topViewModel, navController, wallpaperViewModel)
                 }
                 composable("Carousel") {
                     CarouselPage(topOffset, bottomOffset, navController, wallpaperViewModel, topViewModel)

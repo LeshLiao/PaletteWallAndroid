@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -46,15 +47,16 @@ import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.LoadAdError
 import com.palettex.palettewall.BuildConfig
+import com.palettex.palettewall.data.PaletteRemoteConfig
 import com.palettex.palettewall.data.WallpaperDatabase
 import com.palettex.palettewall.view.component.LikeButton
 import com.palettex.palettewall.viewmodel.TopBarViewModel
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
-//import com.palettex.palettewall.view.component.LikeButton
 
 @Composable
 fun ScrollingContent(
+    bottomOffset: Dp,
     topViewModel: TopBarViewModel,
     navController: NavController,
     wallpaperViewModel: WallpaperViewModel,
@@ -78,17 +80,23 @@ fun ScrollingContent(
     val adMobBannerView = remember {
         AdView(context).apply {
             setAdSize(AdSize.BANNER)
-            adUnitId = if (BuildConfig.DEBUG_MODE) {
-                "ca-app-pub-3940256099942544/6300978111" // Test ad unit ID
-            } else {
-                "ca-app-pub-6980436502917839/4038861167" // Real ad unit ID
+            adUnitId = when {
+                BuildConfig.DEBUG_MODE || PaletteRemoteConfig.isBannerDebugMode() -> {
+                    "ca-app-pub-3940256099942544/6300978111" // Test ad unit ID
+                }
+                PaletteRemoteConfig.shouldShowBannerAds() -> {
+                    PaletteRemoteConfig.getBannerAdUnitId() // Production ad unit ID
+                }
+                else -> {
+                    "" // No ads mode
+                }
             }
         }
     }
 
     // Load the AdMob ad early
     LaunchedEffect(isBottomAdsLoaded, appSettings) {
-        if (!isBottomAdsLoaded && appSettings.adsLevel > 3) {
+        if (!isBottomAdsLoaded && PaletteRemoteConfig.shouldShowBannerAds()) {
             val adRequest = AdRequest.Builder().build()
             adMobBannerView.loadAd(adRequest)
             Log.d("GDT", "adMobBannerView.loadAd(adRequest)")
@@ -210,14 +218,15 @@ fun ScrollingContent(
             }
         }
 
-        // AdMobBannerView as the last item
         item {
             Spacer(modifier = Modifier.height(12.dp))
-            AndroidView(
-                modifier = Modifier.fillMaxWidth(),
-                factory = { adMobBannerView }
-            )
-            Spacer(modifier = Modifier.height(80.dp))
+            if (PaletteRemoteConfig.shouldShowBannerAds()) {
+                AndroidView(
+                    modifier = Modifier.fillMaxWidth(),
+                    factory = { adMobBannerView }
+                )
+            }
+            Spacer(modifier = Modifier.height(bottomOffset))
         }
     }
 }

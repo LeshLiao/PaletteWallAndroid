@@ -14,7 +14,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import com.google.android.gms.ads.MobileAds
+import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig
+import com.google.firebase.remoteconfig.ktx.remoteConfig
+import com.google.firebase.remoteconfig.ktx.remoteConfigSettings
+import com.palettex.palettewall.data.PaletteRemoteConfig
 import com.palettex.palettewall.ui.theme.PaletteWallTheme
 import com.palettex.palettewall.view.PaletteWallPage
 import com.palettex.palettewall.viewmodel.TopBarViewModel
@@ -35,6 +40,7 @@ class MainActivity : ComponentActivity() {
         initializeMobileAds()
         fetchFirebaseToken()
         initializeVersionName()
+        initializeRemoteConfig()
 
         registerReceiver(
             downloadCompletedReceiver,
@@ -56,6 +62,37 @@ class MainActivity : ComponentActivity() {
         CoroutineScope(Dispatchers.IO).launch {
             MobileAds.initialize(this@MainActivity) {}
         }
+    }
+
+    private var isRemoteConfigInitialized = false
+    private fun initializeRemoteConfig() {
+        Log.d("GDT","initializeRemoteConfig()")
+        val remoteConfig: FirebaseRemoteConfig = Firebase.remoteConfig
+
+        val intervalValue = if (BuildConfig.DEBUG_MODE) {
+            0L // Fetch instantly for development/debug
+        } else {
+            3600L // Fetch every hour for production
+        }
+
+        val configSettings = remoteConfigSettings {
+            minimumFetchIntervalInSeconds = intervalValue
+        }
+
+        remoteConfig.setConfigSettingsAsync(configSettings)
+        remoteConfig.setDefaultsAsync(R.xml.remote_config_defaults)
+
+        remoteConfig.fetchAndActivate()
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    val updated = task.result
+                    Log.d("GDT", "Remote config fetch and activate succeeded: $updated")
+                    PaletteRemoteConfig.updateLocalValues()
+                    isRemoteConfigInitialized = true
+                } else {
+                    Log.d("GDT", "Remote config fetch failed: ${task.exception?.message}")
+                }
+            }
     }
 
     private fun fetchFirebaseToken() {
