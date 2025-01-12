@@ -13,6 +13,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import com.facebook.ads.AudienceNetworkAds
 import com.google.android.gms.ads.MobileAds
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
@@ -41,6 +42,8 @@ class MainActivity : ComponentActivity() {
         fetchFirebaseToken()
         initializeVersionName()
         initializeRemoteConfig()
+        // Initialize the Audience Network SDK
+        AudienceNetworkAds.initialize(this)
 
         registerReceiver(
             downloadCompletedReceiver,

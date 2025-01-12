@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -41,10 +42,10 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
-import com.google.android.gms.ads.AdListener
+//import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdSize
-import com.google.android.gms.ads.AdView
+//import com.google.android.gms.ads.AdSize
+//import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.LoadAdError
 import com.palettex.palettewall.BuildConfig
 import com.palettex.palettewall.data.PaletteRemoteConfig
@@ -53,6 +54,13 @@ import com.palettex.palettewall.view.component.LikeButton
 import com.palettex.palettewall.viewmodel.TopBarViewModel
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
+
+import com.facebook.ads.Ad
+import com.facebook.ads.AdError
+import com.facebook.ads.AdListener
+import com.facebook.ads.AdSettings
+import com.facebook.ads.AdSize
+import com.facebook.ads.AdView
 
 @Composable
 fun ScrollingContent(
@@ -77,48 +85,48 @@ fun ScrollingContent(
     val database = remember { WallpaperDatabase.getDatabase(context) }
     val dao = remember { database.likedWallpaperDao() }
 
-    val adMobBannerView = remember {
-        AdView(context).apply {
-            setAdSize(AdSize.BANNER)
-            adUnitId = when {
-                BuildConfig.DEBUG_MODE || PaletteRemoteConfig.isBannerDebugMode() -> {
-                    "ca-app-pub-3940256099942544/6300978111" // Test ad unit ID
-                }
-                PaletteRemoteConfig.shouldShowBannerAds() -> {
-                    PaletteRemoteConfig.getBannerAdUnitId() // Production ad unit ID
-                }
-                else -> {
-                    "" // No ads mode
-                }
-            }
-        }
-    }
-
-    // Load the AdMob ad early
-    LaunchedEffect(isBottomAdsLoaded, appSettings) {
-        if (!isBottomAdsLoaded && PaletteRemoteConfig.shouldShowBannerAds()) {
-            val adRequest = AdRequest.Builder().build()
-            adMobBannerView.loadAd(adRequest)
-            Log.d("GDT", "adMobBannerView.loadAd(adRequest)")
-            // Update the ViewModel state when the ad is loaded
-            adMobBannerView.adListener = object : AdListener() {
-                override fun onAdLoaded() {
-                    super.onAdLoaded()
-                    Log.d("GDT", "adMobBannerView onAdLoaded()")
-                    wallpaperViewModel.setBottomAdsLoaded(true)
-                }
-
-                override fun onAdFailedToLoad(adError: LoadAdError) {
-                    Log.d("GDT", "Ad failed to load: ${adError.message}")
-                    Toast.makeText(
-                        context,
-                        "Msg: ${adError.message}, please try again.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            }
-        }
-    }
+//    val adMobBannerView = remember {
+//        AdView(context).apply {
+//            setAdSize(AdSize.BANNER)
+//            adUnitId = when {
+//                BuildConfig.DEBUG_MODE || PaletteRemoteConfig.isBannerDebugMode() -> {
+//                    "ca-app-pub-3940256099942544/6300978111" // Test ad unit ID
+//                }
+//                PaletteRemoteConfig.shouldShowBannerAds() -> {
+//                    PaletteRemoteConfig.getBannerAdUnitId() // Production ad unit ID
+//                }
+//                else -> {
+//                    "" // No ads mode
+//                }
+//            }
+//        }
+//    }
+//
+//    // Load the AdMob ad early
+//    LaunchedEffect(isBottomAdsLoaded, appSettings) {
+//        if (!isBottomAdsLoaded && PaletteRemoteConfig.shouldShowBannerAds()) {
+//            val adRequest = AdRequest.Builder().build()
+//            adMobBannerView.loadAd(adRequest)
+//            Log.d("GDT", "adMobBannerView.loadAd(adRequest)")
+//            // Update the ViewModel state when the ad is loaded
+//            adMobBannerView.adListener = object : AdListener() {
+//                override fun onAdLoaded() {
+//                    super.onAdLoaded()
+//                    Log.d("GDT", "adMobBannerView onAdLoaded()")
+//                    wallpaperViewModel.setBottomAdsLoaded(true)
+//                }
+//
+//                override fun onAdFailedToLoad(adError: LoadAdError) {
+//                    Log.d("GDT", "Ad failed to load: ${adError.message}")
+//                    Toast.makeText(
+//                        context,
+//                        "Msg: ${adError.message}, please try again.",
+//                        Toast.LENGTH_SHORT
+//                    ).show()
+//                }
+//            }
+//        }
+//    }
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemScrollOffset }
@@ -150,6 +158,59 @@ fun ScrollingContent(
         if (scrollToTopTrigger) {
             listState.animateScrollToItem(0)
             wallpaperViewModel.setScrollToTopTrigger(false)
+        }
+    }
+
+    // Initialize Facebook Banner Ad
+    val bannerAd = remember {
+        // Set test device before creating the ad
+        // You'll get this from logcat (logcat filter:HASHED)
+//        if (BuildConfig.DEBUG) {
+//            AdSettings.addTestDevice("6986c1bd-db50-4bc0-8211-d5ef3bc1445e")
+//        }
+
+        // Use test placement ID for debug builds
+//        val placementId = if (BuildConfig.DEBUG) {
+        val placementId = if (false) {
+            "IMG_16_9_APP_INSTALL#3970198999966685_3970215613298357" // This is the test format
+            // or you can use "IMG_16_9_APP_INSTALL#3970198999966685_3970215613298357"
+        } else {
+            "3970198999966685_3970215613298357" // Your real placement ID
+        }
+
+        AdView(context, placementId, AdSize.BANNER_HEIGHT_50).apply {
+            val adListener = object : AdListener {
+                override fun onError(ad: Ad, error: AdError) {
+                    Log.e("GDT", "Ad failed to load: ${error.errorMessage}")
+                    Toast.makeText(
+                        context,
+                        "Ad failed: ${error.errorMessage}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+                override fun onAdLoaded(ad: Ad) {
+                    Log.d("GDT", "Ad loaded successfully")
+                    wallpaperViewModel.setBottomAdsLoaded(true)
+                }
+
+                override fun onAdClicked(ad: Ad) {
+                    Log.d("GDT", "Ad clicked")
+                }
+
+                override fun onLoggingImpression(ad: Ad) {
+                    Log.d("GDT", "Ad impression logged")
+                }
+            }
+
+            // Set the listener using buildLoadAdConfig
+            loadAd(buildLoadAdConfig().withAdListener(adListener).build())
+        }
+    }
+    // Clean up the ad when the composition is disposed
+    DisposableEffect(Unit) {
+        onDispose {
+            bannerAd.destroy()
         }
     }
 
@@ -223,7 +284,7 @@ fun ScrollingContent(
             if (PaletteRemoteConfig.shouldShowBannerAds()) {
                 AndroidView(
                     modifier = Modifier.fillMaxWidth(),
-                    factory = { adMobBannerView }
+                    factory = { bannerAd }
                 )
             }
             Spacer(modifier = Modifier.height(bottomOffset))
