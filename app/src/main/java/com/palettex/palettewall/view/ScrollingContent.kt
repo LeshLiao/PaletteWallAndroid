@@ -154,8 +154,9 @@ fun ScrollingContent(
             }
     }
 
-    LaunchedEffect(wallpapers) {
+    LaunchedEffect(currentCatalog) {
         if (currentCatalog == "Wallpapers") {
+
             showPopular = true
         } else {
             showPopular = false

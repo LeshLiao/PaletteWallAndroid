@@ -33,7 +33,7 @@ fun DrawerContent(navController: NavController, drawerState: DrawerState, viewMo
             modifier = Modifier
                 .padding(16.dp)
                 .clickable {
-                    navController.navigate("Favorite")
+                    navController.navigate("AboutUs")
                     scope.launch {
                         drawerState.close()
                     }

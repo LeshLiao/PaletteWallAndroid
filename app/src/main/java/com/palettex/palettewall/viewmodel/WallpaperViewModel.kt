@@ -26,11 +26,14 @@ open class WallpaperViewModel() : ViewModel() {
     private val _catalogs = MutableStateFlow<List<CatalogItem>>(emptyList())
     val catalogs: StateFlow<List<CatalogItem>> = _catalogs
 
+    private val _allWallpapers = MutableStateFlow<List<WallpaperItem>>(emptyList())
+    val allWallpapers: StateFlow<List<WallpaperItem>> = _allWallpapers
+
     private val _wallpapers = MutableStateFlow<List<WallpaperItem>>(emptyList())
     val wallpapers: StateFlow<List<WallpaperItem>> = _wallpapers
 
-    private val _filterWallpapers = MutableStateFlow<List<WallpaperItem>>(emptyList())
-    val filterWallpapers: StateFlow<List<WallpaperItem>> = _filterWallpapers
+    private val _carouselWallpapers = MutableStateFlow<List<WallpaperItem>>(emptyList())
+    val carouselWallpapers: StateFlow<List<WallpaperItem>> = _carouselWallpapers
 
     private val _downloadBtnStatus = MutableStateFlow(0)
     val downloadBtnStatus: StateFlow<Int> = _downloadBtnStatus
@@ -73,9 +76,7 @@ open class WallpaperViewModel() : ViewModel() {
 
     fun scrollToTop() {
         viewModelScope.launch {
-            // Trigger scrolling to the top
             _scrollToTopTrigger.value = true
-            fetchShuffledWallpapersApi()
             setCurrentCatalog("Wallpapers")
         }
     }
@@ -105,26 +106,21 @@ open class WallpaperViewModel() : ViewModel() {
         _scrollToTopTrigger.value = status
     }
 
-    fun setCurrentImage() {
-
-    }
-
     fun fetchShuffledWallpapersApi() {
         viewModelScope.launch {
             try {
                 // Fetch the wallpapers and shuffle the list before assigning
-                _wallpapers.value = RetrofitInstance.api.getWallpapers().shuffled()
-//                _wallpapers.value = RetrofitInstance.api.getWallpapers()
-
-                // get 10 random wallpapers and shuffle it.
-                // Assign to _topTenWallpapers only if it is empty
-                if (_topTenWallpapers.value.isEmpty()) {
-                    _topTenWallpapers.value = _wallpapers.value.shuffled().take(10)
-                }
+                _allWallpapers.value = RetrofitInstance.api.getWallpapers().shuffled()
+                _wallpapers.value = _allWallpapers.value
+                _topTenWallpapers.value = _wallpapers.value.shuffled().take(10)
             } catch (e: Exception) {
-                // Handle the exception (e.g., log error)
+                Log.e(TAG, e.toString())
             }
         }
+    }
+
+    fun showCurrentAllWallpaper() {
+        _wallpapers.value = _allWallpapers.value
     }
 
     fun fetchAnimeApi() {
@@ -163,7 +159,7 @@ open class WallpaperViewModel() : ViewModel() {
     }
 
     fun setThumbnailImageByItemId(itemId: String) {
-        val wallpaper = _wallpapers.value.find { it.itemId == itemId }
+        val wallpaper = _allWallpapers.value.find { it.itemId == itemId }
         if (wallpaper != null) {
             if (wallpaper.thumbnail.contains("https")) {
                 _currentImage.value = wallpaper.thumbnail
@@ -175,7 +171,7 @@ open class WallpaperViewModel() : ViewModel() {
 
     fun getThumbnailByItemId(itemId: String): String{
         // Search for the WallpaperItem with the matching itemId
-        val wallpaper = _wallpapers.value.find { it.itemId == itemId }
+        val wallpaper = _allWallpapers.value.find { it.itemId == itemId }
 
         if (wallpaper == null) return ""
 
@@ -188,7 +184,7 @@ open class WallpaperViewModel() : ViewModel() {
     }
 
     fun getDownloadListLinkByItemId(itemId: String): String? {
-        val wallpaperItem = _wallpapers.value.find { it.itemId == itemId }
+        val wallpaperItem = _allWallpapers.value.find { it.itemId == itemId }
         return wallpaperItem?.downloadList?.firstOrNull()?.link
     }
 
@@ -292,7 +288,7 @@ open class WallpaperViewModel() : ViewModel() {
             val filteredList = when {
                 first != null && second != null -> {
                     // Filter by both colors
-                    _wallpapers.value
+                    _allWallpapers.value
                         .map { wallpaper ->
                             val wallpaperColors = getWallpaperColors(wallpaper)
                             val similarity = calculateDualColorSimilarity(first, second, wallpaperColors)
@@ -304,7 +300,7 @@ open class WallpaperViewModel() : ViewModel() {
                 }
                 first != null -> {
                     // Filter by first color only
-                    _wallpapers.value
+                    _allWallpapers.value
                         .map { wallpaper ->
                             val wallpaperColors = getWallpaperColors(wallpaper)
                             val similarity = wallpaperColors.minOfOrNull {
@@ -318,7 +314,7 @@ open class WallpaperViewModel() : ViewModel() {
                 }
                 second != null -> {
                     // Filter by second color only
-                    _wallpapers.value
+                    _allWallpapers.value
                         .map { wallpaper ->
                             val wallpaperColors = getWallpaperColors(wallpaper)
                             val similarity = wallpaperColors.minOfOrNull {
@@ -332,13 +328,10 @@ open class WallpaperViewModel() : ViewModel() {
                 }
                 else -> {
                     // No color selected - show 30 random wallpapers
-                    _wallpapers.value.shuffled().take(30)
-//                    _wallpapers.value.take(30)
-//                    _wallpapers.value // all
+                    _allWallpapers.value.shuffled().take(30)
                 }
             }
-
-            _filterWallpapers.value = filteredList
+            _carouselWallpapers.value = filteredList
         }
     }
 
@@ -351,5 +344,13 @@ open class WallpaperViewModel() : ViewModel() {
     fun setSecondSelectedColor(color: Color?) {
         _secondSelectedColor.value = color
         updateFilteredWallpapers()
+    }
+
+    // Add these properties to WallpaperViewModel class
+    private val _currentCarouselPage = MutableStateFlow(0)
+    val currentCarouselPage: StateFlow<Int> = _currentCarouselPage.asStateFlow()
+
+    fun setCurrentCarouselPage(page: Int) {
+        _currentCarouselPage.value = page
     }
 }

@@ -50,7 +50,7 @@ import com.palettex.palettewall.view.utility.throttleClick
 import com.palettex.palettewall.viewmodel.TopBarViewModel
 
 @Composable
-fun FavoriteScreen(
+fun LikeCollection(
     topViewModel: TopBarViewModel,
     navController: NavController,
     topOffset: Dp,
@@ -152,5 +152,5 @@ fun EmptyBox(bottomOffset: Dp) {
 fun PreviewEmptyBox() {
     val navController = rememberNavController()
     val mockTopBarViewModel = TopBarViewModel().apply {}
-    FavoriteScreen(mockTopBarViewModel, navController, 100.dp, 100.dp)
+    LikeCollection(mockTopBarViewModel, navController, 100.dp, 100.dp)
 }
