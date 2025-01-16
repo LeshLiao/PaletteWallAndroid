@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -54,6 +55,12 @@ import com.palettex.palettewall.viewmodel.TopBarViewModel
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
 
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+
+
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ScrollingContent(
     bottomOffset: Dp,
@@ -67,6 +74,15 @@ fun ScrollingContent(
     val appSettings by wallpaperViewModel.appSettings.collectAsState()
     val wallpapers by wallpaperViewModel.wallpapers.collectAsState()
     val currentCatalog by wallpaperViewModel.currentCatalog.collectAsState()
+
+    // Add pull-to-refresh state
+    val refreshing by remember { mutableStateOf(false) }
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = refreshing,
+        onRefresh = {
+            wallpaperViewModel.fetchShuffledWallpapersApi()
+        }
+    )
 
     // Pre-initialize the AdMobBannerView for early initialization
     val isBottomAdsLoaded by wallpaperViewModel.isBottomAdsLoaded.collectAsState()
@@ -138,8 +154,9 @@ fun ScrollingContent(
             }
     }
 
-    LaunchedEffect(wallpapers) {
+    LaunchedEffect(currentCatalog) {
         if (currentCatalog == "Wallpapers") {
+
             showPopular = true
         } else {
             showPopular = false
@@ -152,6 +169,12 @@ fun ScrollingContent(
             wallpaperViewModel.setScrollToTopTrigger(false)
         }
     }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pullRefresh(pullRefreshState)
+    ) {
 
     LazyColumn(state = listState) {
         item { Spacer(modifier = Modifier.height(80.dp).fillMaxWidth()) }
@@ -172,7 +195,7 @@ fun ScrollingContent(
 
         item { Spacer(modifier = Modifier.height(10.dp)) }
 
-        itemsIndexed(wallpapers.chunked(3)) { index,rowItems ->
+        itemsIndexed(wallpapers.chunked(3)) { index, rowItems ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -180,7 +203,7 @@ fun ScrollingContent(
                 horizontalArrangement = Arrangement.spacedBy(0.dp)
             ) {
                 rowItems.forEach { wallpaper ->
-                    Box (
+                    Box(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight()
@@ -192,19 +215,30 @@ fun ScrollingContent(
                             },
                     ) {
                         Image(
-                            painter = rememberAsyncImagePainter(model = wallpaperViewModel.getThumbnailByItemId(wallpaper.itemId)),
+                            painter = rememberAsyncImagePainter(
+                                model = wallpaperViewModel.getThumbnailByItemId(
+                                    wallpaper.itemId
+                                )
+                            ),
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.fillMaxSize()
                         )
-                        val isLiked by dao.isWallpaperLiked(wallpaper.itemId).collectAsState(initial = false)
+                        val isLiked by dao.isWallpaperLiked(wallpaper.itemId)
+                            .collectAsState(initial = false)
                         if (isLiked) {
-                            Box (
+                            Box(
                                 modifier = Modifier
                                     .align(Alignment.BottomEnd) // Place the button at the bottom-end
                                     .padding(2.dp) // Add padding if needed
                             ) {
-                                LikeButton(isLiked, dao, wallpaper.itemId, wallpaperViewModel, coroutineScope)
+                                LikeButton(
+                                    isLiked,
+                                    dao,
+                                    wallpaper.itemId,
+                                    wallpaperViewModel,
+                                    coroutineScope
+                                )
                             }
                         }
                     }
@@ -228,6 +262,13 @@ fun ScrollingContent(
             }
             Spacer(modifier = Modifier.height(bottomOffset))
         }
+    }
+        // Add pull-to-refresh indicator
+        PullRefreshIndicator(
+            refreshing = refreshing,
+            state = pullRefreshState,
+            modifier = Modifier.align(Alignment.TopCenter)
+        )
     }
 }
 

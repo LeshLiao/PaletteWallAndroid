@@ -55,7 +55,7 @@ fun PaletteWallPage(
     ) {
         Scaffold(
             containerColor = Color.Black,
-            topBar = { MyTopBarTest(topViewModel, coroutineScope, drawerState) { topOffset = it } },
+            topBar = { HomeTopBar(topViewModel, wallpaperViewModel, coroutineScope, drawerState) { topOffset = it } },
             bottomBar = { BottomBarBox(topViewModel, wallpaperViewModel, navController) { bottomOffset = it } },
             snackbarHost = { SnackbarHost(snackBarHostState) }
         ) { innerPadding ->
@@ -72,11 +72,17 @@ fun PaletteWallPage(
                     CarouselPage(topOffset, bottomOffset, navController, wallpaperViewModel, topViewModel)
                 }
                 composable("Favorite") {
-                    FavoriteScreen(topViewModel, navController, topOffset, bottomOffset)
+                    LikeCollection(topViewModel, navController, topOffset, bottomOffset)
+                }
+                composable("AboutUs") {
+                    AboutUs(navController)
                 }
 //                composable("AI") {
 //                    AIScreen("")
 //                }
+
+
+
                 composable(
                     route = "fullscreen/{itemId}",
                     arguments = listOf(navArgument("itemId") { type = NavType.StringType })

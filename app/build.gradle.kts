@@ -119,4 +119,6 @@ dependencies {
 
     implementation (libs.androidx.foundation)
     implementation (libs.coil.compose.v222)
+
+    implementation ("androidx.compose.material:material:1.5.4")
 }

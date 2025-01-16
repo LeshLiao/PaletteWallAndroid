@@ -80,6 +80,7 @@ fun BottomBarBox(
                             launchSingleTop = true
                         }
                         if (item == "Home") {
+                            wallpaperViewModel.showCurrentAllWallpaper()
                             wallpaperViewModel.scrollToTop()
                         }
                     }

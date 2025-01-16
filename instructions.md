@@ -11,8 +11,8 @@
     - Download Image Button
     - Like Button
 
-## Favorites Page (`FavoriteScreen.kt`)
-#File path: app/src/main/java/com/palettex/palettewall/view/FavoriteScreen.kt
+## LikeCollection Page (`LikeCollection.kt`)
+#File path: app/src/main/java/com/palettex/palettewall/view/LikeCollection.kt
 - List of liked wallpapers (`lazyColumn`, 3 wallpapers as a row)
 
 ## File Structure

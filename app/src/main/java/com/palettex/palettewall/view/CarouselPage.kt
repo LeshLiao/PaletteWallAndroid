@@ -1,6 +1,7 @@
 package com.palettex.palettewall.view
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -9,10 +10,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,8 +22,8 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -42,7 +41,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
@@ -63,7 +61,7 @@ fun CarouselPage(
     wallpaperViewModel: WallpaperViewModel,
     topViewModel: TopBarViewModel,
 ) {
-    val filterWallpapers by wallpaperViewModel.filterWallpapers.collectAsState()
+    val carouselWallpapers by wallpaperViewModel.carouselWallpapers.collectAsState()
     val firstSelectedColor by wallpaperViewModel.firstSelectedColor.collectAsState()
     val secondSelectedColor by wallpaperViewModel.secondSelectedColor.collectAsState()
     var colorSelectedList by remember { mutableStateOf<List<Color>>(emptyList()) }
@@ -71,10 +69,13 @@ fun CarouselPage(
     var carouselPagerState: PagerState? by remember { mutableStateOf(null) }
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(Unit) {
+    DisposableEffect(Unit) {
         topViewModel.showTopBar()
-        if (filterWallpapers.isEmpty()) {
+        if (carouselWallpapers.isEmpty()) {
             wallpaperViewModel.updateFilteredWallpapers()
+        }
+        onDispose {
+            Log.d("GDT","CarouselPage onDispose()")
         }
     }
 
@@ -86,7 +87,7 @@ fun CarouselPage(
         colorSelectedList = newList
 
         // Scroll to target page when clicking
-        if (newList.isNotEmpty() && filterWallpapers.size > 1) {
+        if (newList.isNotEmpty() && carouselWallpapers.size > 1) {
             carouselPagerState?.let { pagerState ->
                 scope.launch {
                     pagerState.animateScrollToPage(2)
@@ -101,8 +102,8 @@ fun CarouselPage(
 //        ColorInfoDisplay(colorSelectedList) // Palette selected color
 //        ColorInfoDisplay(colorBrowseList) // Carousel Target color
         Box(modifier = Modifier.fillMaxSize()) {
-            WallpaperCarousel2(
-                filterWallpapers = filterWallpapers,
+            WallpaperCarousel(
+                filterWallpapers = carouselWallpapers,
                 wallpaperViewModel = wallpaperViewModel,
                 bottomOffset = bottomOffset,
                 onWallpaperSelected = { itemId ->
@@ -122,52 +123,7 @@ fun CarouselPage(
 }
 
 @Composable
-fun ColorInfoDisplay(colorList: List<Color>) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(10.dp)
-    ) {
-        if (colorList.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .background(Color.Black)
-            )
-        } else {
-            colorList.forEach { color ->
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
-                        .background(color)
-                ) {
-                    Text(
-                        text = colorToARGBString(color),
-                        color = Color.White,
-                        modifier = Modifier.padding(4.dp),
-                        fontSize = 12.sp
-                    )
-                }
-            }
-        }
-    }
-}
-
-private fun colorToARGBString(color: Color): String {
-    return String.format(
-        "#%08X",
-        (color.alpha * 255).toInt() shl 24 or
-                ((color.red * 255).toInt() shl 16) or
-                ((color.green * 255).toInt() shl 8) or
-                (color.blue * 255).toInt()
-    )
-}
-
-@Composable
-fun WallpaperCarousel2(
-//    wallpapers: List<String>,
+fun WallpaperCarousel(
     filterWallpapers: List<WallpaperItem>,
     wallpaperViewModel: WallpaperViewModel,
     bottomOffset: Dp,
@@ -178,11 +134,20 @@ fun WallpaperCarousel2(
     // Check if the list is empty first
     if (filterWallpapers.isEmpty()) { return }
 
-    val middlePageIndex = filterWallpapers.size / 2
+    // Use the saved page index from ViewModel
+    val currentPage by wallpaperViewModel.currentCarouselPage.collectAsState()
+
     val pagerState = rememberPagerState(
-        initialPage = middlePageIndex,
+        initialPage = currentPage,
         pageCount = { filterWallpapers.size }
     )
+
+    // Save the current page to ViewModel when it changes
+    LaunchedEffect(pagerState.currentPage) {
+        wallpaperViewModel.setCurrentCarouselPage(pagerState.currentPage)
+    }
+
+//    val middlePageIndex = filterWallpapers.size / 2
 
     // Notify parent about the PagerState
     LaunchedEffect(pagerState) {
@@ -197,7 +162,6 @@ fun WallpaperCarousel2(
         val colorList = colorTags.map { hexString ->
             Color(android.graphics.Color.parseColor(hexString))
         }
-//        Log.d("GDT", "current(${currentWallpaper.itemId}):=${colorTags.joinToString(", ")}")
         onColorTagsChanged(colorList) // Notify parent composable
     }
 
