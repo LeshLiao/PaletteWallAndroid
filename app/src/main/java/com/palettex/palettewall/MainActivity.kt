@@ -38,7 +38,7 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
 
-        initializeMobileAds()
+//        initializeMobileAds()
         fetchFirebaseToken()
         initializeVersionName()
         initializeRemoteConfig()

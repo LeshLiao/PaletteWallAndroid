@@ -163,17 +163,23 @@ fun ScrollingContent(
 
     // Initialize Facebook Banner Ad
     val bannerAd = remember {
+
         // Set test device before creating the ad
         // You'll get this from logcat (logcat filter:HASHED)
-//        if (BuildConfig.DEBUG) {
+
+//        val isDebug = BuildConfig.DEBUG
+        val isDebug = true
+
+        if (isDebug) {
+            AdSettings.setTestMode(true)
 //            AdSettings.addTestDevice("6986c1bd-db50-4bc0-8211-d5ef3bc1445e")
-//        }
+            AdSettings.addTestDevice("b904b469-8553-4eb4-a087-e65534af9b7e")
+        }
 
         // Use test placement ID for debug builds
 //        val placementId = if (BuildConfig.DEBUG) {
-        val placementId = if (false) {
+        val placementId = if (isDebug) {
             "IMG_16_9_APP_INSTALL#3970198999966685_3970215613298357" // This is the test format
-            // or you can use "IMG_16_9_APP_INSTALL#3970198999966685_3970215613298357"
         } else {
             "3970198999966685_3970215613298357" // Your real placement ID
         }
@@ -181,12 +187,17 @@ fun ScrollingContent(
         AdView(context, placementId, AdSize.BANNER_HEIGHT_50).apply {
             val adListener = object : AdListener {
                 override fun onError(ad: Ad, error: AdError) {
-                    Log.e("GDT", "Ad failed to load: ${error.errorMessage}")
-                    Toast.makeText(
-                        context,
-                        "Ad failed: ${error.errorMessage}",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    Log.e("GDT", "Error loading ad: ${error.errorMessage}")
+                    Log.e("GDT", "Error code: ${error.errorCode}")
+                    // Handle specific error codes
+                    when (error.errorCode) {
+                        AdError.NO_FILL_ERROR_CODE -> {
+                            // Handle no fill error - maybe try to reload after delay
+                        }
+                        AdError.NETWORK_ERROR_CODE -> {
+                            // Handle network errors
+                        }
+                    }
                 }
 
                 override fun onAdLoaded(ad: Ad) {
@@ -203,7 +214,6 @@ fun ScrollingContent(
                 }
             }
 
-            // Set the listener using buildLoadAdConfig
             loadAd(buildLoadAdConfig().withAdListener(adListener).build())
         }
     }

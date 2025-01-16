@@ -117,7 +117,7 @@ dependencies {
 
     implementation (libs.androidx.foundation)
     implementation (libs.coil.compose.v222)
-
-    implementation ("com.facebook.android:audience-network-sdk:6.16.0")
+//
+    implementation ("com.facebook.android:audience-network-sdk:6.18.0")
     implementation ("com.facebook.android:facebook-android-sdk:16.3.0")
 }
