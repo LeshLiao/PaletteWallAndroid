@@ -22,6 +22,7 @@ import com.google.firebase.remoteconfig.ktx.remoteConfigSettings
 import com.palettex.palettewall.data.PaletteRemoteConfig
 import com.palettex.palettewall.ui.theme.PaletteWallTheme
 import com.palettex.palettewall.view.PaletteWallPage
+import com.palettex.palettewall.viewmodel.AdManager
 import com.palettex.palettewall.viewmodel.TopBarViewModel
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -86,8 +87,10 @@ class MainActivity : ComponentActivity() {
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
                     val updated = task.result
-                    Log.d("GDT", "Remote config fetch and activate succeeded: $updated")
+                    Log.d("GDT", "Remote config fetch and activate succeeded!")
                     PaletteRemoteConfig.updateLocalValues()
+                    Log.d("GDT", " - shouldShow BannerAds= ${PaletteRemoteConfig.shouldShowBannerAds()}")
+                    Log.d("GDT", " - shouldShow RewardAds= ${PaletteRemoteConfig.shouldShowRewardAds()}")
                     isRemoteConfigInitialized = true
                 } else {
                     Log.d("GDT", "Remote config fetch failed: ${task.exception?.message}")
@@ -138,5 +141,6 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(downloadCompletedReceiver)
+        AdManager.cleanup()
     }
 }

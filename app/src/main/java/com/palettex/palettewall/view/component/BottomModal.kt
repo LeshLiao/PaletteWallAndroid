@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.android.gms.ads.AdError
@@ -103,7 +104,7 @@ fun BottomModal(
             BuildConfig.DEBUG_MODE || PaletteRemoteConfig.isDebugMode() -> {
                 "ca-app-pub-3940256099942544/5224354917" // Test ad unit ID
             }
-            PaletteRemoteConfig.shouldShowAds() -> {
+            PaletteRemoteConfig.shouldShowRewardAds() -> {
                 PaletteRemoteConfig.getAdUnitId() // Production ad unit ID
             }
             else -> {
@@ -153,7 +154,7 @@ fun BottomModal(
                     if (!isLoading && !isAdReady) {
                         coroutineScope.launch {
                             // If no ads should be shown, skip ad loading
-                            if (!PaletteRemoteConfig.shouldShowAds()) {
+                            if (!PaletteRemoteConfig.shouldShowRewardAds()) {
                                 onDismissRequest()
                                 onAdWatchedAndStartDownload()
                             } else {
@@ -182,7 +183,11 @@ fun BottomModal(
                             strokeWidth = 3.dp
                         )
                     } else {
-                        Text(text = "Watch Ads (Download Free)", color = Color.White, fontSize = 16.sp)
+                        var buttonTextId = R.string.no_ad_free_download
+                        if (PaletteRemoteConfig.shouldShowRewardAds()) {
+                            buttonTextId = R.string.show_ad_free_download
+                        }
+                        Text(text = stringResource(buttonTextId), color = Color.White, fontSize = 16.sp)
                     }
                 }
             }
