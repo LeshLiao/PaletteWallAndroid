@@ -1,8 +1,6 @@
 package com.palettex.palettewall.view
 
 import android.content.Context
-import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,6 +17,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,23 +43,13 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
-import com.google.android.gms.ads.AdListener
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdSize
-import com.google.android.gms.ads.AdView
-import com.google.android.gms.ads.LoadAdError
-import com.palettex.palettewall.BuildConfig
 import com.palettex.palettewall.data.PaletteRemoteConfig
 import com.palettex.palettewall.data.WallpaperDatabase
 import com.palettex.palettewall.view.component.LikeButton
+import com.palettex.palettewall.viewmodel.AdManager
 import com.palettex.palettewall.viewmodel.TopBarViewModel
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
-
-import androidx.compose.material.pullrefresh.pullRefresh
-import androidx.compose.material.pullrefresh.rememberPullRefreshState
-import androidx.compose.material.pullrefresh.PullRefreshIndicator
-
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -80,7 +71,7 @@ fun ScrollingContent(
     val pullRefreshState = rememberPullRefreshState(
         refreshing = refreshing,
         onRefresh = {
-            wallpaperViewModel.fetchShuffledWallpapersApi()
+            wallpaperViewModel.updateCurrentCatalog()
         }
     )
 
@@ -93,47 +84,9 @@ fun ScrollingContent(
     val database = remember { WallpaperDatabase.getDatabase(context) }
     val dao = remember { database.likedWallpaperDao() }
 
-    val adMobBannerView = remember {
-        AdView(context).apply {
-            setAdSize(AdSize.BANNER)
-            adUnitId = when {
-                BuildConfig.DEBUG_MODE || PaletteRemoteConfig.isBannerDebugMode() -> {
-                    "ca-app-pub-3940256099942544/6300978111" // Test ad unit ID
-                }
-                PaletteRemoteConfig.shouldShowBannerAds() -> {
-                    PaletteRemoteConfig.getBannerAdUnitId() // Production ad unit ID
-                }
-                else -> {
-                    "" // No ads mode
-                }
-            }
-        }
-    }
-
-    // Load the AdMob ad early
-    LaunchedEffect(isBottomAdsLoaded, appSettings) {
-        if (!isBottomAdsLoaded && PaletteRemoteConfig.shouldShowBannerAds()) {
-            val adRequest = AdRequest.Builder().build()
-            adMobBannerView.loadAd(adRequest)
-            Log.d("GDT", "adMobBannerView.loadAd(adRequest)")
-            // Update the ViewModel state when the ad is loaded
-            adMobBannerView.adListener = object : AdListener() {
-                override fun onAdLoaded() {
-                    super.onAdLoaded()
-                    Log.d("GDT", "adMobBannerView onAdLoaded()")
-                    wallpaperViewModel.setBottomAdsLoaded(true)
-                }
-
-                override fun onAdFailedToLoad(adError: LoadAdError) {
-                    Log.d("GDT", "Ad failed to load: ${adError.message}")
-                    Toast.makeText(
-                        context,
-                        "Msg: ${adError.message}, please try again.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            }
-        }
+    val adMobBannerView = remember { AdManager.getOrCreateAd(context) }
+    LaunchedEffect(Unit) {
+        AdManager.loadAdIfNeeded(wallpaperViewModel)
     }
 
     LaunchedEffect(listState) {
@@ -156,7 +109,6 @@ fun ScrollingContent(
 
     LaunchedEffect(currentCatalog) {
         if (currentCatalog == "Wallpapers") {
-
             showPopular = true
         } else {
             showPopular = false

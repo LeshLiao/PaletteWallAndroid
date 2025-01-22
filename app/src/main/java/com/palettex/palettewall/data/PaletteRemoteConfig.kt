@@ -52,7 +52,7 @@ object PaletteRemoteConfig {
     }
 
     // Helper functions for BottomModal.kt
-    fun shouldShowAds(): Boolean {
+    fun shouldShowRewardAds(): Boolean {
         return _downloadRewardMode.value != 0
     }
 
