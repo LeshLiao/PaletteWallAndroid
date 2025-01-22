@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.android.gms.ads.AdError
@@ -47,6 +48,7 @@ import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 import com.palettex.palettewall.R
 import kotlinx.coroutines.launch
 import com.palettex.palettewall.BuildConfig
+import com.palettex.palettewall.data.PaletteRemoteConfig
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -96,13 +98,19 @@ fun BottomModal(
     fun startLoadAd() {
         isLoading = true
 
-        // Use test ad unit ID if in debug mode, otherwise use the production ad unit ID
-        val adUnitId = if (BuildConfig.DEBUG_MODE) {
-            "ca-app-pub-3940256099942544/5224354917" // Official Google test ad unit ID for Rewarded Ads
-        } else {
-            "ca-app-pub-6980436502917839/7518909356" // Your production ad unit ID
+        // Get ad unit ID based on remote config mode
+        // BuildConfig.DEBUG_MODE
+        val adUnitId = when {
+            BuildConfig.DEBUG_MODE || PaletteRemoteConfig.isDebugMode() -> {
+                "ca-app-pub-3940256099942544/5224354917" // Test ad unit ID
+            }
+            PaletteRemoteConfig.shouldShowRewardAds() -> {
+                PaletteRemoteConfig.getAdUnitId() // Production ad unit ID
+            }
+            else -> {
+                "" // No ads mode
+            }
         }
-
 
         val adRequest = AdRequest.Builder().build()
         RewardedAd.load(
@@ -145,9 +153,8 @@ fun BottomModal(
                 onClick = {
                     if (!isLoading && !isAdReady) {
                         coroutineScope.launch {
-                            Log.d("GDT", "click startLoadAd()," +
-                                    "adsLevel="+ appSettings.adsLevel)
-                            if (appSettings.adsLevel == 0) {
+                            // If no ads should be shown, skip ad loading
+                            if (!PaletteRemoteConfig.shouldShowRewardAds()) {
                                 onDismissRequest()
                                 onAdWatchedAndStartDownload()
                             } else {
@@ -176,7 +183,11 @@ fun BottomModal(
                             strokeWidth = 3.dp
                         )
                     } else {
-                        Text(text = "Watch Ads (Download Free)", color = Color.White, fontSize = 16.sp)
+                        var buttonTextId = R.string.no_ad_free_download
+                        if (PaletteRemoteConfig.shouldShowRewardAds()) {
+                            buttonTextId = R.string.show_ad_free_download
+                        }
+                        Text(text = stringResource(buttonTextId), color = Color.White, fontSize = 16.sp)
                     }
                 }
             }

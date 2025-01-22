@@ -1,3 +1,5 @@
+ import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -13,8 +15,8 @@ android {
         applicationId = "com.palettex.palettewall"
         minSdk = 30
         targetSdk = 34
-        versionCode = 201
-        versionName = "2.01"
+        versionCode = 202
+        versionName = "2.02"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -22,11 +24,34 @@ android {
         }
     }
 
+
+        android {
+            signingConfigs {
+                create("release") {
+                    val localPropertiesFile = rootProject.file("local.properties")
+                    if (localPropertiesFile.exists()) {
+                        val properties = Properties()
+                        localPropertiesFile.inputStream().use { properties.load(it) }
+
+                        storeFile = file(properties.getProperty("STORE_FILE") ?: "")
+                        storePassword = properties.getProperty("STORE_PASSWORD") ?: ""
+                        keyAlias = properties.getProperty("KEY_ALIAS") ?: ""
+                        keyPassword = properties.getProperty("KEY_PASSWORD") ?: ""
+                    } else {
+                        println("Warning: local.properties file is missing.")
+                    }
+                }
+            }
+        }
+
+
     buildTypes {
         debug {
             buildConfigField("boolean", "DEBUG_MODE", "true")
+            isDebuggable = true
         }
         release {
+             signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -35,6 +60,7 @@ android {
             buildConfigField("boolean", "DEBUG_MODE", "false")
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
@@ -57,7 +83,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -90,4 +115,10 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.3.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation ("com.google.firebase:firebase-messaging")
+    implementation("com.google.firebase:firebase-config")
+
+    implementation (libs.androidx.foundation)
+    implementation (libs.coil.compose.v222)
+
+    implementation ("androidx.compose.material:material:1.5.4")
 }

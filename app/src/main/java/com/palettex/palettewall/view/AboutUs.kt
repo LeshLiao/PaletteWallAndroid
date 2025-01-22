@@ -21,9 +21,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 
 @Composable
-fun FavoriteScreen(name: String, nav: NavController) {
+fun AboutUs(nav: NavController) {
     var isPopBack by remember { mutableStateOf(false) }
-
     Card(
         modifier = Modifier
             .fillMaxSize(), // Make the card fill the entire available space
@@ -42,14 +41,12 @@ fun FavoriteScreen(name: String, nav: NavController) {
                         nav.popBackStack()
                         isPopBack = true
                     }
-
                 }
-            ,
-            contentAlignment = Alignment.Center
+            ,contentAlignment = Alignment.Center
         ) {
             // Example content inside the card
             Text(
-                text = "PaletteX © 2024",
+                text = "PaletteX © 2025",
                 color = Color.White,
                 fontSize = 32.sp,
                 modifier = Modifier.padding(16.dp)

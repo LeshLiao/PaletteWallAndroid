@@ -1,6 +1,7 @@
 package com.palettex.palettewall.viewmodel
 
 import android.util.Log
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.palettex.palettewall.model.AppSettings
@@ -9,9 +10,11 @@ import com.palettex.palettewall.model.WallpaperItem
 import com.palettex.palettewall.network.RetrofitInstance
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlin.math.sqrt
 
-class WallpaperViewModel() : ViewModel() {
+open class WallpaperViewModel() : ViewModel() {
 
     companion object {
         private val TAG = WallpaperViewModel::class.java.simpleName + "_GDT"
@@ -23,8 +26,14 @@ class WallpaperViewModel() : ViewModel() {
     private val _catalogs = MutableStateFlow<List<CatalogItem>>(emptyList())
     val catalogs: StateFlow<List<CatalogItem>> = _catalogs
 
+    private val _allWallpapers = MutableStateFlow<List<WallpaperItem>>(emptyList())
+    val allWallpapers: StateFlow<List<WallpaperItem>> = _allWallpapers
+
     private val _wallpapers = MutableStateFlow<List<WallpaperItem>>(emptyList())
     val wallpapers: StateFlow<List<WallpaperItem>> = _wallpapers
+
+    private val _carouselWallpapers = MutableStateFlow<List<WallpaperItem>>(emptyList())
+    val carouselWallpapers: StateFlow<List<WallpaperItem>> = _carouselWallpapers
 
     private val _downloadBtnStatus = MutableStateFlow(0)
     val downloadBtnStatus: StateFlow<Int> = _downloadBtnStatus
@@ -47,6 +56,15 @@ class WallpaperViewModel() : ViewModel() {
     private val _scrollToTopTrigger = MutableStateFlow(false)
     val scrollToTopTrigger: StateFlow<Boolean> = _scrollToTopTrigger
 
+    private val _currentImage = MutableStateFlow("")
+    var currentImage: StateFlow<String> = _currentImage
+
+    private val _firstSelectedColor = MutableStateFlow<Color?>(null)
+    val firstSelectedColor: StateFlow<Color?> = _firstSelectedColor.asStateFlow()
+
+    private val _secondSelectedColor = MutableStateFlow<Color?>(null)
+    val secondSelectedColor: StateFlow<Color?> = _secondSelectedColor.asStateFlow()
+
     init {
         viewModelScope.launch {
             getAppSettings()
@@ -58,9 +76,7 @@ class WallpaperViewModel() : ViewModel() {
 
     fun scrollToTop() {
         viewModelScope.launch {
-            // Trigger scrolling to the top
             _scrollToTopTrigger.value = true
-            fetchShuffledWallpapersApi()
             setCurrentCatalog("Wallpapers")
         }
     }
@@ -90,21 +106,29 @@ class WallpaperViewModel() : ViewModel() {
         _scrollToTopTrigger.value = status
     }
 
+    fun updateCurrentCatalog() {
+        if (_currentCatalog.value == "Wallpapers") {
+            fetchShuffledWallpapersApi()
+        } else {
+            fetchWallpaperBy(_currentCatalog.value)
+        }
+    }
+
     fun fetchShuffledWallpapersApi() {
         viewModelScope.launch {
             try {
                 // Fetch the wallpapers and shuffle the list before assigning
-                _wallpapers.value = RetrofitInstance.api.getWallpapers().shuffled()
-
-                // get 10 random wallpapers and shuffle it.
-                // Assign to _topTenWallpapers only if it is empty
-                if (_topTenWallpapers.value.isEmpty()) {
-                    _topTenWallpapers.value = _wallpapers.value.shuffled().take(10)
-                }
+                _allWallpapers.value = RetrofitInstance.api.getWallpapers().shuffled()
+                _wallpapers.value = _allWallpapers.value
+                _topTenWallpapers.value = _wallpapers.value.shuffled().take(10)
             } catch (e: Exception) {
-                // Handle the exception (e.g., log error)
+                Log.e(TAG, e.toString())
             }
         }
+    }
+
+    fun showCurrentAllWallpaper() {
+        _wallpapers.value = _allWallpapers.value
     }
 
     fun fetchAnimeApi() {
@@ -142,9 +166,20 @@ class WallpaperViewModel() : ViewModel() {
         }
     }
 
+    fun setThumbnailImageByItemId(itemId: String) {
+        val wallpaper = _allWallpapers.value.find { it.itemId == itemId }
+        if (wallpaper != null) {
+            if (wallpaper.thumbnail.contains("https")) {
+                _currentImage.value = wallpaper.thumbnail
+            } else {
+                _currentImage.value = "https://www.palettex.ca/images/items/${wallpaper.itemId}/${wallpaper.thumbnail}"
+            }
+        }
+    }
+
     fun getThumbnailByItemId(itemId: String): String{
         // Search for the WallpaperItem with the matching itemId
-        val wallpaper = _wallpapers.value.find { it.itemId == itemId }
+        val wallpaper = _allWallpapers.value.find { it.itemId == itemId }
 
         if (wallpaper == null) return ""
 
@@ -157,7 +192,7 @@ class WallpaperViewModel() : ViewModel() {
     }
 
     fun getDownloadListLinkByItemId(itemId: String): String? {
-        val wallpaperItem = _wallpapers.value.find { it.itemId == itemId }
+        val wallpaperItem = _allWallpapers.value.find { it.itemId == itemId }
         return wallpaperItem?.downloadList?.firstOrNull()?.link
     }
 
@@ -188,5 +223,142 @@ class WallpaperViewModel() : ViewModel() {
                 Log.e(TAG, "Error(getAppSettings):$e")
             }
         }
+    }
+
+    // Add these extension functions and methods to your WallpaperViewModel class
+
+    private fun Color.toHexString(): String {
+        return String.format(
+            "#%02X%02X%02X",
+            (red * 255).toInt(),
+            (green * 255).toInt(),
+            (blue * 255).toInt()
+        )
+    }
+
+    private fun String.toColor(): Color? {
+        return try {
+            if (this.startsWith("#") && this.length == 7) {
+                Color(android.graphics.Color.parseColor(this))
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    private fun calculateColorSimilarity(color1: Color, color2: Color): Double {
+        // Convert Float to Double using .toDouble()
+        val rDiff = (color1.red - color2.red).toDouble()
+        val gDiff = (color1.green - color2.green).toDouble()
+        val bDiff = (color1.blue - color2.blue).toDouble()
+
+        return sqrt(rDiff * rDiff + gDiff * gDiff + bDiff * bDiff)
+    }
+
+    private fun calculateDualColorSimilarity(
+        targetColor1: Color,
+        targetColor2: Color,
+        wallpaperColors: List<Color>
+    ): Double {
+        if (wallpaperColors.isEmpty()) return Double.MAX_VALUE
+
+        // Find the best matching pair of colors
+        var minTotalDistance = Double.MAX_VALUE
+
+        for (wallpaperColor in wallpaperColors) {
+            val dist1 = calculateColorSimilarity(targetColor1, wallpaperColor)
+            for (otherWallpaperColor in wallpaperColors) {
+                if (otherWallpaperColor != wallpaperColor) {
+                    val dist2 = calculateColorSimilarity(targetColor2, otherWallpaperColor)
+                    val totalDist = dist1 + dist2
+                    if (totalDist < minTotalDistance) {
+                        minTotalDistance = totalDist
+                    }
+                }
+            }
+        }
+        return minTotalDistance
+    }
+
+    private fun getWallpaperColors(wallpaper: WallpaperItem): List<Color> {
+        return wallpaper.tags
+            .filter { it.startsWith("#") }
+            .mapNotNull { it.toColor() }
+    }
+
+    fun updateFilteredWallpapers() {
+        viewModelScope.launch {
+            val first = firstSelectedColor.value
+            val second = secondSelectedColor.value
+
+            val filteredList = when {
+                first != null && second != null -> {
+                    // Filter by both colors
+                    _allWallpapers.value
+                        .map { wallpaper ->
+                            val wallpaperColors = getWallpaperColors(wallpaper)
+                            val similarity = calculateDualColorSimilarity(first, second, wallpaperColors)
+                            wallpaper to similarity
+                        }
+                        .sortedBy { it.second }
+                        .take(10)
+                        .map { it.first }
+                }
+                first != null -> {
+                    // Filter by first color only
+                    _allWallpapers.value
+                        .map { wallpaper ->
+                            val wallpaperColors = getWallpaperColors(wallpaper)
+                            val similarity = wallpaperColors.minOfOrNull {
+                                calculateColorSimilarity(first, it)
+                            } ?: Double.MAX_VALUE
+                            wallpaper to similarity
+                        }
+                        .sortedBy { it.second }
+                        .take(10)
+                        .map { it.first }
+                }
+                second != null -> {
+                    // Filter by second color only
+                    _allWallpapers.value
+                        .map { wallpaper ->
+                            val wallpaperColors = getWallpaperColors(wallpaper)
+                            val similarity = wallpaperColors.minOfOrNull {
+                                calculateColorSimilarity(second, it)
+                            } ?: Double.MAX_VALUE
+                            wallpaper to similarity
+                        }
+                        .sortedBy { it.second }
+                        .take(10)
+                        .map { it.first }
+                }
+                else -> {
+                    // No color selected - show 30 random wallpapers
+                    _allWallpapers.value.shuffled().take(30)
+                }
+            }
+            _carouselWallpapers.value = filteredList
+        }
+    }
+
+    // Update the color setter methods to trigger filtering
+    fun setFirstSelectedColor(color: Color?) {
+        _firstSelectedColor.value = color
+        updateFilteredWallpapers()
+    }
+
+    fun setSecondSelectedColor(color: Color?) {
+        _secondSelectedColor.value = color
+        updateFilteredWallpapers()
+    }
+
+    // Add these properties to WallpaperViewModel class
+    private val _currentCarouselPage = MutableStateFlow(0)
+    val currentCarouselPage: StateFlow<Int> = _currentCarouselPage.asStateFlow()
+
+    fun setCurrentCarouselPage(page: Int) {
+        _currentCarouselPage.value = page
     }
 }

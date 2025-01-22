@@ -13,6 +13,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -28,10 +29,11 @@ fun DrawerContent(navController: NavController, drawerState: DrawerState, viewMo
         Spacer(modifier = Modifier.height(56.dp))
         Text(
             text = "About Us",
+            color = Color.White,
             modifier = Modifier
                 .padding(16.dp)
                 .clickable {
-                    navController.navigate("Favorite")
+                    navController.navigate("AboutUs")
                     scope.launch {
                         drawerState.close()
                     }
@@ -40,6 +42,7 @@ fun DrawerContent(navController: NavController, drawerState: DrawerState, viewMo
         Spacer(modifier = Modifier.height(2.dp))
         Text(
             text = "Build Version: $versionName",
+            color = Color.White,
             modifier = Modifier
                 .padding(16.dp)
                 .clickable {
@@ -51,6 +54,7 @@ fun DrawerContent(navController: NavController, drawerState: DrawerState, viewMo
         Spacer(modifier = Modifier.weight(1f))
         Text(
             text = "Close (X)",
+            color = Color.White,
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .padding(16.dp)

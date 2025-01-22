@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
 @Composable
-fun AIScreen(name: String, modifier: Modifier = Modifier) {
+fun AIScreen(name: String) {
     Text(
         text = "$name",
     )

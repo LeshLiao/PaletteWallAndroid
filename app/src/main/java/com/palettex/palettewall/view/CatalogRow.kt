@@ -41,9 +41,7 @@ fun CatalogRow(
     ) {
         catalogs.forEach { item ->
             Column(
-                modifier = Modifier
-                    .padding(2.dp)
-                    .width(100.dp),  // Removed height constraint
+                modifier = Modifier.padding(2.dp).width(100.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -55,11 +53,10 @@ fun CatalogRow(
                         .clickable {
 
                             when (item.key) {
-                                "Wallpapers" -> { // main catalog(All)
-                                    wallpaperViewModel.fetchShuffledWallpapersApi()
+                                "Wallpapers" -> {
+                                    wallpaperViewModel.showCurrentAllWallpaper()
                                 }
                                 else -> {
-
                                     wallpaperViewModel.fetchWallpaperBy(item.key)
                                 }
                             }

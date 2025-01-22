@@ -20,33 +20,52 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
+import com.palettex.palettewall.view.utility.throttleClick
 import com.palettex.palettewall.viewmodel.TopBarViewModel
+import com.palettex.palettewall.viewmodel.WallpaperViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyTopBarTest(topViewModel: TopBarViewModel, scope: CoroutineScope, drawerState: DrawerState) {
+fun HomeTopBar(
+    topViewModel: TopBarViewModel,
+    wallpaperViewModel: WallpaperViewModel,
+    scope: CoroutineScope,
+    drawerState: DrawerState,
+    onBannerHeightMeasured: (Dp) -> Unit
+) {
+    val density = LocalDensity.current
 
     AnimatedVisibility(
         visible = topViewModel.isTopBarVisible,
         enter = slideInVertically(
             initialOffsetY = { -it },
-            animationSpec = tween(durationMillis = 2000) // 1000ms = 1 second
+            animationSpec = tween(durationMillis = 2000)
         ) + fadeIn(animationSpec = tween(durationMillis = 2000)),
         exit = slideOutVertically(
-            targetOffsetY = { -it  },
+            targetOffsetY = { -it },
             animationSpec = tween(durationMillis = 2000)
         ) + fadeOut(animationSpec = tween(durationMillis = 2000))
     ) {
         TopAppBar(
+            modifier = Modifier.onSizeChanged { size ->
+                val topHeight = with(density) { size.height.toDp() }
+                onBannerHeightMeasured(topHeight)
+            },
             title = {
                 Text(
                     text = "PaletteX",
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth().throttleClick {
+                        wallpaperViewModel.showCurrentAllWallpaper()
+                        wallpaperViewModel.scrollToTop()
+                    }
                 ) },
             navigationIcon = {
                 IconButton(onClick = {
@@ -57,7 +76,7 @@ fun MyTopBarTest(topViewModel: TopBarViewModel, scope: CoroutineScope, drawerSta
                     Icon(
                         imageVector = Icons.Default.Menu,
                         contentDescription = "Menu",
-                        tint = Color.White // Set the color to white
+                        tint = Color.White
                     )
                 }
             },
