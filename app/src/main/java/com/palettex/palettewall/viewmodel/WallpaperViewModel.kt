@@ -106,6 +106,14 @@ open class WallpaperViewModel() : ViewModel() {
         _scrollToTopTrigger.value = status
     }
 
+    fun updateCurrentCatalog() {
+        if (_currentCatalog.value == "Wallpapers") {
+            fetchShuffledWallpapersApi()
+        } else {
+            fetchWallpaperBy(_currentCatalog.value)
+        }
+    }
+
     fun fetchShuffledWallpapersApi() {
         viewModelScope.launch {
             try {

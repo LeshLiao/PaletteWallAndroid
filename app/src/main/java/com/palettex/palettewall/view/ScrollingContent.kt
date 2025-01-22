@@ -71,7 +71,7 @@ fun ScrollingContent(
     val pullRefreshState = rememberPullRefreshState(
         refreshing = refreshing,
         onRefresh = {
-            wallpaperViewModel.fetchShuffledWallpapersApi()
+            wallpaperViewModel.updateCurrentCatalog()
         }
     )
 
@@ -109,7 +109,6 @@ fun ScrollingContent(
 
     LaunchedEffect(currentCatalog) {
         if (currentCatalog == "Wallpapers") {
-
             showPopular = true
         } else {
             showPopular = false

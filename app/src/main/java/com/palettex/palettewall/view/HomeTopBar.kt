@@ -84,11 +84,11 @@ fun HomeTopBar(
                 IconButton(onClick = {
                     // Handle search button click here
                 }) {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Search",
-                        tint = Color.White // Set the color to white
-                    )
+//                    Icon(
+//                        imageVector = Icons.Default.Search,
+//                        contentDescription = "Search",
+//                        tint = Color.White // Set the color to white
+//                    )
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(
