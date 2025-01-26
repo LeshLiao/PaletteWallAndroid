@@ -121,4 +121,5 @@ dependencies {
     implementation (libs.coil.compose.v222)
 
     implementation ("androidx.compose.material:material:1.5.4")
+    implementation ("com.google.firebase:firebase-analytics-ktx")
 }

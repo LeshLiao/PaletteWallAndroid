@@ -1,5 +1,7 @@
 package com.palettex.palettewall.viewmodel
 
+import android.content.Context
+import android.os.Build
 import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
@@ -14,7 +16,20 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlin.math.sqrt
 
-open class WallpaperViewModel() : ViewModel() {
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.ktx.analytics
+import com.google.firebase.ktx.Firebase
+import android.os.Bundle
+import android.util.DisplayMetrics
+import android.view.WindowManager
+import com.palettex.palettewall.BuildConfig
+import com.palettex.palettewall.data.LogEventRequest
+import retrofit2.http.Path
+import java.util.Locale
+
+open class WallpaperViewModel(
+    private val analytics: FirebaseAnalytics = Firebase.analytics
+) : ViewModel() {
 
     companion object {
         private val TAG = WallpaperViewModel::class.java.simpleName + "_GDT"
@@ -225,8 +240,27 @@ open class WallpaperViewModel() : ViewModel() {
         }
     }
 
-    // Add these extension functions and methods to your WallpaperViewModel class
+    fun sendLogEvent(itemId: String, eventType: String) {
+        viewModelScope.launch {
+            try {
+                val request = LogEventRequest(
+                    itemId = itemId,
+                    eventType = eventType,
+                    manufacturer = Build.MANUFACTURER,
+                    model = Build.MODEL,
+                    release = Build.VERSION.RELEASE,
+                    sdk = Build.VERSION.SDK_INT.toString(),
+                    country = Locale.getDefault().country,
+                )
 
+                RetrofitInstance.api.sendLogEvent(request)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error sendLogEvent(): $e")
+            }
+        }
+    }
+
+    // Add these extension functions and methods to your WallpaperViewModel class
     private fun Color.toHexString(): String {
         return String.format(
             "#%02X%02X%02X",
@@ -361,4 +395,47 @@ open class WallpaperViewModel() : ViewModel() {
     fun setCurrentCarouselPage(page: Int) {
         _currentCarouselPage.value = page
     }
+
+    // Firebase Events
+    sealed class AnalyticsEvent(val eventName: String) {
+        data class DownloadFree(val itemId: String) : AnalyticsEvent("download_free")
+        data class Category(val category: String) : AnalyticsEvent("category_$category")
+        data class Share(val itemId: String) : AnalyticsEvent(FirebaseAnalytics.Event.SHARE)
+        data class Like(val itemId: String) : AnalyticsEvent("like_button")
+    }
+
+    private fun logEvent(event: AnalyticsEvent) {
+        try {
+            val bundle = Bundle().apply {
+                when (event) {
+                    is AnalyticsEvent.DownloadFree -> {
+                        putString(FirebaseAnalytics.Param.ITEM_ID, event.itemId)
+                        putString(FirebaseAnalytics.Param.CONTENT_TYPE, "wallpaper")
+                    }
+                    is AnalyticsEvent.Category -> {
+                        putString(FirebaseAnalytics.Param.ITEM_CATEGORY, event.category)
+                    }
+                    is AnalyticsEvent.Share -> {
+                        putString(FirebaseAnalytics.Param.ITEM_ID, event.itemId)
+                    }
+                    is AnalyticsEvent.Like -> {
+                        putString(FirebaseAnalytics.Param.ITEM_ID, event.itemId)
+                    }
+                }
+            }
+
+            if (BuildConfig.DEBUG_MODE) {
+                Log.d(TAG, "DEBUG_MODE event: ${event.eventName}")
+            } else {
+                analytics.logEvent(event.eventName, bundle)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to firebase log event ${event.eventName}", e)
+        }
+    }
+
+    fun firebaseDownloadFreeEvent(itemId: String) = logEvent(AnalyticsEvent.DownloadFree(itemId))
+    fun firebaseCatalogEvent(category: String) = logEvent(AnalyticsEvent.Category(category))
+    fun firebaseShareEvent(itemId: String) = logEvent(AnalyticsEvent.Share(itemId))
+    fun firebaseLikeEvent(itemId: String) = logEvent(AnalyticsEvent.Like(itemId))
 }
