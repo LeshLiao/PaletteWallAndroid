@@ -15,8 +15,8 @@ android {
         applicationId = "com.palettex.palettewall"
         minSdk = 30
         targetSdk = 34
-        versionCode = 202
-        versionName = "2.02"
+        versionCode = 203
+        versionName = "2.03"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -121,4 +121,5 @@ dependencies {
     implementation (libs.coil.compose.v222)
 
     implementation ("androidx.compose.material:material:1.5.4")
+    implementation ("com.google.firebase:firebase-analytics-ktx")
 }
