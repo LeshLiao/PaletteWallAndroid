@@ -51,6 +51,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import com.palettex.palettewall.BuildConfig
 import com.palettex.palettewall.R
 import com.palettex.palettewall.data.WallpaperDatabase
 import com.palettex.palettewall.view.component.BottomModal
@@ -228,6 +229,9 @@ fun FullscreenScreen(
                         Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
                     }
                     wallpaperViewModel.firebaseDownloadFreeEvent(currentItemId)
+                    if (!BuildConfig.DEBUG_MODE) {
+                        wallpaperViewModel.sendLogEvent(currentItemId, "download_free")
+                    }
                 }
             }
         )

@@ -1,5 +1,7 @@
 package com.palettex.palettewall.viewmodel
 
+import android.content.Context
+import android.os.Build
 import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
@@ -18,6 +20,12 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
 import android.os.Bundle
+import android.util.DisplayMetrics
+import android.view.WindowManager
+import com.palettex.palettewall.BuildConfig
+import com.palettex.palettewall.data.LogEventRequest
+import retrofit2.http.Path
+import java.util.Locale
 
 open class WallpaperViewModel(
     private val analytics: FirebaseAnalytics = Firebase.analytics
@@ -232,8 +240,27 @@ open class WallpaperViewModel(
         }
     }
 
-    // Add these extension functions and methods to your WallpaperViewModel class
+    fun sendLogEvent(itemId: String, eventType: String) {
+        viewModelScope.launch {
+            try {
+                val request = LogEventRequest(
+                    itemId = itemId,
+                    eventType = eventType,
+                    manufacturer = Build.MANUFACTURER,
+                    model = Build.MODEL,
+                    release = Build.VERSION.RELEASE,
+                    sdk = Build.VERSION.SDK_INT.toString(),
+                    country = Locale.getDefault().country,
+                )
 
+                RetrofitInstance.api.sendLogEvent(request)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error sendLogEvent(): $e")
+            }
+        }
+    }
+
+    // Add these extension functions and methods to your WallpaperViewModel class
     private fun Color.toHexString(): String {
         return String.format(
             "#%02X%02X%02X",
@@ -397,8 +424,11 @@ open class WallpaperViewModel(
                 }
             }
 
-            analytics.logEvent(event.eventName, bundle)
-            Log.d(TAG, "Firebase event logged: ${event.eventName}")
+            if (BuildConfig.DEBUG_MODE) {
+                Log.d(TAG, "DEBUG_MODE event: ${event.eventName}")
+            } else {
+                analytics.logEvent(event.eventName, bundle)
+            }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to firebase log event ${event.eventName}", e)
         }

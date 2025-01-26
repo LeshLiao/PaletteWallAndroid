@@ -1,9 +1,12 @@
 package com.palettex.palettewall.network
 
+import com.palettex.palettewall.data.LogEventRequest
 import com.palettex.palettewall.model.AppSettings
 import com.palettex.palettewall.model.CatalogItem
 import com.palettex.palettewall.model.WallpaperItem
+import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.Path
 
 interface WallpaperApiService {
@@ -28,4 +31,7 @@ interface WallpaperApiService {
 
     @GET("items/settings/init")
     suspend fun getAppSettings(): AppSettings
+
+    @POST("items/log")
+    suspend fun sendLogEvent(@Body logEvent: LogEventRequest)
 }
