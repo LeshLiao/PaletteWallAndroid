@@ -61,6 +61,7 @@ fun CatalogRow(
                                 }
                             }
                             wallpaperViewModel.setCurrentCatalog(item.key)
+                            wallpaperViewModel.firebaseCatalogEvent(item.key)
                         },
                     elevation = CardDefaults.cardElevation(8.dp),
                     shape = RoundedCornerShape(8.dp),

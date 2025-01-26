@@ -227,6 +227,7 @@ fun FullscreenScreen(
                     downloadImage(context, it) { msg ->
                         Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
                     }
+                    wallpaperViewModel.firebaseDownloadFreeEvent(currentItemId)
                 }
             }
         )

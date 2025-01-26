@@ -14,7 +14,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlin.math.sqrt
 
-open class WallpaperViewModel() : ViewModel() {
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.ktx.analytics
+import com.google.firebase.ktx.Firebase
+import android.os.Bundle
+
+open class WallpaperViewModel(
+    private val analytics: FirebaseAnalytics = Firebase.analytics
+) : ViewModel() {
 
     companion object {
         private val TAG = WallpaperViewModel::class.java.simpleName + "_GDT"
@@ -361,4 +368,44 @@ open class WallpaperViewModel() : ViewModel() {
     fun setCurrentCarouselPage(page: Int) {
         _currentCarouselPage.value = page
     }
+
+    // Firebase Events
+    sealed class AnalyticsEvent(val eventName: String) {
+        data class DownloadFree(val itemId: String) : AnalyticsEvent("download_free")
+        data class Category(val category: String) : AnalyticsEvent("category_$category")
+        data class Share(val itemId: String) : AnalyticsEvent(FirebaseAnalytics.Event.SHARE)
+        data class Like(val itemId: String) : AnalyticsEvent("like_button")
+    }
+
+    private fun logEvent(event: AnalyticsEvent) {
+        try {
+            val bundle = Bundle().apply {
+                when (event) {
+                    is AnalyticsEvent.DownloadFree -> {
+                        putString(FirebaseAnalytics.Param.ITEM_ID, event.itemId)
+                        putString(FirebaseAnalytics.Param.CONTENT_TYPE, "wallpaper")
+                    }
+                    is AnalyticsEvent.Category -> {
+                        putString(FirebaseAnalytics.Param.ITEM_CATEGORY, event.category)
+                    }
+                    is AnalyticsEvent.Share -> {
+                        putString(FirebaseAnalytics.Param.ITEM_ID, event.itemId)
+                    }
+                    is AnalyticsEvent.Like -> {
+                        putString(FirebaseAnalytics.Param.ITEM_ID, event.itemId)
+                    }
+                }
+            }
+
+            analytics.logEvent(event.eventName, bundle)
+            Log.d(TAG, "Firebase event logged: ${event.eventName}")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to firebase log event ${event.eventName}", e)
+        }
+    }
+
+    fun firebaseDownloadFreeEvent(itemId: String) = logEvent(AnalyticsEvent.DownloadFree(itemId))
+    fun firebaseCatalogEvent(category: String) = logEvent(AnalyticsEvent.Category(category))
+    fun firebaseShareEvent(itemId: String) = logEvent(AnalyticsEvent.Share(itemId))
+    fun firebaseLikeEvent(itemId: String) = logEvent(AnalyticsEvent.Like(itemId))
 }

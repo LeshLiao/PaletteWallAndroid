@@ -26,6 +26,7 @@ fun LikeButton(isLiked: Boolean, dao: LikedWallpaperDao, itemId: String, wallpap
                     dao.deleteLikedWallpaper(LikedWallpaper(itemId, wallpaperViewModel.getThumbnailByItemId(itemId)))
                 } else {
                     dao.insertLikedWallpaper(LikedWallpaper(itemId, wallpaperViewModel.getThumbnailByItemId(itemId)))
+                    wallpaperViewModel.firebaseLikeEvent(itemId)
                 }
             }
         }
