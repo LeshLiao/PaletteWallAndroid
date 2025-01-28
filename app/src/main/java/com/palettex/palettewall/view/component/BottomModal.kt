@@ -72,19 +72,26 @@ fun BottomModal(
         rewardedAd?.fullScreenContentCallback = object : FullScreenContentCallback() {
             override fun onAdShowedFullScreenContent() {
                 // The ad was shown
-                Log.d("GDT", "Ad was shown.")
+                Log.d("GDT", "rewardedAd was shown.")
+                if (!BuildConfig.DEBUG_MODE) {
+                    wallpaperViewModel.sendLogEvent("0", "rewardedAd_was_shown")
+                }
             }
 
             override fun onAdDismissedFullScreenContent() {
                 // The ad was closed
                 onAdWatchedAndStartDownload() // start download image
-                Log.d("GDT", "Ad was dismissed.")
+                Log.d("GDT", "rewardedAd was dismissed, start download.")
                 rewardedAd = null  // Set rewardedAd to null after it is closed
             }
 
             override fun onAdFailedToShowFullScreenContent(adError: AdError) {
-                Log.d("GDT", "Ad failed to show: ${adError.message}")
-                Toast.makeText(context, "Ad failed to show.", Toast.LENGTH_SHORT).show()
+                Log.d("GDT", "rewardedAd failed to show: ${adError.message}")
+                Toast.makeText(context, "rewardedAd failed to show and Start to Download..", Toast.LENGTH_SHORT).show()
+                if (!BuildConfig.DEBUG_MODE) {
+                    wallpaperViewModel.sendLogEvent("0", "rewardedAd_failed_to_show")
+                }
+                onAdWatchedAndStartDownload() // TODO: Temp Testing
                 rewardedAd = null  // Set rewardedAd to null after failure
             }
         }

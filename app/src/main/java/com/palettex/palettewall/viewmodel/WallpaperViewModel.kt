@@ -80,6 +80,9 @@ open class WallpaperViewModel(
     private val _secondSelectedColor = MutableStateFlow<Color?>(null)
     val secondSelectedColor: StateFlow<Color?> = _secondSelectedColor.asStateFlow()
 
+    private val _isRemoteConfigInitialized = MutableStateFlow(false)
+    val isRemoteConfigInitialized: StateFlow<Boolean> = _isRemoteConfigInitialized
+
     init {
         viewModelScope.launch {
             getAppSettings()
@@ -119,6 +122,10 @@ open class WallpaperViewModel(
 
     fun setScrollToTopTrigger(status: Boolean) {
         _scrollToTopTrigger.value = status
+    }
+
+    fun setIsRemoteConfigInitialized(status: Boolean) {
+        _isRemoteConfigInitialized.value = status
     }
 
     fun updateCurrentCatalog() {

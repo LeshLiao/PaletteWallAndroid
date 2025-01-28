@@ -15,7 +15,7 @@ object AdManager {
     private var adMobBannerView: AdView? = null
     private var isAdLoaded = false
     private var lastLoadTime: Long = 0
-    private const val REFRESH_INTERVAL = 60_000 * 5 // 5 minutes in milliseconds
+    private const val REFRESH_INTERVAL = 60_000 * 1 // 3 minutes in milliseconds
 
     fun getOrCreateAd(context: Context): AdView {
         if (adMobBannerView == null) {
@@ -57,12 +57,18 @@ object AdManager {
                         isAdLoaded = true
                         viewModel.setBottomAdsLoaded(true)
                         Log.d("GDT","Ad Banner onAdLoaded()")
+                        if (!BuildConfig.DEBUG_MODE) {
+                            viewModel.sendLogEvent("0", "Ad_Banner_onAdLoaded_success")
+                        }
                     }
 
                     override fun onAdFailedToLoad(adError: LoadAdError) {
                         isAdLoaded = false
                         viewModel.setBottomAdsLoaded(false)
                         Log.e("GDT","Ad Banner onAdFailedToLoad()")
+                        if (!BuildConfig.DEBUG_MODE) {
+                            viewModel.sendLogEvent("0", "Ad_Banner_onAdFailedToLoad")
+                        }
                     }
                 }
             }
