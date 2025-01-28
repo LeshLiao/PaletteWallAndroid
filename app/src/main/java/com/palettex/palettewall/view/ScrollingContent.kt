@@ -1,6 +1,7 @@
 package com.palettex.palettewall.view
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -65,6 +66,7 @@ fun ScrollingContent(
     val appSettings by wallpaperViewModel.appSettings.collectAsState()
     val wallpapers by wallpaperViewModel.wallpapers.collectAsState()
     val currentCatalog by wallpaperViewModel.currentCatalog.collectAsState()
+    val isRemoteConfigInitialized by wallpaperViewModel.isRemoteConfigInitialized.collectAsState()
 
     // Add pull-to-refresh state
     val refreshing by remember { mutableStateOf(false) }
@@ -85,8 +87,12 @@ fun ScrollingContent(
     val dao = remember { database.likedWallpaperDao() }
 
     val adMobBannerView = remember { AdManager.getOrCreateAd(context) }
-    LaunchedEffect(Unit) {
-        AdManager.loadAdIfNeeded(wallpaperViewModel)
+
+    LaunchedEffect(Unit, isRemoteConfigInitialized) {
+        Log.d("GDT", "isRemoteConfigInitialized=" + isRemoteConfigInitialized)
+        if (isRemoteConfigInitialized) {
+            AdManager.loadAdIfNeeded(wallpaperViewModel)
+        }
     }
 
     LaunchedEffect(listState) {

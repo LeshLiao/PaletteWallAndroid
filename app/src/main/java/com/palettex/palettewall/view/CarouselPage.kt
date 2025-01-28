@@ -48,6 +48,7 @@ import com.palettex.palettewall.data.WallpaperDatabase
 import com.palettex.palettewall.model.WallpaperItem
 import com.palettex.palettewall.view.component.ColorPaletteMatrix
 import com.palettex.palettewall.view.component.LikeButton
+import com.palettex.palettewall.viewmodel.AdManager
 import com.palettex.palettewall.viewmodel.TopBarViewModel
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
 import kotlinx.coroutines.launch
@@ -64,6 +65,7 @@ fun CarouselPage(
     val carouselWallpapers by wallpaperViewModel.carouselWallpapers.collectAsState()
     val firstSelectedColor by wallpaperViewModel.firstSelectedColor.collectAsState()
     val secondSelectedColor by wallpaperViewModel.secondSelectedColor.collectAsState()
+    val isRemoteConfigInitialized by wallpaperViewModel.isRemoteConfigInitialized.collectAsState()
     var colorSelectedList by remember { mutableStateOf<List<Color>>(emptyList()) }
     var colorBrowseList by remember { mutableStateOf<List<Color>>(emptyList()) }
     var carouselPagerState: PagerState? by remember { mutableStateOf(null) }
@@ -73,6 +75,10 @@ fun CarouselPage(
         topViewModel.showTopBar()
         if (carouselWallpapers.isEmpty()) {
             wallpaperViewModel.updateFilteredWallpapers()
+        }
+        Log.d("GDT", "isRemoteConfigInitialized=" + isRemoteConfigInitialized)
+        if (isRemoteConfigInitialized) {
+            AdManager.loadAdIfNeeded(wallpaperViewModel)
         }
         onDispose {
             Log.d("GDT","CarouselPage onDispose()")

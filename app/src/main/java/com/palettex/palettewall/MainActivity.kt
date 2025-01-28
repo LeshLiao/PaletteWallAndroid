@@ -65,7 +65,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private var isRemoteConfigInitialized = false
     private fun initializeRemoteConfig() {
         Log.d("GDT","initializeRemoteConfig()")
         val remoteConfig: FirebaseRemoteConfig = Firebase.remoteConfig
@@ -91,7 +90,7 @@ class MainActivity : ComponentActivity() {
                     PaletteRemoteConfig.updateLocalValues()
                     Log.d("GDT", " - shouldShow BannerAds= ${PaletteRemoteConfig.shouldShowBannerAds()}")
                     Log.d("GDT", " - shouldShow RewardAds= ${PaletteRemoteConfig.shouldShowRewardAds()}")
-                    isRemoteConfigInitialized = true
+                    wallpaperViewModel.setIsRemoteConfigInitialized(true)
                 } else {
                     Log.d("GDT", "Remote config fetch failed: ${task.exception?.message}")
                 }
@@ -136,6 +135,13 @@ class MainActivity : ComponentActivity() {
     private fun showToast() {
         Toast.makeText(this, "Download completed successfully!!!",
             Toast.LENGTH_LONG).show()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (wallpaperViewModel.isRemoteConfigInitialized.value) {
+            AdManager.loadAdIfNeeded(wallpaperViewModel)
+        }
     }
 
     override fun onDestroy() {
