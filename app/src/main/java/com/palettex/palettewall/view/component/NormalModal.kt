@@ -42,8 +42,9 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun BottomModal(
+fun NormalModal(
     context: Context,
+    isCurrentFreeDownload: Boolean,
     onDismissRequest: () -> Unit = {},
     wallpaperViewModel: WallpaperViewModel,
     billingViewModel: BillingViewModel,
@@ -144,38 +145,53 @@ fun BottomModal(
         Column(
             modifier = Modifier.fillMaxWidth()
         ) {
-            val coroutineScope = rememberCoroutineScope()
-
-            var buttonTextId = R.string.no_ad_free_download
-            if (PaletteRemoteConfig.shouldShowRewardAds()) {
-                buttonTextId = R.string.show_ad_free_download
-            }
-            if (isPremium) {
-                buttonTextId = R.string.premium_download
-            }
-
-            CommonButton(stringResource(buttonTextId)) {
-                if (!isLoading && !isAdReady) {
-                    coroutineScope.launch {
-                        // If no ads should be shown, skip ad loading
-                        if (!PaletteRemoteConfig.shouldShowRewardAds() || isPremium) {
-                            onDismissRequest()
-                            onAdWatchedAndStartDownload()
-                        } else {
-                            onDismissRequest()
-                            loadingAds()
-                            startLoadAd()
+            if (isCurrentFreeDownload) {
+                val coroutineScope = rememberCoroutineScope()
+                if (PaletteRemoteConfig.shouldShowRewardAds()) {
+                    CommonButton(stringResource(R.string.show_ad_free_download)) {
+                        if (!isLoading && !isAdReady) {
+                            coroutineScope.launch {
+                                // If no ads should be shown, skip ad loading
+                                if (!PaletteRemoteConfig.shouldShowRewardAds()) {
+                                    onDismissRequest()
+                                    onAdWatchedAndStartDownload()
+                                } else {
+                                    onDismissRequest()
+                                    loadingAds()
+                                    startLoadAd()
+                                }
+                            }
                         }
                     }
+                    Spacer(Modifier.height(1.dp))
+                    CommonButton(stringResource(R.string.go_premium)) { showSubscriptions() }
+                    Spacer(Modifier.height(8.dp))
+                    CommonButton(stringResource(R.string.cancel)) { onDismissRequest() }
+                } else {
+                    CommonButton(stringResource(R.string.no_ad_free_download)) {
+                        if (!isLoading && !isAdReady) {
+                            coroutineScope.launch {
+                                // If no ads should be shown, skip ad loading
+                                if (!PaletteRemoteConfig.shouldShowRewardAds()) {
+                                    onDismissRequest()
+                                    onAdWatchedAndStartDownload()
+                                } else {
+                                    onDismissRequest()
+                                    loadingAds()
+                                    startLoadAd()
+                                }
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    CommonButton(stringResource(R.string.cancel)) { onDismissRequest() }
                 }
-            }
-
-            if (!isPremium) {
+            } else {
                 Spacer(Modifier.height(1.dp))
                 CommonButton(stringResource(R.string.go_premium)) { showSubscriptions() }
+                Spacer(Modifier.height(8.dp))
+                CommonButton(stringResource(R.string.cancel)) { onDismissRequest() }
             }
-            Spacer(Modifier.height(8.dp))
-            CommonButton(stringResource(R.string.cancel)) { onDismissRequest() }
         }
 
         Spacer(

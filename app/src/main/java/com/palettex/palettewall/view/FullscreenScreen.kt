@@ -58,8 +58,9 @@ import coil.compose.rememberAsyncImagePainter
 import com.palettex.palettewall.BuildConfig
 import com.palettex.palettewall.R
 import com.palettex.palettewall.data.WallpaperDatabase
-import com.palettex.palettewall.view.component.BottomModal
+import com.palettex.palettewall.view.component.NormalModal
 import com.palettex.palettewall.view.component.LikeButton
+import com.palettex.palettewall.view.component.PremiumModal
 import com.palettex.palettewall.view.component.ShareButton
 import com.palettex.palettewall.view.component.SubscriptionModal
 import com.palettex.palettewall.view.utility.throttleClick
@@ -82,12 +83,15 @@ fun FullscreenScreen(
     var isDialogVisible by remember { mutableStateOf(false) }
     var msg by remember { mutableStateOf("") }
     var currentItemId by remember { mutableStateOf(itemId) }
-    var showModel by remember { mutableStateOf(false) }
+    var showNormalModel by remember { mutableStateOf(false) }
+    var showPremiumModel by remember { mutableStateOf(false) }
     var showSubscriptionMenu by remember { mutableStateOf(false) }
     var isButtonVisible by remember { mutableStateOf(true) }
     val downloadBtnStatus by wallpaperViewModel.downloadBtnStatus.collectAsState()
     val loadAdsBtnStatus by wallpaperViewModel.loadAdsBtnStatus.collectAsState()
     val currentImage by wallpaperViewModel.currentImage.collectAsState()
+    val isCurrentFreeDownload by wallpaperViewModel.isCurrentFreeDownload.collectAsState()
+    val isPremium by billingViewModel.isPremium.collectAsState()
     val wallpapers by wallpaperViewModel.wallpapers.collectAsState()
     val coroutineScope = rememberCoroutineScope()
 
@@ -221,9 +225,14 @@ fun FullscreenScreen(
                                             AnimatedFloatingActionButton(
                                                 onClick = {
                                                     if (downloadBtnStatus == 0) {
-                                                        showModel = true
+                                                        if (isPremium) {
+                                                            showPremiumModel = true
+                                                        } else {
+                                                            showNormalModel = true
+                                                        }
                                                     }
                                                 },
+                                                isCurrentFreeDownload = isCurrentFreeDownload,
                                                 modifier = Modifier.size(52.dp),
                                                 isLoading = downloadBtnStatus == 1 || loadAdsBtnStatus
                                             )
@@ -251,17 +260,38 @@ fun FullscreenScreen(
         }
     )
 
-    if (showModel) {
-        BottomModal(
+    if (showNormalModel) {
+        NormalModal(
             context = context,
-            onDismissRequest = { showModel = false },
+            isCurrentFreeDownload = isCurrentFreeDownload,
+            onDismissRequest = { showNormalModel = false },
             wallpaperViewModel = wallpaperViewModel,
             billingViewModel = billingViewModel,
             loadingAds = { wallpaperViewModel.updateLoadAdsBtnStatus(true) },
             showSubscriptions = {
-                showModel = false
+                showNormalModel = false
                 showSubscriptionMenu = true
             },
+            onAdWatchedAndStartDownload = {
+                Log.d("GDT","onAdWatchedAndStartDownload() click!!!!!!")
+                wallpaperViewModel.updateDownloadBtnStatus(1)
+                wallpaperViewModel.getDownloadListLinkByItemId(currentItemId)?.let {
+                    downloadImage(context, it) { msg ->
+                        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                    }
+                    wallpaperViewModel.firebaseDownloadFreeEvent(currentItemId)
+                    if (!BuildConfig.DEBUG_MODE) {
+                        wallpaperViewModel.sendLogEvent(currentItemId, "download_free")
+                    }
+                }
+            }
+        )
+    }
+
+    if (showPremiumModel) {
+        PremiumModal(
+            billingViewModel = billingViewModel,
+            onDismissRequest = { showPremiumModel = false },
             onAdWatchedAndStartDownload = {
                 Log.d("GDT","onAdWatchedAndStartDownload() click!!!!!!")
                 wallpaperViewModel.updateDownloadBtnStatus(1)
@@ -299,6 +329,7 @@ fun downloadImage(context: Context, imageUrl: String?, onDownloadEnqueued: (Stri
 @Composable
 fun AnimatedFloatingActionButton(
     onClick: () -> Unit,
+    isCurrentFreeDownload: Boolean,
     modifier: Modifier = Modifier,
     isLoading: Boolean = false
 ) {
@@ -333,12 +364,21 @@ fun AnimatedFloatingActionButton(
                     strokeWidth = 5.dp
                 )
             } else {
-                Image(
-                    painterResource(R.drawable.download2),
-                    contentDescription = "",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.size(50.dp)
-                )
+                if (isCurrentFreeDownload) {
+                    Image(
+                        painterResource(R.drawable.download2),
+                        contentDescription = "",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.size(50.dp)
+                    )
+                } else {
+                    Image(
+                        painterResource(R.drawable.download_premium_1),
+                        contentDescription = "",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.size(50.dp)
+                    )
+                }
             }
         }
     }

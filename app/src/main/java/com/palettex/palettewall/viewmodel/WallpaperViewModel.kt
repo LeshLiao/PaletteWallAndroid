@@ -77,6 +77,9 @@ open class WallpaperViewModel(
     private val _currentImage = MutableStateFlow("")
     var currentImage: StateFlow<String> = _currentImage
 
+    private val _isCurrentFreeDownload = MutableStateFlow(false)
+    var isCurrentFreeDownload: StateFlow<Boolean> = _isCurrentFreeDownload
+
     private val _firstSelectedColor = MutableStateFlow<Color?>(null)
     val firstSelectedColor: StateFlow<Color?> = _firstSelectedColor.asStateFlow()
 
@@ -198,6 +201,7 @@ open class WallpaperViewModel(
     fun setThumbnailImageByItemId(itemId: String) {
         val wallpaper = _allWallpapers.value.find { it.itemId == itemId }
         if (wallpaper != null) {
+            _isCurrentFreeDownload.value = wallpaper.freeDownload
             if (wallpaper.thumbnail.contains("https")) {
                 _currentImage.value = wallpaper.thumbnail
             } else {
