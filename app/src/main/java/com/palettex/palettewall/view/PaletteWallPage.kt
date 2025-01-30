@@ -27,10 +27,12 @@ import kotlinx.coroutines.CoroutineScope
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.palettex.palettewall.viewmodel.BillingViewModel
 
 @Composable
 fun PaletteWallPage(
     wallpaperViewModel: WallpaperViewModel,
+    billingViewModel: BillingViewModel,
     topViewModel: TopBarViewModel,
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
@@ -48,7 +50,7 @@ fun PaletteWallPage(
         gesturesEnabled = !isFullScreen,
         drawerContent = {
             ModalDrawerSheet(drawerContainerColor =  Color(0xCC000000)) {
-                DrawerContent(navController, drawerState, wallpaperViewModel)
+                DrawerContent(navController, drawerState, wallpaperViewModel, billingViewModel)
             }
         },
         scrimColor = Color(0x55000000),
@@ -66,7 +68,7 @@ fun PaletteWallPage(
                 startDestination = startDestination,
             ) {
                 composable("Home") {
-                    ScrollingContent(bottomOffset, topViewModel, navController, wallpaperViewModel)
+                    ScrollingContent(bottomOffset, topViewModel, navController, wallpaperViewModel, billingViewModel)
                 }
                 composable("Carousel") {
                     CarouselPage(topOffset, bottomOffset, navController, wallpaperViewModel, topViewModel)
@@ -93,6 +95,7 @@ fun PaletteWallPage(
                             itemId,
                             navController,
                             wallpaperViewModel,
+                            billingViewModel,
                             topViewModel
                         )
                     }

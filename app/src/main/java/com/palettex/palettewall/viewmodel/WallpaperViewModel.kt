@@ -53,6 +53,9 @@ open class WallpaperViewModel(
     private val _downloadBtnStatus = MutableStateFlow(0)
     val downloadBtnStatus: StateFlow<Int> = _downloadBtnStatus
 
+    private val _loadAdsBtnStatus = MutableStateFlow(false)
+    val loadAdsBtnStatus: StateFlow<Boolean> = _loadAdsBtnStatus
+
     private val _isFullScreen = MutableStateFlow(false)
     val isFullScreen: StateFlow<Boolean> = _isFullScreen
 
@@ -114,6 +117,10 @@ open class WallpaperViewModel(
     // Example method to update download button status
     fun updateDownloadBtnStatus(status: Int) {
         _downloadBtnStatus.value = status
+    }
+
+    fun updateLoadAdsBtnStatus(status: Boolean) {
+        _loadAdsBtnStatus.value = status
     }
 
     fun setCurrentCatalog(status: String) {

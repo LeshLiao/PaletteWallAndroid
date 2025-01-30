@@ -48,6 +48,7 @@ import com.palettex.palettewall.data.PaletteRemoteConfig
 import com.palettex.palettewall.data.WallpaperDatabase
 import com.palettex.palettewall.view.component.LikeButton
 import com.palettex.palettewall.viewmodel.AdManager
+import com.palettex.palettewall.viewmodel.BillingViewModel
 import com.palettex.palettewall.viewmodel.TopBarViewModel
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -59,6 +60,7 @@ fun ScrollingContent(
     topViewModel: TopBarViewModel,
     navController: NavController,
     wallpaperViewModel: WallpaperViewModel,
+    billingViewModel: BillingViewModel,
     context: Context = LocalContext.current
 ) {
     val listState = rememberLazyListState()
@@ -67,6 +69,7 @@ fun ScrollingContent(
     val wallpapers by wallpaperViewModel.wallpapers.collectAsState()
     val currentCatalog by wallpaperViewModel.currentCatalog.collectAsState()
     val isRemoteConfigInitialized by wallpaperViewModel.isRemoteConfigInitialized.collectAsState()
+    val isPremium by billingViewModel.isPremium.collectAsState()
 
     // Add pull-to-refresh state
     val refreshing by remember { mutableStateOf(false) }
@@ -212,7 +215,7 @@ fun ScrollingContent(
 
         item {
             Spacer(modifier = Modifier.height(12.dp))
-            if (PaletteRemoteConfig.shouldShowBannerAds()) {
+            if (!isPremium && PaletteRemoteConfig.shouldShowBannerAds()) {
                 AndroidView(
                     modifier = Modifier.fillMaxWidth(),
                     factory = { adMobBannerView }

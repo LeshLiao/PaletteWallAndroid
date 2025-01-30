@@ -2,6 +2,7 @@ package com.palettex.palettewall.view
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.LinearEasing
@@ -16,6 +17,7 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,12 +27,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -57,8 +61,10 @@ import com.palettex.palettewall.data.WallpaperDatabase
 import com.palettex.palettewall.view.component.BottomModal
 import com.palettex.palettewall.view.component.LikeButton
 import com.palettex.palettewall.view.component.ShareButton
+import com.palettex.palettewall.view.component.SubscriptionModal
 import com.palettex.palettewall.view.utility.throttleClick
 import com.palettex.palettewall.viewmodel.AndroidDownloader
+import com.palettex.palettewall.viewmodel.BillingViewModel
 import com.palettex.palettewall.viewmodel.TopBarViewModel
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
 import kotlin.math.abs
@@ -69,6 +75,7 @@ fun FullscreenScreen(
     itemId: String,
     navController: NavController?,
     wallpaperViewModel: WallpaperViewModel,
+    billingViewModel: BillingViewModel,
     viewModel: TopBarViewModel,
 ) {
     val context = LocalContext.current
@@ -76,8 +83,10 @@ fun FullscreenScreen(
     var msg by remember { mutableStateOf("") }
     var currentItemId by remember { mutableStateOf(itemId) }
     var showModel by remember { mutableStateOf(false) }
+    var showSubscriptionMenu by remember { mutableStateOf(false) }
     var isButtonVisible by remember { mutableStateOf(true) }
     val downloadBtnStatus by wallpaperViewModel.downloadBtnStatus.collectAsState()
+    val loadAdsBtnStatus by wallpaperViewModel.loadAdsBtnStatus.collectAsState()
     val currentImage by wallpaperViewModel.currentImage.collectAsState()
     val wallpapers by wallpaperViewModel.wallpapers.collectAsState()
     val coroutineScope = rememberCoroutineScope()
@@ -96,6 +105,7 @@ fun FullscreenScreen(
 
     LaunchedEffect(currentItemId) {
         wallpaperViewModel.updateDownloadBtnStatus(0)
+        wallpaperViewModel.updateLoadAdsBtnStatus(false)
         wallpaperViewModel.setFullScreenStatus(true)
     }
 
@@ -168,7 +178,7 @@ fun FullscreenScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(boxHeight*5)  // 6/8
-//                            .border(1.dp,Color.White, RectangleShape)
+                            // .border(1.dp,Color.White, RectangleShape)
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null // No ripple effect
@@ -176,32 +186,56 @@ fun FullscreenScreen(
                                 isButtonVisible = !isButtonVisible
                             }
                     )
+
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(boxHeight*2) // 1/8
-//                            .border(1.dp,Color.White, RectangleShape)
-                            .throttleClick {}
+                            .height(boxHeight * 2)
+                            .throttleClick {},
+                        contentAlignment = Alignment.Center
                     ) {
-                        val isLiked by dao.isWallpaperLiked(itemId)
-                            .collectAsState(initial = false)
+                        val isLiked by dao.isWallpaperLiked(itemId).collectAsState(initial = false)
 
-                        if (downloadBtnStatus != 2) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            if (downloadBtnStatus == 1) {
+                                Text("Downloading...")
+                            }
                             if (isButtonVisible) {
                                 Row(
-                                    modifier = Modifier.align(Alignment.Center)
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.fillMaxWidth()
                                 ) {
                                     ShareButton(itemId, wallpaperViewModel)
                                     Spacer(Modifier.size(16.dp))
-                                    AnimatedFloatingActionButton(
-                                        onClick = {
-                                            if (downloadBtnStatus == 0) {
-                                                showModel = true
-                                            }
-                                        },
-                                        modifier = Modifier.size(52.dp),
-                                        isLoading = downloadBtnStatus == 1
-                                    )
+                                    Column(
+                                        modifier = Modifier.width(52.dp),
+                                        verticalArrangement = Arrangement.Center,
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        if (downloadBtnStatus != 2) {
+                                            AnimatedFloatingActionButton(
+                                                onClick = {
+                                                    if (downloadBtnStatus == 0) {
+                                                        showModel = true
+                                                    }
+                                                },
+                                                modifier = Modifier.size(52.dp),
+                                                isLoading = downloadBtnStatus == 1 || loadAdsBtnStatus
+                                            )
+                                        } else {
+                                            Icon(
+                                                painter = painterResource(R.drawable.test02),
+                                                modifier = Modifier.size(50.dp),
+                                                contentDescription = "finish",
+                                                tint = Color.White
+                                            )
+                                        }
+                                    }
                                     Spacer(Modifier.size(16.dp))
                                     LikeButton(isLiked, dao, itemId, wallpaperViewModel, coroutineScope)
                                 }
@@ -222,7 +256,14 @@ fun FullscreenScreen(
             context = context,
             onDismissRequest = { showModel = false },
             wallpaperViewModel = wallpaperViewModel,
+            billingViewModel = billingViewModel,
+            loadingAds = { wallpaperViewModel.updateLoadAdsBtnStatus(true) },
+            showSubscriptions = {
+                showModel = false
+                showSubscriptionMenu = true
+            },
             onAdWatchedAndStartDownload = {
+                Log.d("GDT","onAdWatchedAndStartDownload() click!!!!!!")
                 wallpaperViewModel.updateDownloadBtnStatus(1)
                 wallpaperViewModel.getDownloadListLinkByItemId(currentItemId)?.let {
                     downloadImage(context, it) { msg ->
@@ -234,6 +275,14 @@ fun FullscreenScreen(
                     }
                 }
             }
+        )
+    }
+
+    if (showSubscriptionMenu) {
+        SubscriptionModal(
+            context = context,
+            onDismissRequest = { showSubscriptionMenu = false },
+            billingViewModel = billingViewModel
         )
     }
 }
@@ -315,7 +364,9 @@ fun GetBackButton() {
 @Preview(showBackground = true)
 @Composable
 fun PreviewFullscreenScreen() {
+    val context = LocalContext.current
     val mockWallpaperViewModel = WallpaperViewModel().apply {}
+    val mockBillingViewModel = BillingViewModel(context).apply {}
     val mockTopBarViewModel = TopBarViewModel().apply {}
-    FullscreenScreen(itemId = "mockItemId", null, mockWallpaperViewModel, mockTopBarViewModel)
+    FullscreenScreen(itemId = "mockItemId", null, mockWallpaperViewModel, mockBillingViewModel, mockTopBarViewModel)
 }
