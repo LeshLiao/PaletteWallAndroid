@@ -14,10 +14,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.Icon
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -37,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -44,10 +47,12 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import com.palettex.palettewall.R
 import com.palettex.palettewall.data.PaletteRemoteConfig
 import com.palettex.palettewall.data.WallpaperDatabase
 import com.palettex.palettewall.view.component.LikeButton
 import com.palettex.palettewall.viewmodel.AdManager
+import com.palettex.palettewall.viewmodel.BillingViewModel
 import com.palettex.palettewall.viewmodel.TopBarViewModel
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -59,6 +64,7 @@ fun ScrollingContent(
     topViewModel: TopBarViewModel,
     navController: NavController,
     wallpaperViewModel: WallpaperViewModel,
+    billingViewModel: BillingViewModel,
     context: Context = LocalContext.current
 ) {
     val listState = rememberLazyListState()
@@ -67,6 +73,7 @@ fun ScrollingContent(
     val wallpapers by wallpaperViewModel.wallpapers.collectAsState()
     val currentCatalog by wallpaperViewModel.currentCatalog.collectAsState()
     val isRemoteConfigInitialized by wallpaperViewModel.isRemoteConfigInitialized.collectAsState()
+    val isPremium by billingViewModel.isPremium.collectAsState()
 
     // Add pull-to-refresh state
     val refreshing by remember { mutableStateOf(false) }
@@ -89,7 +96,9 @@ fun ScrollingContent(
     val adMobBannerView = remember { AdManager.getOrCreateAd(context) }
 
     LaunchedEffect(Unit, isRemoteConfigInitialized) {
-        Log.d("GDT", "isRemoteConfigInitialized=" + isRemoteConfigInitialized)
+        Log.d("GDT","ScrollingContent")
+        wallpaperViewModel.setFullScreenWallpaper(wallpapers)
+//        Log.d("GDT", "isRemoteConfigInitialized=" + isRemoteConfigInitialized)
         if (isRemoteConfigInitialized) {
             AdManager.loadAdIfNeeded(wallpaperViewModel)
         }
@@ -182,20 +191,34 @@ fun ScrollingContent(
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.fillMaxSize()
                         )
-                        val isLiked by dao.isWallpaperLiked(wallpaper.itemId)
-                            .collectAsState(initial = false)
-                        if (isLiked) {
+//                        val isLiked by dao.isWallpaperLiked(wallpaper.itemId)
+//                            .collectAsState(initial = false)
+//                        if (isLiked) {
+//                            Box(
+//                                modifier = Modifier
+//                                    .align(Alignment.BottomStart)
+//                                    .padding(2.dp)
+//                            ) {
+//                                LikeButton(
+//                                    isLiked,
+//                                    dao,
+//                                    wallpaper.itemId,
+//                                    wallpaperViewModel,
+//                                    coroutineScope
+//                                )
+//                            }
+//                        }
+                        if(!wallpaper.freeDownload) {
                             Box(
                                 modifier = Modifier
                                     .align(Alignment.BottomEnd) // Place the button at the bottom-end
-                                    .padding(2.dp) // Add padding if needed
+                                    .padding(6.dp) // Add padding if needed
                             ) {
-                                LikeButton(
-                                    isLiked,
-                                    dao,
-                                    wallpaper.itemId,
-                                    wallpaperViewModel,
-                                    coroutineScope
+                                Image(
+                                    painterResource(R.drawable.diamond),
+                                    contentDescription = "",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.size(18.dp)
                                 )
                             }
                         }
@@ -212,7 +235,7 @@ fun ScrollingContent(
 
         item {
             Spacer(modifier = Modifier.height(12.dp))
-            if (PaletteRemoteConfig.shouldShowBannerAds()) {
+            if (!isPremium && PaletteRemoteConfig.shouldShowBannerAds()) {
                 AndroidView(
                     modifier = Modifier.fillMaxWidth(),
                     factory = { adMobBannerView }

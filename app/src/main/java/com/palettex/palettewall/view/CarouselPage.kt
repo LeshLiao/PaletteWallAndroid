@@ -2,6 +2,7 @@ package com.palettex.palettewall.view
 
 import android.content.Context
 import android.util.Log
+import android.widget.Space
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.pager.HorizontalPager
@@ -38,12 +40,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
+import com.palettex.palettewall.R
 import com.palettex.palettewall.data.WallpaperDatabase
 import com.palettex.palettewall.model.WallpaperItem
 import com.palettex.palettewall.view.component.ColorPaletteMatrix
@@ -72,17 +76,21 @@ fun CarouselPage(
     val scope = rememberCoroutineScope()
 
     DisposableEffect(Unit) {
+        Log.d("GDT","CarouselPage")
         topViewModel.showTopBar()
         if (carouselWallpapers.isEmpty()) {
             wallpaperViewModel.updateFilteredWallpapers()
         }
-        Log.d("GDT", "isRemoteConfigInitialized=" + isRemoteConfigInitialized)
         if (isRemoteConfigInitialized) {
             AdManager.loadAdIfNeeded(wallpaperViewModel)
         }
         onDispose {
             Log.d("GDT","CarouselPage onDispose()")
         }
+    }
+
+    LaunchedEffect(carouselWallpapers) {
+        wallpaperViewModel.setFullScreenWallpaper(carouselWallpapers)
     }
 
     // Update selected colors when they change
@@ -197,6 +205,7 @@ fun WallpaperCarousel(
             val scale = 1f - (pageOffset * 0.15f).coerceIn(0f, 0.15f)
             val alpha = 1f - (pageOffset * 0.5f).coerceIn(0f, 0.5f)
             val itemId = filterWallpapers[page].itemId
+            val isFreeDownload = filterWallpapers[page].freeDownload
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
@@ -219,10 +228,28 @@ fun WallpaperCarousel(
                 )
                 val isLiked by dao.isWallpaperLiked(itemId).collectAsState(initial = false)
 
-                Box (
-                    modifier = Modifier.align(Alignment.BottomEnd).padding(2.dp)
+                Box(
+                    modifier = Modifier.align(Alignment.BottomEnd)
                 ) {
-                    LikeButton(isLiked, dao, itemId, wallpaperViewModel, coroutineScope)
+                    Column(
+                        modifier = Modifier
+                            .height(80.dp)
+                            .width(40.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        if (!isFreeDownload) {
+                            Spacer(modifier = Modifier.height(20.dp))
+                            Image(
+                                painter = painterResource(R.drawable.diamond),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.weight(1f))
+                        LikeButton(isLiked, dao, itemId, wallpaperViewModel, coroutineScope)
+                    }
                 }
             }
         }

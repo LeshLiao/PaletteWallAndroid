@@ -47,11 +47,17 @@ open class WallpaperViewModel(
     private val _wallpapers = MutableStateFlow<List<WallpaperItem>>(emptyList())
     val wallpapers: StateFlow<List<WallpaperItem>> = _wallpapers
 
+    private val _fullScreenWallpapers = MutableStateFlow<List<WallpaperItem>>(emptyList())
+    val fullScreenWallpapers: StateFlow<List<WallpaperItem>> = _fullScreenWallpapers
+
     private val _carouselWallpapers = MutableStateFlow<List<WallpaperItem>>(emptyList())
     val carouselWallpapers: StateFlow<List<WallpaperItem>> = _carouselWallpapers
 
     private val _downloadBtnStatus = MutableStateFlow(0)
     val downloadBtnStatus: StateFlow<Int> = _downloadBtnStatus
+
+    private val _loadAdsBtnStatus = MutableStateFlow(false)
+    val loadAdsBtnStatus: StateFlow<Boolean> = _loadAdsBtnStatus
 
     private val _isFullScreen = MutableStateFlow(false)
     val isFullScreen: StateFlow<Boolean> = _isFullScreen
@@ -73,6 +79,9 @@ open class WallpaperViewModel(
 
     private val _currentImage = MutableStateFlow("")
     var currentImage: StateFlow<String> = _currentImage
+
+    private val _isCurrentFreeDownload = MutableStateFlow(false)
+    var isCurrentFreeDownload: StateFlow<Boolean> = _isCurrentFreeDownload
 
     private val _firstSelectedColor = MutableStateFlow<Color?>(null)
     val firstSelectedColor: StateFlow<Color?> = _firstSelectedColor.asStateFlow()
@@ -116,6 +125,10 @@ open class WallpaperViewModel(
         _downloadBtnStatus.value = status
     }
 
+    fun updateLoadAdsBtnStatus(status: Boolean) {
+        _loadAdsBtnStatus.value = status
+    }
+
     fun setCurrentCatalog(status: String) {
         _currentCatalog.value = status
     }
@@ -126,6 +139,10 @@ open class WallpaperViewModel(
 
     fun setIsRemoteConfigInitialized(status: Boolean) {
         _isRemoteConfigInitialized.value = status
+    }
+
+    fun setFullScreenWallpaper(list: List<WallpaperItem>) {
+        _fullScreenWallpapers.value = list
     }
 
     fun updateCurrentCatalog() {
@@ -191,6 +208,7 @@ open class WallpaperViewModel(
     fun setThumbnailImageByItemId(itemId: String) {
         val wallpaper = _allWallpapers.value.find { it.itemId == itemId }
         if (wallpaper != null) {
+            _isCurrentFreeDownload.value = wallpaper.freeDownload
             if (wallpaper.thumbnail.contains("https")) {
                 _currentImage.value = wallpaper.thumbnail
             } else {
