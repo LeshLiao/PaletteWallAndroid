@@ -92,12 +92,11 @@ fun FullscreenScreen(
     val currentImage by wallpaperViewModel.currentImage.collectAsState()
     val isCurrentFreeDownload by wallpaperViewModel.isCurrentFreeDownload.collectAsState()
     val isPremium by billingViewModel.isPremium.collectAsState()
-    val wallpapers by wallpaperViewModel.wallpapers.collectAsState()
+    val fullScreenWallpapers by wallpaperViewModel.fullScreenWallpapers.collectAsState()
     val coroutineScope = rememberCoroutineScope()
-
     val database = remember { WallpaperDatabase.getDatabase(context) }
     val dao = remember { database.likedWallpaperDao() }
-
+    val isLiked by dao.isWallpaperLiked(currentItemId).collectAsState(initial = false)
     val dragState = rememberDraggableState { delta ->
         // Add horizontal drag gesture state
         // Handle drag delta
@@ -134,17 +133,17 @@ fun FullscreenScreen(
                         onDragStopped = { velocity ->
                             // Determine swipe direction based on velocity
                             if (abs(velocity) > 200) {  // Adjust threshold as needed
-                                val currentIndex = wallpapers.indexOfFirst {
+                                val currentIndex = fullScreenWallpapers.indexOfFirst {
                                     it.itemId == currentItemId
                                 }
                                 if (velocity > 0) {  // Swipe right - previous wallpaper
                                     if (currentIndex > 0) {
-                                        currentItemId = wallpapers[currentIndex - 1].itemId
+                                        currentItemId = fullScreenWallpapers[currentIndex - 1].itemId
                                         wallpaperViewModel.setThumbnailImageByItemId(currentItemId)
                                     }
                                 } else {  // Swipe left - next wallpaper
-                                    if (currentIndex < wallpapers.size - 1) {
-                                        currentItemId = wallpapers[currentIndex + 1].itemId
+                                    if (currentIndex < fullScreenWallpapers.size - 1) {
+                                        currentItemId = fullScreenWallpapers[currentIndex + 1].itemId
                                         wallpaperViewModel.setThumbnailImageByItemId(currentItemId)
                                     }
                                 }
@@ -198,8 +197,6 @@ fun FullscreenScreen(
                             .throttleClick {},
                         contentAlignment = Alignment.Center
                     ) {
-                        val isLiked by dao.isWallpaperLiked(itemId).collectAsState(initial = false)
-
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center,
@@ -214,7 +211,7 @@ fun FullscreenScreen(
                                     verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    ShareButton(itemId, wallpaperViewModel)
+                                    ShareButton(currentItemId, wallpaperViewModel)
                                     Spacer(Modifier.size(16.dp))
                                     Column(
                                         modifier = Modifier.width(52.dp),
@@ -246,7 +243,7 @@ fun FullscreenScreen(
                                         }
                                     }
                                     Spacer(Modifier.size(16.dp))
-                                    LikeButton(isLiked, dao, itemId, wallpaperViewModel, coroutineScope)
+                                    LikeButton(isLiked, dao, currentItemId, wallpaperViewModel, coroutineScope)
                                 }
                             }
                         }

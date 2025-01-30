@@ -47,6 +47,9 @@ open class WallpaperViewModel(
     private val _wallpapers = MutableStateFlow<List<WallpaperItem>>(emptyList())
     val wallpapers: StateFlow<List<WallpaperItem>> = _wallpapers
 
+    private val _fullScreenWallpapers = MutableStateFlow<List<WallpaperItem>>(emptyList())
+    val fullScreenWallpapers: StateFlow<List<WallpaperItem>> = _fullScreenWallpapers
+
     private val _carouselWallpapers = MutableStateFlow<List<WallpaperItem>>(emptyList())
     val carouselWallpapers: StateFlow<List<WallpaperItem>> = _carouselWallpapers
 
@@ -136,6 +139,10 @@ open class WallpaperViewModel(
 
     fun setIsRemoteConfigInitialized(status: Boolean) {
         _isRemoteConfigInitialized.value = status
+    }
+
+    fun setFullScreenWallpaper(list: List<WallpaperItem>) {
+        _fullScreenWallpapers.value = list
     }
 
     fun updateCurrentCatalog() {
