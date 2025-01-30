@@ -15,8 +15,8 @@ android {
         applicationId = "com.palettex.palettewall"
         minSdk = 30
         targetSdk = 34
-        versionCode = 205
-        versionName = "2.05"
+        versionCode = 211
+        versionName = "2.11"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -122,4 +122,6 @@ dependencies {
 
     implementation ("androidx.compose.material:material:1.5.4")
     implementation ("com.google.firebase:firebase-analytics-ktx")
+
+    implementation ("com.android.billingclient:billing-ktx:6.1.0")
 }

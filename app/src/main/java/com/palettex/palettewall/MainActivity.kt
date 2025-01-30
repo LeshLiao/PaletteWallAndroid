@@ -13,6 +13,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.ads.MobileAds
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
@@ -23,6 +24,7 @@ import com.palettex.palettewall.data.PaletteRemoteConfig
 import com.palettex.palettewall.ui.theme.PaletteWallTheme
 import com.palettex.palettewall.view.PaletteWallPage
 import com.palettex.palettewall.viewmodel.AdManager
+import com.palettex.palettewall.viewmodel.BillingViewModel
 import com.palettex.palettewall.viewmodel.TopBarViewModel
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -32,16 +34,15 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
     private val wallpaperViewModel: WallpaperViewModel by viewModels()
     private val topViewModel: TopBarViewModel by viewModels()
+    private val billingViewModel: BillingViewModel by viewModels {
+        BillingViewModel.Factory(this)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         enableEdgeToEdge()
-
-        initializeMobileAds()
-        fetchFirebaseToken()
-        initializeVersionName()
-        initializeRemoteConfig()
+        initializeServices()
 
         registerReceiver(
             downloadCompletedReceiver,
@@ -53,8 +54,22 @@ class MainActivity : ComponentActivity() {
             PaletteWallTheme {
                 PaletteWallPage(
                     wallpaperViewModel = wallpaperViewModel,
+                    billingViewModel = billingViewModel,
                     topViewModel = topViewModel
                 )
+            }
+        }
+    }
+
+    private fun initializeServices() {
+        lifecycleScope.launch {
+            billingViewModel.isPremium.collect { isPremium ->
+                if (!isPremium) {
+                    initializeMobileAds()
+                }
+                fetchFirebaseToken()
+                initializeVersionName()
+                initializeRemoteConfig()
             }
         }
     }

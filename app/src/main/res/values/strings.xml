@@ -2,4 +2,7 @@
     <string name="app_name">PaletteWall</string>
     <string name="show_ad_free_download">Watch Ads (Download Free)</string>
     <string name="no_ad_free_download">Download Free</string>
+    <string name="premium_download">Download</string>
+    <string name="go_premium">Go Premium!</string>
+    <string name="cancel">Cancel</string>
 </resources>
