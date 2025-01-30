@@ -10,9 +10,11 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsIgnoringVisibility
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,7 +27,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.palettex.palettewall.R
 import com.palettex.palettewall.viewmodel.BillingViewModel
 
@@ -62,6 +66,13 @@ fun SubscriptionModal(
         ) {
             val coroutineScope = rememberCoroutineScope()
             Column {
+                Text(
+                    modifier = Modifier.fillMaxWidth().padding(6.dp),
+                    text = "No Ads & Unlimited Downloads",
+                    fontSize = 16.sp,
+                    color = Color(0xFFfac826),
+                    textAlign = TextAlign.Center
+                )
                 CommonButton(
                     text = if (weeklyPrice.isNotEmpty()) "Weekly Premium $weeklyPrice/week" else "Weekly Premium",
                     textColor = Color.White,
