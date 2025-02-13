@@ -70,7 +70,7 @@ class BillingViewModel(private val context: Context) : ViewModel() {
                     purchase.products.any { it == "monthly_premium" || it == "weekly_premium" } &&
                             purchase.purchaseState == Purchase.PurchaseState.PURCHASED
                 }
-
+            Log.d("GDT","subscriptionResult=" + subscriptionResult)
             _isPremium.value = hasPremium
 //            _isPremium.value = true // TODO: test
         }
