@@ -101,6 +101,10 @@ open class WallpaperViewModel(
         }
     }
 
+    fun isNeedToUpdate(tag: String) {
+
+    }
+
     fun scrollToTop() {
         viewModelScope.launch {
             _scrollToTopTrigger.value = true
@@ -239,7 +243,7 @@ open class WallpaperViewModel(
     fun fetchWallpaperBy(param: String) {
         viewModelScope.launch {
             try {
-                _wallpapers.value = RetrofitInstance.api.getWallpaperBy(param)
+                _wallpapers.value = RetrofitInstance.api.getWallpaperBy(param).shuffled()
             } catch (e: Exception) {
             }
         }
