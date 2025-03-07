@@ -17,19 +17,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil.ImageLoader
 import coil.compose.rememberAsyncImagePainter
-import com.palettex.palettewall.model.WallpaperItem
+import coil.request.CachePolicy
+import coil.request.ImageRequest
 import com.palettex.palettewall.viewmodel.TopBarViewModel
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
-import kotlin.random.Random
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+
 @Composable
 fun PopularWallpapers(
     viewModel: TopBarViewModel,
@@ -37,19 +40,33 @@ fun PopularWallpapers(
     wallpaperViewModel: WallpaperViewModel,
 ) {
     val topTenWallpapers by wallpaperViewModel.topTenWallpapers.collectAsState()
+    val context = LocalContext.current
+    val imageLoader = remember { ImageLoader(context) }
 
     val borderColorList = listOf(
-//        Color(0xFF1C1C1C), // Near Black
-//        Color(0xFF333333), // Very Dark Gray
-//        Color(0xFF4B4B4B), // Charcoal Gray
-//        Color(0xFF636363), // Dark Gray
-        Color(0xFF7A7A7A), // Medium-Dark Gray
-//        Color(0xFF919191), // Neutral Gray
-//        Color(0xFFA9A9A9), // Light Gray
-//        Color(0xFFC0C0C0), // Silver
-//        Color(0xFFD6D6D6), // Soft Light Gray
-//        Color(0xFFECECEC)  // Very Light Gray
+        Color(0xFF7A7A7A) // Medium-Dark Gray
     )
+
+    // Preload all popular wallpaper images when the component is first composed
+    LaunchedEffect(topTenWallpapers) {
+        // Execute in IO dispatcher to avoid blocking the UI thread
+        launch(Dispatchers.IO) {
+            topTenWallpapers.forEach { wallpaper ->
+                val thumbnailUrl = wallpaperViewModel.getThumbnailByItemId(wallpaper.itemId)
+
+                // Create an image request with aggressive caching
+                val request = ImageRequest.Builder(context)
+                    .data(thumbnailUrl)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .memoryCachePolicy(CachePolicy.ENABLED)
+                    .placeholderMemoryCacheKey(thumbnailUrl)
+                    .build()
+
+                // Execute the request to preload it
+                imageLoader.enqueue(request)
+            }
+        }
+    }
 
     LazyRow(
         modifier = Modifier
@@ -61,6 +78,7 @@ fun PopularWallpapers(
             item {
                 // Use the color from the rainbow list in cyclic order
                 val rainbowColor = borderColorList[index % borderColorList.size]
+                val thumbnailUrl = wallpaperViewModel.getThumbnailByItemId(wallpaper.itemId)
 
                 Card(
                     modifier = Modifier
@@ -78,9 +96,14 @@ fun PopularWallpapers(
                 ) {
                     Image(
                         painter = rememberAsyncImagePainter(
-                            model = wallpaperViewModel.getThumbnailByItemId(
-                                wallpaper.itemId
-                            )
+                            ImageRequest.Builder(context)
+                                .data(thumbnailUrl)
+                                .crossfade(true)
+                                .diskCachePolicy(CachePolicy.ENABLED)
+                                .memoryCachePolicy(CachePolicy.ENABLED)
+                                .placeholderMemoryCacheKey(thumbnailUrl)
+                                .build(),
+                            imageLoader = imageLoader
                         ),
                         contentDescription = null,
                         contentScale = ContentScale.Crop,

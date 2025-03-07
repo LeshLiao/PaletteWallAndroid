@@ -47,6 +47,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import coil.request.CachePolicy
+import coil.request.ImageRequest
+import coil.size.Size
 import com.palettex.palettewall.R
 import com.palettex.palettewall.data.PaletteRemoteConfig
 import com.palettex.palettewall.data.WallpaperDatabase
@@ -93,13 +96,15 @@ fun ScrollingContent(
     val database = remember { WallpaperDatabase.getDatabase(context) }
     val dao = remember { database.likedWallpaperDao() }
 
-    val adMobBannerView = remember { AdManager.getOrCreateAd(context) }
+    var adMobBannerView by remember { mutableStateOf<android.view.View?>(null) }
 
-    LaunchedEffect(Unit, isRemoteConfigInitialized) {
-        Log.d("GDT","ScrollingContent")
+    LaunchedEffect(isRemoteConfigInitialized) {
+        Log.d("GDT", "ScrollingContent isRemoteConfigInitialized=$isRemoteConfigInitialized")
         wallpaperViewModel.setFullScreenWallpaper(wallpapers)
-//        Log.d("GDT", "isRemoteConfigInitialized=" + isRemoteConfigInitialized)
+
+        // Initialize the ad view only when remote config is ready
         if (isRemoteConfigInitialized) {
+            adMobBannerView = AdManager.getOrCreateAd(context)
             AdManager.loadAdIfNeeded(wallpaperViewModel)
         }
     }
@@ -115,7 +120,7 @@ fun ScrollingContent(
 
                 // Check if scrolled to the top (first item and no offset)
                 if (listState.firstVisibleItemIndex <= 1) {
-                    topViewModel.showTopBar()  // Call showTopBar when at the top
+                    topViewModel.showTopBar()
                 }
 
                 lastScrollOffset.intValue = currentScrollOffset
@@ -182,9 +187,13 @@ fun ScrollingContent(
                     ) {
                         Image(
                             painter = rememberAsyncImagePainter(
-                                model = wallpaperViewModel.getThumbnailByItemId(
-                                    wallpaper.itemId
-                                )
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(wallpaperViewModel.getThumbnailByItemId(wallpaper.itemId))
+                                    .crossfade(true)
+                                    .diskCachePolicy(CachePolicy.ENABLED)
+                                    .memoryCachePolicy(CachePolicy.ENABLED)
+                                    .size(Size.ORIGINAL)
+                                    .build()
                             ),
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
@@ -218,23 +227,20 @@ fun ScrollingContent(
             if (index == 3) {
                 Spacer(modifier = Modifier.height(12.dp))
                 if (!isPremium && PaletteRemoteConfig.shouldShowBannerAds()) {
-                    AndroidView(
-                        modifier = Modifier.fillMaxWidth(),
-                        factory = { adMobBannerView }
-                    )
+                    adMobBannerView?.let { adView ->
+                        AndroidView(
+                            modifier = Modifier.fillMaxWidth(),
+                            factory = { adView }
+                        )
+                    }
                 }
                 Spacer(modifier = Modifier.height(12.dp))
             }
         }
 
         item {
+            // Bottom Area
             Spacer(modifier = Modifier.height(12.dp))
-//            if (!isPremium && PaletteRemoteConfig.shouldShowBannerAds()) {
-//                AndroidView(
-//                    modifier = Modifier.fillMaxWidth(),
-//                    factory = { adMobBannerView }
-//                )
-//            }
             Spacer(modifier = Modifier.height(bottomOffset))
         }
     }
@@ -260,7 +266,7 @@ fun Titles(title: String, modifier: Modifier) {
             color = Color.White,
         )
         Text(
-            text = ">",
+            text = "",
             fontSize = 18.sp,
             fontWeight = FontWeight.W600,
             color = Color.White,
