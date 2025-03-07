@@ -297,8 +297,9 @@ open class WallpaperViewModel(
 
     private fun String.toColor(): Color? {
         return try {
-            if (this.startsWith("#") && this.length == 7) {
-                Color(android.graphics.Color.parseColor(this))
+            if (this.startsWith("#") && this.length >= 7) {  // Ensure at least "#RRGGBB"
+                val validHex = this.take(7) // Extract only "#RRGGBB"
+                Color(android.graphics.Color.parseColor(validHex))
             } else {
                 null
             }
@@ -306,6 +307,7 @@ open class WallpaperViewModel(
             null
         }
     }
+
 
     private fun calculateColorSimilarity(color1: Color, color2: Color): Double {
         // Convert Float to Double using .toDouble()
@@ -344,8 +346,16 @@ open class WallpaperViewModel(
     private fun getWallpaperColors(wallpaper: WallpaperItem): List<Color> {
         return wallpaper.tags
             .filter { it.startsWith("#") }
-            .mapNotNull { it.toColor() }
+            .mapNotNull { hexString ->
+                val validHex = hexString.take(7) // Ensures only `#` + 6 characters
+                try {
+                    Color(android.graphics.Color.parseColor(validHex))
+                } catch (e: IllegalArgumentException) {
+                    null // Ignore invalid colors
+                }
+            }
     }
+
 
     fun updateFilteredWallpapers() {
         viewModelScope.launch {

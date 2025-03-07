@@ -178,7 +178,6 @@ fun ScrollingContent(
                             .clickable {
                                 topViewModel.hideTopBar()
                                 navController.navigate("fullscreen/${wallpaper.itemId}")
-//                                Log.d("GDT","itemId=${wallpaper.itemId}")
                             },
                     ) {
                         Image(
@@ -191,28 +190,12 @@ fun ScrollingContent(
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.fillMaxSize()
                         )
-//                        val isLiked by dao.isWallpaperLiked(wallpaper.itemId)
-//                            .collectAsState(initial = false)
-//                        if (isLiked) {
-//                            Box(
-//                                modifier = Modifier
-//                                    .align(Alignment.BottomStart)
-//                                    .padding(2.dp)
-//                            ) {
-//                                LikeButton(
-//                                    isLiked,
-//                                    dao,
-//                                    wallpaper.itemId,
-//                                    wallpaperViewModel,
-//                                    coroutineScope
-//                                )
-//                            }
-//                        }
-                        if(!wallpaper.freeDownload) {
+
+                        if (!wallpaper.freeDownload) {
                             Box(
                                 modifier = Modifier
-                                    .align(Alignment.BottomEnd) // Place the button at the bottom-end
-                                    .padding(6.dp) // Add padding if needed
+                                    .align(Alignment.BottomEnd)
+                                    .padding(6.dp)
                             ) {
                                 Image(
                                     painterResource(R.drawable.diamond),
@@ -231,16 +214,27 @@ fun ScrollingContent(
                     }
                 }
             }
+
+            if (index == 3) {
+                Spacer(modifier = Modifier.height(12.dp))
+                if (!isPremium && PaletteRemoteConfig.shouldShowBannerAds()) {
+                    AndroidView(
+                        modifier = Modifier.fillMaxWidth(),
+                        factory = { adMobBannerView }
+                    )
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+            }
         }
 
         item {
             Spacer(modifier = Modifier.height(12.dp))
-            if (!isPremium && PaletteRemoteConfig.shouldShowBannerAds()) {
-                AndroidView(
-                    modifier = Modifier.fillMaxWidth(),
-                    factory = { adMobBannerView }
-                )
-            }
+//            if (!isPremium && PaletteRemoteConfig.shouldShowBannerAds()) {
+//                AndroidView(
+//                    modifier = Modifier.fillMaxWidth(),
+//                    factory = { adMobBannerView }
+//                )
+//            }
             Spacer(modifier = Modifier.height(bottomOffset))
         }
     }

@@ -173,8 +173,13 @@ fun WallpaperCarousel(
         val colorTags = currentWallpaper.tags
             .filter { it.startsWith("#") }
 
-        val colorList = colorTags.map { hexString ->
-            Color(android.graphics.Color.parseColor(hexString))
+        val colorList = colorTags.mapNotNull { hexString ->
+            val validHex = hexString.take(7) // Ensures only `#` + 6 letters
+            try {
+                Color(android.graphics.Color.parseColor(validHex))
+            } catch (e: IllegalArgumentException) {
+                null // Ignore invalid colors
+            }
         }
         onColorTagsChanged(colorList) // Notify parent composable
     }
