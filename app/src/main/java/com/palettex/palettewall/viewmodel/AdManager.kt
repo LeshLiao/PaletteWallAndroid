@@ -65,9 +65,9 @@ object AdManager {
                     override fun onAdFailedToLoad(adError: LoadAdError) {
                         isAdLoaded = false
                         viewModel.setBottomAdsLoaded(false)
-                        Log.e("GDT","Ad Banner onAdFailedToLoad()")
+                        Log.e("GDT", "Ad Banner onAdFailedToLoad():$adError")
                         if (!BuildConfig.DEBUG_MODE) {
-                            viewModel.sendLogEvent("0", "Ad_Banner_onAdFailedToLoad")
+                            viewModel.sendLogEvent("0", "Ad_Banner_onAdFailedToLoad:$adError")
                         }
                     }
                 }
