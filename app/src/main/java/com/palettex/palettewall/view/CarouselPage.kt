@@ -224,7 +224,7 @@ fun WallpaperCarousel(
                     .background(Color.Gray)
                     .clickable { onWallpaperSelected(itemId) }
             ) {
-                val imageUrl = wallpaperViewModel.getThumbnailByItemId(itemId)
+                val imageUrl = wallpaperViewModel.getImage(itemId,"LD")
                 Image(
                     painter = rememberAsyncImagePainter(imageUrl),
                     contentDescription = "Wallpaper ${page + 1}",
@@ -287,7 +287,7 @@ fun WallpaperCarousel(
                             }
                         }
                 ) {
-                    val imageUrl = wallpaperViewModel.getThumbnailByItemId(filterWallpapers[index].itemId)
+                    val imageUrl = wallpaperViewModel.getImage(filterWallpapers[index].itemId,"LD")
                     Image(
                         painter = rememberAsyncImagePainter(imageUrl),
                         contentDescription = "Thumbnail ${index + 1}",
