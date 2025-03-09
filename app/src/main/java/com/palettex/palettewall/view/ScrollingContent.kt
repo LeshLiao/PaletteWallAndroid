@@ -211,17 +211,6 @@ fun ScrollingContent(
                     }
                 }
             }
-
-            if (index == 3) {
-                Spacer(modifier = Modifier.height(12.dp))
-                if (!isPremium && PaletteRemoteConfig.shouldShowBannerAds()) {
-                    AndroidView(
-                        modifier = Modifier.fillMaxWidth(),
-                        factory = { adMobBannerView }
-                    )
-                }
-                Spacer(modifier = Modifier.height(12.dp))
-            }
         }
 
         item {
