@@ -283,6 +283,7 @@ open class WallpaperViewModel(
             try {
                 val request = LogEventRequest(
                     itemId = itemId,
+                    appVersion = _versionName.value,
                     eventType = eventType,
                     manufacturer = Build.MANUFACTURER,
                     model = Build.MODEL,

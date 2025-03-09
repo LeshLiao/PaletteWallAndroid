@@ -44,6 +44,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun NormalModal(
     context: Context,
+    currentItemId: String,
     isCurrentFreeDownload: Boolean,
     onDismissRequest: () -> Unit = {},
     wallpaperViewModel: WallpaperViewModel,
@@ -68,7 +69,7 @@ fun NormalModal(
                 // The ad was shown
                 Log.d("GDT", "rewardedAd was shown.")
                 if (!BuildConfig.DEBUG_MODE) {
-                    wallpaperViewModel.sendLogEvent("0", "rewardedAd_was_shown")
+                    wallpaperViewModel.sendLogEvent(currentItemId, "click_download:Ad_RewardedAd_was_shown")
                 }
             }
 
@@ -83,7 +84,7 @@ fun NormalModal(
                 Log.d("GDT", "rewardedAd failed to show: ${adError.message}")
                 Toast.makeText(context, "rewardedAd failed to show and Start to Download..", Toast.LENGTH_SHORT).show()
                 if (!BuildConfig.DEBUG_MODE) {
-                    wallpaperViewModel.sendLogEvent("0", "rewardedAd_failed_to_show")
+                    wallpaperViewModel.sendLogEvent(currentItemId, "click_download:Ad_RewardedAd_failed_to_show:${adError.message}")
                 }
                 onAdWatchedAndStartDownload() // TODO: Temp Testing
                 rewardedAd = null  // Set rewardedAd to null after failure
@@ -171,6 +172,9 @@ fun NormalModal(
                     CommonButton(stringResource(R.string.no_ad_free_download)) {
                         if (!isLoading && !isAdReady) {
                             coroutineScope.launch {
+                                if (!BuildConfig.DEBUG_MODE) {
+                                    wallpaperViewModel.sendLogEvent(currentItemId, "click_download:download_immediately")
+                                }
                                 // If no ads should be shown, skip ad loading
                                 if (!PaletteRemoteConfig.shouldShowRewardAds()) {
                                     onDismissRequest()

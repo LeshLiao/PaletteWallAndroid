@@ -260,6 +260,7 @@ fun FullscreenScreen(
     if (showNormalModel) {
         NormalModal(
             context = context,
+            currentItemId = currentItemId,
             isCurrentFreeDownload = isCurrentFreeDownload,
             onDismissRequest = { showNormalModel = false },
             wallpaperViewModel = wallpaperViewModel,

@@ -76,7 +76,7 @@ fun CarouselPage(
     val scope = rememberCoroutineScope()
 
     DisposableEffect(Unit) {
-        Log.d("GDT","CarouselPage")
+        // Log.d("GDT","CarouselPage")
         topViewModel.showTopBar()
         if (carouselWallpapers.isEmpty()) {
             wallpaperViewModel.updateFilteredWallpapers()
@@ -85,7 +85,7 @@ fun CarouselPage(
             AdManager.loadAdIfNeeded(wallpaperViewModel)
         }
         onDispose {
-            Log.d("GDT","CarouselPage onDispose()")
+            // Log.d("GDT","CarouselPage onDispose()")
         }
     }
 
