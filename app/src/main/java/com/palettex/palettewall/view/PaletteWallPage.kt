@@ -58,7 +58,7 @@ fun PaletteWallPage(
         Scaffold(
             containerColor = Color.Black,
             topBar = { HomeTopBar(topViewModel, wallpaperViewModel, coroutineScope, drawerState) { topOffset = it } },
-            bottomBar = { BottomBarBox(topViewModel, wallpaperViewModel, navController) { bottomOffset = it } },
+            bottomBar = { BottomBarBox(topViewModel, wallpaperViewModel, navController, billingViewModel) { bottomOffset = it } },
             snackbarHost = { SnackbarHost(snackBarHostState) }
         ) { innerPadding ->
             val test = innerPadding
