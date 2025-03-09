@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
@@ -26,7 +25,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -62,16 +60,16 @@ fun LikeCollection(
     val likedWallpapers by dao.getAllLikedWallpapers().collectAsState(initial = emptyList())
     val topSystemOffset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
 
-    LaunchedEffect(Unit) {
-        topViewModel.hideTopBar()
-    }
-
-    Column (modifier = Modifier.fillMaxSize().background(Color.Black)) {
-        Spacer(modifier = Modifier.height(topSystemOffset))
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+            .padding(top = topOffset, bottom = bottomOffset)
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(16.dp,0.dp,16.dp,16.dp)
                 .throttleClick {
                     navController.popBackStack()
                 },
@@ -93,7 +91,7 @@ fun LikeCollection(
         }
 
         if (likedWallpapers.isEmpty()) {
-            EmptyBox(bottomOffset)
+            EmptyBox()
         } else {
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
@@ -123,7 +121,7 @@ fun LikeCollection(
 }
 
 @Composable
-fun EmptyBox(bottomOffset: Dp) {
+fun EmptyBox() {
     Column( modifier = Modifier.fillMaxSize()) {
         Box(
             modifier = Modifier
@@ -143,7 +141,6 @@ fun EmptyBox(bottomOffset: Dp) {
                 )
             }
         }
-        Spacer(modifier = Modifier.height(bottomOffset))
     }
 }
 

@@ -103,7 +103,7 @@ fun FullscreenScreen(
     }
 
     LaunchedEffect(itemId) {
-        wallpaperViewModel.setThumbnailImageByItemId(currentItemId)
+        wallpaperViewModel.setThumbnailImageByItemId(currentItemId, "HD")
     }
 
     LaunchedEffect(currentItemId) {
@@ -139,12 +139,12 @@ fun FullscreenScreen(
                                 if (velocity > 0) {  // Swipe right - previous wallpaper
                                     if (currentIndex > 0) {
                                         currentItemId = fullScreenWallpapers[currentIndex - 1].itemId
-                                        wallpaperViewModel.setThumbnailImageByItemId(currentItemId)
+                                        wallpaperViewModel.setThumbnailImageByItemId(currentItemId, "HD")
                                     }
                                 } else {  // Swipe left - next wallpaper
                                     if (currentIndex < fullScreenWallpapers.size - 1) {
                                         currentItemId = fullScreenWallpapers[currentIndex + 1].itemId
-                                        wallpaperViewModel.setThumbnailImageByItemId(currentItemId)
+                                        wallpaperViewModel.setThumbnailImageByItemId(currentItemId, "HD")
                                     }
                                 }
                             }

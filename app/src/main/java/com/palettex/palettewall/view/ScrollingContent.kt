@@ -47,6 +47,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import coil.request.CachePolicy
+import coil.request.ImageRequest
+import coil.size.Size
 import com.palettex.palettewall.R
 import com.palettex.palettewall.data.PaletteRemoteConfig
 import com.palettex.palettewall.data.WallpaperDatabase
@@ -85,23 +88,13 @@ fun ScrollingContent(
     )
 
     // Pre-initialize the AdMobBannerView for early initialization
-    val isBottomAdsLoaded by wallpaperViewModel.isBottomAdsLoaded.collectAsState()
     var showPopular by remember { mutableStateOf(false) }
     val scrollToTopTrigger by wallpaperViewModel.scrollToTopTrigger.collectAsState()
-
-    val coroutineScope = rememberCoroutineScope()
     val database = remember { WallpaperDatabase.getDatabase(context) }
     val dao = remember { database.likedWallpaperDao() }
 
-    val adMobBannerView = remember { AdManager.getOrCreateAd(context) }
-
-    LaunchedEffect(Unit, isRemoteConfigInitialized) {
-        Log.d("GDT","ScrollingContent")
+    LaunchedEffect(isRemoteConfigInitialized) {
         wallpaperViewModel.setFullScreenWallpaper(wallpapers)
-//        Log.d("GDT", "isRemoteConfigInitialized=" + isRemoteConfigInitialized)
-        if (isRemoteConfigInitialized) {
-            AdManager.loadAdIfNeeded(wallpaperViewModel)
-        }
     }
 
     LaunchedEffect(listState) {
@@ -110,12 +103,12 @@ fun ScrollingContent(
             .collect { currentScrollOffset ->
                 val delta = currentScrollOffset - lastScrollOffset.intValue
 
-                // Scroll handling for top bar visibility
-                topViewModel.onScroll(delta.toFloat())
+                // Scroll handling for top bar visibility, TBC: Temporarily Stop hide it.
+                // topViewModel.onScroll(delta.toFloat())
 
                 // Check if scrolled to the top (first item and no offset)
                 if (listState.firstVisibleItemIndex <= 1) {
-                    topViewModel.showTopBar()  // Call showTopBar when at the top
+                    topViewModel.showTopBar()
                 }
 
                 lastScrollOffset.intValue = currentScrollOffset
@@ -182,9 +175,13 @@ fun ScrollingContent(
                     ) {
                         Image(
                             painter = rememberAsyncImagePainter(
-                                model = wallpaperViewModel.getThumbnailByItemId(
-                                    wallpaper.itemId
-                                )
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(wallpaperViewModel.getImage(wallpaper.itemId,"LD"))
+                                    .crossfade(true)
+                                    .diskCachePolicy(CachePolicy.ENABLED)
+                                    .memoryCachePolicy(CachePolicy.ENABLED)
+                                    .size(Size.ORIGINAL)
+                                    .build()
                             ),
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
@@ -228,13 +225,8 @@ fun ScrollingContent(
         }
 
         item {
+            // Bottom Area
             Spacer(modifier = Modifier.height(12.dp))
-//            if (!isPremium && PaletteRemoteConfig.shouldShowBannerAds()) {
-//                AndroidView(
-//                    modifier = Modifier.fillMaxWidth(),
-//                    factory = { adMobBannerView }
-//                )
-//            }
             Spacer(modifier = Modifier.height(bottomOffset))
         }
     }
@@ -260,7 +252,7 @@ fun Titles(title: String, modifier: Modifier) {
             color = Color.White,
         )
         Text(
-            text = ">",
+            text = "",
             fontSize = 18.sp,
             fontWeight = FontWeight.W600,
             color = Color.White,

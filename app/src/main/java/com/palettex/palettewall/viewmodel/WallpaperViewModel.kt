@@ -101,6 +101,10 @@ open class WallpaperViewModel(
         }
     }
 
+    fun isNeedToUpdate(tag: String) {
+
+    }
+
     fun scrollToTop() {
         viewModelScope.launch {
             _scrollToTopTrigger.value = true
@@ -205,7 +209,7 @@ open class WallpaperViewModel(
         }
     }
 
-    fun setThumbnailImageByItemId(itemId: String) {
+    fun setThumbnailImageByItemId(itemId: String, type: String) {
         val wallpaper = _allWallpapers.value.find { it.itemId == itemId }
         if (wallpaper != null) {
             _isCurrentFreeDownload.value = wallpaper.freeDownload
@@ -215,6 +219,10 @@ open class WallpaperViewModel(
                 _currentImage.value = "https://www.palettex.ca/images/items/${wallpaper.itemId}/${wallpaper.thumbnail}"
             }
         }
+
+        _currentImage.value = _allWallpapers.value.find { it.itemId == itemId }?.let { wallpaper ->
+            wallpaper.imageList.firstOrNull { it.type == type && it.link.isNotEmpty() }?.link ?: ""
+        } ?: ""
     }
 
     fun getThumbnailByItemId(itemId: String): String{
@@ -225,10 +233,15 @@ open class WallpaperViewModel(
 
         return if (wallpaper.thumbnail.contains("https")) {
             wallpaper.thumbnail
-        } else {
+        } else { // Deprecated
             "https://www.palettex.ca/images/items/${wallpaper.itemId}/${wallpaper.thumbnail}"
         }
+    }
 
+    fun getImage(itemId: String, type: String): String {
+        return _allWallpapers.value.find { it.itemId == itemId }?.let { wallpaper ->
+            wallpaper.imageList.firstOrNull { it.type == type && it.link.isNotEmpty() }?.link ?: ""
+        } ?: ""
     }
 
     fun getDownloadListLinkByItemId(itemId: String): String? {
@@ -239,7 +252,7 @@ open class WallpaperViewModel(
     fun fetchWallpaperBy(param: String) {
         viewModelScope.launch {
             try {
-                _wallpapers.value = RetrofitInstance.api.getWallpaperBy(param)
+                _wallpapers.value = RetrofitInstance.api.getWallpaperBy(param).shuffled()
             } catch (e: Exception) {
             }
         }
