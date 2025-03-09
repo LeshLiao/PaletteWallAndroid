@@ -88,25 +88,13 @@ fun ScrollingContent(
     )
 
     // Pre-initialize the AdMobBannerView for early initialization
-    val isBottomAdsLoaded by wallpaperViewModel.isBottomAdsLoaded.collectAsState()
     var showPopular by remember { mutableStateOf(false) }
     val scrollToTopTrigger by wallpaperViewModel.scrollToTopTrigger.collectAsState()
-
-    val coroutineScope = rememberCoroutineScope()
     val database = remember { WallpaperDatabase.getDatabase(context) }
     val dao = remember { database.likedWallpaperDao() }
 
-    var adMobBannerView by remember { mutableStateOf<android.view.View?>(null) }
-
     LaunchedEffect(isRemoteConfigInitialized) {
-        Log.d("GDT", "ScrollingContent isRemoteConfigInitialized=$isRemoteConfigInitialized")
         wallpaperViewModel.setFullScreenWallpaper(wallpapers)
-
-        // Initialize the ad view only when remote config is ready
-        if (isRemoteConfigInitialized) {
-            adMobBannerView = AdManager.getOrCreateAd(context)
-            AdManager.loadAdIfNeeded(wallpaperViewModel)
-        }
     }
 
     LaunchedEffect(listState) {
@@ -115,8 +103,8 @@ fun ScrollingContent(
             .collect { currentScrollOffset ->
                 val delta = currentScrollOffset - lastScrollOffset.intValue
 
-                // Scroll handling for top bar visibility
-                topViewModel.onScroll(delta.toFloat())
+                // Scroll handling for top bar visibility, TBC: Temporarily Stop hide it.
+                // topViewModel.onScroll(delta.toFloat())
 
                 // Check if scrolled to the top (first item and no offset)
                 if (listState.firstVisibleItemIndex <= 1) {
@@ -222,19 +210,6 @@ fun ScrollingContent(
                         Spacer(modifier = Modifier.weight(1f))
                     }
                 }
-            }
-
-            if (index == 3) {
-                Spacer(modifier = Modifier.height(12.dp))
-                if (!isPremium && PaletteRemoteConfig.shouldShowBannerAds()) {
-                    adMobBannerView?.let { adView ->
-                        AndroidView(
-                            modifier = Modifier.fillMaxWidth(),
-                            factory = { adView }
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(12.dp))
             }
         }
 
