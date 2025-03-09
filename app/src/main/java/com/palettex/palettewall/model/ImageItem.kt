@@ -2,5 +2,7 @@ package com.palettex.palettewall.model
 
 data class ImageItem(
     val type: String,
-    val name: String
+    val resolution: String,
+    val link: String,
+    val blob: String
 )

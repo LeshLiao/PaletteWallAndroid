@@ -188,7 +188,7 @@ fun ScrollingContent(
                         Image(
                             painter = rememberAsyncImagePainter(
                                 model = ImageRequest.Builder(LocalContext.current)
-                                    .data(wallpaperViewModel.getThumbnailByItemId(wallpaper.itemId))
+                                    .data(wallpaperViewModel.getImage(wallpaper.itemId,"LD"))
                                     .crossfade(true)
                                     .diskCachePolicy(CachePolicy.ENABLED)
                                     .memoryCachePolicy(CachePolicy.ENABLED)
