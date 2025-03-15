@@ -43,6 +43,7 @@ import com.palettex.palettewall.viewmodel.BillingViewModel
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -54,6 +55,9 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontWeight
+
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -78,7 +82,9 @@ fun SubscriptionModal(
     ModalBottomSheet(
         containerColor = Color.Transparent,
         onDismissRequest = onDismissRequest,
-        sheetState = sheetState
+        sheetState = sheetState,
+        scrimColor = Color.Black.copy(alpha = 0.5f), // Let gray area cover top system bar
+        windowInsets = WindowInsets.navigationBars // Let gray area cover top system bar
     ) {
         SubscriptionOptions(
             weeklyPrice = weeklyPrice,
@@ -118,34 +124,36 @@ fun SubscriptionOptions(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+            .background(Color.Black)
+            .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
-        // Title with smaller padding
+        // Title with gold accent
         Text(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 4.dp),
+                .padding(vertical = 8.dp),
             text = "Premium Plans",
-            fontSize = 18.sp,
+            fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = Color(0xFFfac826),
             textAlign = TextAlign.Center
         )
 
-        // Weekly subscription card with reduced padding and spacing
+        // Weekly subscription card
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 6.dp)
-                .border(1.dp, Color(0xFFFBD38D), shape = RoundedCornerShape(8.dp)),
-            shape = RoundedCornerShape(8.dp),
+                .padding(vertical = 8.dp)
+                .border(1.dp, Color(0xFFFBD38D), shape = RoundedCornerShape(12.dp)),
+            shape = RoundedCornerShape(12.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(8.dp)
+                    .padding(12.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -176,12 +184,12 @@ fun SubscriptionOptions(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
                     text = if (weeklyPrice.isNotEmpty()) "$weeklyPrice/week" else "Loading...",
                     fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
+                    fontSize = 20.sp,
                     color = Color(0xFFFB9D0B)
                 )
 
@@ -191,18 +199,18 @@ fun SubscriptionOptions(
                     color = Color.Gray
                 )
 
-                // Compact feature list
+                // Feature list
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 4.dp),
+                        .padding(vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     CompactFeatureItem(text = "No ads")
                     CompactFeatureItem(text = "Unlimited downloads")
                 }
 
-                // Button with less height
+                // Button
                 CommonButton(
                     text = "Subscribe Weekly",
                     textColor = Color.White,
@@ -215,20 +223,20 @@ fun SubscriptionOptions(
             }
         }
 
-        // Monthly subscription card with reduced padding and spacing
+        // Monthly subscription card
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 6.dp)
-                .border(1.dp, Color(0xFF22C55E), shape = RoundedCornerShape(8.dp)),
-            shape = RoundedCornerShape(8.dp),
+                .padding(vertical = 8.dp)
+                .border(1.dp, Color(0xFF22C55E), shape = RoundedCornerShape(12.dp)),
+            shape = RoundedCornerShape(12.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(8.dp)
+                    .padding(12.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -259,12 +267,12 @@ fun SubscriptionOptions(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
                     text = if (monthlyPrice.isNotEmpty()) "$monthlyPrice/month" else "Loading...",
                     fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
+                    fontSize = 20.sp,
                     color = Color(0xFF16A34A)
                 )
 
@@ -274,18 +282,18 @@ fun SubscriptionOptions(
                     color = Color.Gray
                 )
 
-                // Compact feature list
+                // Feature list
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 4.dp),
+                        .padding(vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     CompactFeatureItem(text = "All weekly features")
                     CompactFeatureItem(text = "25% savings")
                 }
 
-                // Button with less height
+                // Button
                 CommonButton(
                     text = "Subscribe Monthly",
                     textColor = Color.White,
@@ -298,27 +306,79 @@ fun SubscriptionOptions(
             }
         }
 
-        // Compact legal text
-        Text(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp),
-            text = "Subscriptions auto-renew unless the user canceled it at least 24 hours before period end.",
-            fontSize = 10.sp,
-            color = Color.Gray,
-            textAlign = TextAlign.Center
-        )
+        // Add the new professional policy text component
+        PrivacyPolicyText()
 
-        // Cancel button with less padding
+        // Cancel button
         CommonButton(
             text = stringResource(R.string.cancel),
-            backgroundColor = Color.White,
-            textColor = Color.Blue,
+            backgroundColor = Color(0xFF333333),
+            textColor = Color.White,
             onClick = onCancel,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp)
                 .height(46.dp)
+        )
+    }
+}
+
+@Composable
+fun PrivacyPolicyText() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 6.dp, vertical = 4.dp)
+    ) {
+        // Styled Policy Text
+        Card(
+            modifier = Modifier
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(8.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color(0xFF222222)
+            ),
+            elevation = CardDefaults.cardElevation(0.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(6.dp)
+            ) {
+                PolicyItem(
+                    text = "Payment will be charged to your Google Play account upon confirmation." +
+                            " Subscriptions automatically renew unless canceled at least 24 hours" +
+                            " before the end of the current period. Your account will be charged" +
+                            " for renewal within 24 hours prior to the end of the current period." +
+                            " You can manage and cancel your subscriptions by going to your" +
+                            " account settings on the Google Play store."
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PolicyItem(text: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(0.dp, 2.dp,8.dp,2.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        Box(
+            modifier = Modifier
+                .size(4.dp)
+                .padding(top = 4.dp)
+                .background(Color(0xFF888888), shape = CircleShape)
+        )
+
+        Spacer(modifier = Modifier.width(6.dp))
+
+        Text(
+            text = text,
+            fontSize = 12.sp,
+            color = Color(0xFFAAAAAA),
+            textAlign = TextAlign.Justify,
+            lineHeight = 14.sp
         )
     }
 }
