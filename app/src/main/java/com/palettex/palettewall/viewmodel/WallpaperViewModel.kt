@@ -255,7 +255,7 @@ open class WallpaperViewModel(
     }
 
     fun getDownloadListLinkByItemId(itemId: String): String? {
-        val wallpaperItem = _allWallpapers.value.find { it.itemId == itemId }
+        val wallpaperItem = _fullScreenWallpapers.value.find { it.itemId == itemId }
         return wallpaperItem?.downloadList?.firstOrNull()?.link
     }
 
