@@ -200,7 +200,7 @@ open class WallpaperViewModel(
     }
 
     fun initLikeCollection(likeList: List<LikedWallpaper>) {
-        Log.d("GDT","initLikeCollection")
+        // Log.d("GDT", "initLikeCollection")
         viewModelScope.launch {
             // Check if either list is empty to avoid unnecessary processing
             if (likeList.isEmpty() || _carouselAllWallpapers.value.isEmpty()) {
@@ -208,17 +208,18 @@ open class WallpaperViewModel(
                 return@launch
             }
 
-            // Create a set of liked wallpaper IDs for faster lookup
-            val likedIds = likeList.map { it.wallpaperId }.toSet()
+            // Create a map of wallpaper ID to WallpaperItem for quick lookups
+            val wallpaperItemsMap = _carouselAllWallpapers.value.associateBy { it.itemId }
 
-            // Filter the wallpapers from carouselAllWallpapers that match the liked IDs
-            val matchedWallpapers = _carouselAllWallpapers.value.filter { wallpaper ->
-                likedIds.contains(wallpaper.itemId)
+            // Map each liked wallpaper to its corresponding WallpaperItem
+            // This preserves the exact order from the database (newest first)
+            val orderedWallpapers = likeList.mapNotNull { likedWallpaper ->
+                wallpaperItemsMap[likedWallpaper.wallpaperId]
             }
 
-            // Set the matched wallpapers to _likeWallpapers
-            _likeWallpapers.value = matchedWallpapers
-            Log.d(TAG, "Liked wallpapers initialized with ${matchedWallpapers.size} items")
+            // Set the ordered matched wallpapers to _likeWallpapers
+            _likeWallpapers.value = orderedWallpapers
+            // Log.d(TAG, "Liked wallpapers initialized with ${orderedWallpapers.size} items in timestamp order")
         }
     }
 

@@ -61,21 +61,22 @@ fun LikeCollection(
 ) {
     val database = remember { WallpaperDatabase.getDatabase(context) }
     val dao = remember { database.likedWallpaperDao() }
-    val likedWallpapers by dao.getAllLikedWallpapers().collectAsState(initial = emptyList())
+    val likedItemsDb by dao.getAllLikedWallpapers().collectAsState(initial = emptyList())
     val topSystemOffset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val carouselAllWallpapers by wallpaperViewModel.carouselAllWallpapers.collectAsState()
+    val likeWallpapers by wallpaperViewModel.likeWallpapers.collectAsState()
 
     // This helps debugging
-    Log.d("GDT", "LikeCollection recompose, likedWallpapers size=${likedWallpapers.size}")
+    Log.d("GDT", "LikeCollection recompose, likedWallpapers size=${likedItemsDb.size}")
 
     // Run this effect when either likedWallpapers or carouselAllWallpapers changes
-    LaunchedEffect(likedWallpapers, carouselAllWallpapers) {
-        Log.d("GDT", "LaunchedEffect LikeCollection, likedWallpapers size=${likedWallpapers.size}")
+    LaunchedEffect(likedItemsDb, carouselAllWallpapers) {
+        Log.d("GDT", "LaunchedEffect LikeCollection, likedWallpapers size=${likedItemsDb.size}")
         Log.d("GDT", "LaunchedEffect LikeCollection, carouselAllWallpapers size=${carouselAllWallpapers.size}")
 
         // Only initialize if both lists have data
-        if (likedWallpapers.isNotEmpty() && carouselAllWallpapers.isNotEmpty()) {
-            wallpaperViewModel.initLikeCollection(likedWallpapers)
+        if (likedItemsDb.isNotEmpty() && carouselAllWallpapers.isNotEmpty()) {
+            wallpaperViewModel.initLikeCollection(likedItemsDb)
         }
     }
 
@@ -118,7 +119,7 @@ fun LikeCollection(
             Spacer(modifier = Modifier.weight(1f))
         }
 
-        if (likedWallpapers.isEmpty()) {
+        if (likeWallpapers.isEmpty()) {
             EmptyBox()
         } else {
             LazyVerticalGrid(
@@ -128,17 +129,20 @@ fun LikeCollection(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(likedWallpapers.size) { index ->
-                    val wallpaper = likedWallpapers[index]
+                items(likeWallpapers.size) { index ->
+                    val wallpaper = likeWallpapers[index]
+                    val imageUrl = likeWallpapers[index].imageList.firstOrNull {
+                        it.type == "LD" && it.link.isNotEmpty()
+                    }?.link ?: ""
                     AsyncImage(
-                        model = wallpaper.imageUrl,
+                        model = imageUrl,
                         contentDescription = null,
                         modifier = Modifier
                             .aspectRatio(9f / 18f)
                             .clip(RoundedCornerShape(8.dp))
                             .clickable {
                                 topViewModel.hideTopBar()
-                                navController.navigate("fullscreen/like/${wallpaper.wallpaperId}")
+                                navController.navigate("fullscreen/like/${wallpaper.itemId}")
                             },
                         contentScale = ContentScale.Crop
                     )
