@@ -132,7 +132,7 @@ fun LikeCollection(
                 items(likeWallpapers.size) { index ->
                     val wallpaper = likeWallpapers[index]
                     val imageUrl = likeWallpapers[index].imageList.firstOrNull {
-                        it.type == "LD" && it.link.isNotEmpty()
+                        it.type == "SD" && it.link.isNotEmpty()
                     }?.link ?: ""
                     AsyncImage(
                         model = imageUrl,

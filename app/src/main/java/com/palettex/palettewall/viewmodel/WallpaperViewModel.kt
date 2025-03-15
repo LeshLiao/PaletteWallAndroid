@@ -385,7 +385,7 @@ open class WallpaperViewModel(
             }
     }
 
-
+    private val FILTER_OUT_NUBMER = 20
     fun updateFilteredWallpapers() {
         viewModelScope.launch {
             val first = firstSelectedColor.value
@@ -401,7 +401,7 @@ open class WallpaperViewModel(
                             wallpaper to similarity
                         }
                         .sortedBy { it.second }
-                        .take(10)
+                        .take(FILTER_OUT_NUBMER)
                         .map { it.first }
                 }
                 first != null -> {
@@ -415,7 +415,7 @@ open class WallpaperViewModel(
                             wallpaper to similarity
                         }
                         .sortedBy { it.second }
-                        .take(10)
+                        .take(FILTER_OUT_NUBMER)
                         .map { it.first }
                 }
                 second != null -> {
@@ -429,7 +429,7 @@ open class WallpaperViewModel(
                             wallpaper to similarity
                         }
                         .sortedBy { it.second }
-                        .take(10)
+                        .take(FILTER_OUT_NUBMER)
                         .map { it.first }
                 }
                 else -> {
