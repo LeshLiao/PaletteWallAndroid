@@ -1,31 +1,28 @@
 package com.palettex.palettewall.viewmodel
 
-import android.content.Context
 import android.os.Build
+import android.os.Bundle
 import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.ktx.analytics
+import com.google.firebase.ktx.Firebase
+import com.palettex.palettewall.BuildConfig
+import com.palettex.palettewall.data.LikedWallpaper
+import com.palettex.palettewall.data.LogEventRequest
 import com.palettex.palettewall.model.AppSettings
 import com.palettex.palettewall.model.CatalogItem
+import com.palettex.palettewall.model.PaginatedResponse
 import com.palettex.palettewall.model.WallpaperItem
 import com.palettex.palettewall.network.RetrofitInstance
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlin.math.sqrt
-
-import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.firebase.analytics.ktx.analytics
-import com.google.firebase.ktx.Firebase
-import android.os.Bundle
-import android.util.DisplayMetrics
-import android.view.WindowManager
-import com.palettex.palettewall.BuildConfig
-import com.palettex.palettewall.data.LogEventRequest
-import retrofit2.http.Path
 import java.util.Locale
+import kotlin.math.sqrt
 
 open class WallpaperViewModel(
     private val analytics: FirebaseAnalytics = Firebase.analytics
@@ -33,6 +30,7 @@ open class WallpaperViewModel(
 
     companion object {
         private val TAG = WallpaperViewModel::class.java.simpleName + "_GDT"
+        private const val DEFAULT_PAGE_SIZE = 12
     }
 
     private val _appSettings = MutableStateFlow(AppSettings())
@@ -52,6 +50,12 @@ open class WallpaperViewModel(
 
     private val _carouselWallpapers = MutableStateFlow<List<WallpaperItem>>(emptyList())
     val carouselWallpapers: StateFlow<List<WallpaperItem>> = _carouselWallpapers
+
+    private val _carouselAllWallpapers = MutableStateFlow<List<WallpaperItem>>(emptyList())
+    val carouselAllWallpapers: StateFlow<List<WallpaperItem>> = _carouselAllWallpapers
+
+    private val _likeWallpapers = MutableStateFlow<List<WallpaperItem>>(emptyList())
+    val likeWallpapers: StateFlow<List<WallpaperItem>> = _likeWallpapers
 
     private val _downloadBtnStatus = MutableStateFlow(0)
     val downloadBtnStatus: StateFlow<Int> = _downloadBtnStatus
@@ -92,17 +96,23 @@ open class WallpaperViewModel(
     private val _isRemoteConfigInitialized = MutableStateFlow(false)
     val isRemoteConfigInitialized: StateFlow<Boolean> = _isRemoteConfigInitialized
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    // Pagination properties
+    private var currentPage = 1
+    private var isLastPage = false
+    private var pageSize = DEFAULT_PAGE_SIZE
+
     init {
         viewModelScope.launch {
             getAppSettings()
             getCatalogs()
-            fetchShuffledWallpapersApi()
+            fetchTopTenWallpapers()
             setCurrentCatalog("Wallpapers") // main catalog
+            loadMoreWallpapers()
+            fetchAllWallpapersToCarouselAll()
         }
-    }
-
-    fun isNeedToUpdate(tag: String) {
-
     }
 
     fun scrollToTop() {
@@ -133,8 +143,17 @@ open class WallpaperViewModel(
         _loadAdsBtnStatus.value = status
     }
 
-    fun setCurrentCatalog(status: String) {
-        _currentCatalog.value = status
+    fun setCurrentCatalog(catalog: String) {
+        Log.d("GDT","setCurrentCatalog")
+        if (_currentCatalog.value != catalog) {
+            _currentCatalog.value = catalog
+        }
+    }
+
+    private fun resetPagination() {
+        currentPage = 1
+        isLastPage = false
+        _wallpapers.value = emptyList()
     }
 
     fun setScrollToTopTrigger(status: Boolean) {
@@ -149,99 +168,90 @@ open class WallpaperViewModel(
         _fullScreenWallpapers.value = list
     }
 
-    fun updateCurrentCatalog() {
-        if (_currentCatalog.value == "Wallpapers") {
-            fetchShuffledWallpapersApi()
-        } else {
-            fetchWallpaperBy(_currentCatalog.value)
-        }
+    fun pullRefreshCurrentCatalog() {
+        Log.d("GDT","pullRefreshCurrentCatalog")
+        getAppSettings()
+        getCatalogs()
+        fetchTopTenWallpapers()
+        resetPagination()
+        loadMoreWallpapers()
     }
 
-    fun fetchShuffledWallpapersApi() {
+    private fun fetchTopTenWallpapers() {
         viewModelScope.launch {
             try {
-                // Fetch the wallpapers and shuffle the list before assigning
-                _allWallpapers.value = RetrofitInstance.api.getWallpapers().shuffled()
-                _wallpapers.value = _allWallpapers.value
-                _topTenWallpapers.value = _wallpapers.value.shuffled().take(10)
+                val popularWallpapers = RetrofitInstance.api.getPopular(10)
+                _topTenWallpapers.value = popularWallpapers
             } catch (e: Exception) {
-                Log.e(TAG, e.toString())
+                Log.e(TAG, "Error fetching wallpapers: ${e.message}")
             }
         }
     }
 
-    fun showCurrentAllWallpaper() {
-        _wallpapers.value = _allWallpapers.value
-    }
-
-    fun fetchAnimeApi() {
+    fun fetchAllWallpapersToCarouselAll() {
         viewModelScope.launch {
             try {
-                _wallpapers.value = RetrofitInstance.api.getAnime()
+                val allWallpapers = RetrofitInstance.api.getWallpapers().shuffled()
+                _carouselAllWallpapers.value = allWallpapers
             } catch (e: Exception) {
+                Log.e(TAG, "Error fetching wallpapers: ${e.message}")
             }
         }
     }
 
-    fun fetchCityApi() {
+    fun initLikeCollection(likeList: List<LikedWallpaper>) {
+        Log.d("GDT","initLikeCollection")
         viewModelScope.launch {
-            try {
-                _wallpapers.value = RetrofitInstance.api.getCity()
-            } catch (e: Exception) {
+            // Check if either list is empty to avoid unnecessary processing
+            if (likeList.isEmpty() || _carouselAllWallpapers.value.isEmpty()) {
+                _likeWallpapers.value = emptyList()
+                return@launch
             }
+
+            // Create a set of liked wallpaper IDs for faster lookup
+            val likedIds = likeList.map { it.wallpaperId }.toSet()
+
+            // Filter the wallpapers from carouselAllWallpapers that match the liked IDs
+            val matchedWallpapers = _carouselAllWallpapers.value.filter { wallpaper ->
+                likedIds.contains(wallpaper.itemId)
+            }
+
+            // Set the matched wallpapers to _likeWallpapers
+            _likeWallpapers.value = matchedWallpapers
+            Log.d(TAG, "Liked wallpapers initialized with ${matchedWallpapers.size} items")
         }
     }
 
-    fun fetchPaintingApi() {
+    fun initFullScreenDataSource(catalog: String) {
         viewModelScope.launch {
-            try {
-                _wallpapers.value = RetrofitInstance.api.getPainting()
-            } catch (e: Exception) {
+            when (catalog) {
+                "popular" -> {
+                    _fullScreenWallpapers.value = _topTenWallpapers.value
+                }
+                "carousel" -> {
+                    _fullScreenWallpapers.value = _carouselWallpapers.value
+                }
+                "like" -> {
+                    _fullScreenWallpapers.value = _likeWallpapers.value
+                }
+                else -> {
+                    // Default case - use current wallpapers from the main catalog
+                    _fullScreenWallpapers.value = _wallpapers.value
+                }
             }
-        }
-    }
-
-    fun getThumbnailUrl(wallpaper: WallpaperItem): String {
-        return if (wallpaper.thumbnail.contains("https")) {
-            wallpaper.thumbnail
-        } else {
-            "https://www.palettex.ca/images/items/${wallpaper.itemId}/${wallpaper.thumbnail}"
+            // Log the data source being used
+            Log.d(TAG, "Initialized fullscreen data source from: $catalog with ${_fullScreenWallpapers.value.size} items")
         }
     }
 
     fun setThumbnailImageByItemId(itemId: String, type: String) {
-        val wallpaper = _allWallpapers.value.find { it.itemId == itemId }
+        val wallpaper = _fullScreenWallpapers.value.find { it.itemId == itemId }
         if (wallpaper != null) {
             _isCurrentFreeDownload.value = wallpaper.freeDownload
-            if (wallpaper.thumbnail.contains("https")) {
-                _currentImage.value = wallpaper.thumbnail
-            } else {
-                _currentImage.value = "https://www.palettex.ca/images/items/${wallpaper.itemId}/${wallpaper.thumbnail}"
-            }
+            _currentImage.value = wallpaper.imageList.firstOrNull {
+                it.type == type && it.link.isNotEmpty()
+            }?.link ?: ""
         }
-
-        _currentImage.value = _allWallpapers.value.find { it.itemId == itemId }?.let { wallpaper ->
-            wallpaper.imageList.firstOrNull { it.type == type && it.link.isNotEmpty() }?.link ?: ""
-        } ?: ""
-    }
-
-    fun getThumbnailByItemId(itemId: String): String{
-        // Search for the WallpaperItem with the matching itemId
-        val wallpaper = _allWallpapers.value.find { it.itemId == itemId }
-
-        if (wallpaper == null) return ""
-
-        return if (wallpaper.thumbnail.contains("https")) {
-            wallpaper.thumbnail
-        } else { // Deprecated
-            "https://www.palettex.ca/images/items/${wallpaper.itemId}/${wallpaper.thumbnail}"
-        }
-    }
-
-    fun getImage(itemId: String, type: String): String {
-        return _allWallpapers.value.find { it.itemId == itemId }?.let { wallpaper ->
-            wallpaper.imageList.firstOrNull { it.type == type && it.link.isNotEmpty() }?.link ?: ""
-        } ?: ""
     }
 
     fun getDownloadListLinkByItemId(itemId: String): String? {
@@ -250,10 +260,14 @@ open class WallpaperViewModel(
     }
 
     fun fetchWallpaperBy(param: String) {
+        Log.d("GDT","fetchWallpaperBy")
         viewModelScope.launch {
             try {
-                _wallpapers.value = RetrofitInstance.api.getWallpaperBy(param).shuffled()
+                resetPagination()
+                setCurrentCatalog(param)
+                loadMoreWallpapers()
             } catch (e: Exception) {
+                Log.e(TAG, "Error fetching wallpapers by $param: ${e.message}")
             }
         }
     }
@@ -379,7 +393,7 @@ open class WallpaperViewModel(
             val filteredList = when {
                 first != null && second != null -> {
                     // Filter by both colors
-                    _allWallpapers.value
+                    _carouselAllWallpapers.value
                         .map { wallpaper ->
                             val wallpaperColors = getWallpaperColors(wallpaper)
                             val similarity = calculateDualColorSimilarity(first, second, wallpaperColors)
@@ -391,7 +405,7 @@ open class WallpaperViewModel(
                 }
                 first != null -> {
                     // Filter by first color only
-                    _allWallpapers.value
+                    _carouselAllWallpapers.value
                         .map { wallpaper ->
                             val wallpaperColors = getWallpaperColors(wallpaper)
                             val similarity = wallpaperColors.minOfOrNull {
@@ -405,7 +419,7 @@ open class WallpaperViewModel(
                 }
                 second != null -> {
                     // Filter by second color only
-                    _allWallpapers.value
+                    _carouselAllWallpapers.value
                         .map { wallpaper ->
                             val wallpaperColors = getWallpaperColors(wallpaper)
                             val similarity = wallpaperColors.minOfOrNull {
@@ -419,7 +433,7 @@ open class WallpaperViewModel(
                 }
                 else -> {
                     // No color selected - show 30 random wallpapers
-                    _allWallpapers.value.shuffled().take(30)
+                    _carouselAllWallpapers.value.shuffled().take(30)
                 }
             }
             _carouselWallpapers.value = filteredList
@@ -487,4 +501,84 @@ open class WallpaperViewModel(
     fun firebaseCatalogEvent(category: String) = logEvent(AnalyticsEvent.Category(category))
     fun firebaseShareEvent(itemId: String) = logEvent(AnalyticsEvent.Share(itemId))
     fun firebaseLikeEvent(itemId: String) = logEvent(AnalyticsEvent.Like(itemId))
+
+    // Add this method to your WallpaperViewModel class to check if more data should be loaded
+    fun shouldLoadMore(): Boolean {
+        return !isLastPage && !_isLoading.value
+    }
+
+    private suspend fun fetchWallpapers(page: Int, pageSize: Int): PaginatedResponse {
+        return try {
+            val catalog = _currentCatalog.value
+            if (catalog == "Wallpapers" || catalog.isEmpty()) {
+                RetrofitInstance.api.getWallpapersByPage(
+                    page = page,
+                    pageSize = pageSize,
+                    catalog = ""
+                )
+            } else {
+                RetrofitInstance.api.getWallpapersByPage(
+                    page = page,
+                    pageSize = pageSize,
+                    catalog = catalog     // set filter by tag
+                )
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error fetching wallpapers: ${e.message}")
+            PaginatedResponse(emptyList(), page, 1, 0, false)
+        }
+    }
+
+    // Replace your loadMoreWallpapers function with this improved version
+    fun loadMoreWallpapers() {
+        // First check if we're already loading or reached the last page
+        if (isLastPage || _isLoading.value) {
+            Log.d(TAG, "Skip loading: isLastPage=$isLastPage, isLoading=${_isLoading.value}")
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                // Set loading state to true at the beginning
+                _isLoading.value = true
+                Log.d(TAG, "Loading page $currentPage with size $pageSize for catalog ${_currentCatalog.value}")
+
+                // Fetch the next page of wallpapers
+                val response = fetchWallpapers(currentPage, pageSize)
+
+                // Update last page flag based on response
+                isLastPage = !response.hasMore
+
+                // Handle empty response
+                if (response.items.isEmpty()) {
+                    Log.d(TAG, "No more wallpapers to load")
+                    isLastPage = true
+                    return@launch
+                }
+
+                // Determine the new list based on whether this is the first page or a subsequent page
+                val currentList = if (currentPage == 1) {
+                    // First page, replace the whole list
+                    response.items
+                } else {
+                    // Subsequent pages, append to existing list
+                    _wallpapers.value.toMutableList().apply {
+                        addAll(response.items)
+                    }
+                }
+
+                // Update the wallpapers list
+                _wallpapers.value = currentList
+                Log.d(TAG, "Loaded ${response.items.size} wallpapers, total: ${currentList.size}, hasMore: ${response.hasMore}")
+
+                // Increment the page number for the next request
+                currentPage++
+            } catch (e: Exception) {
+                Log.e(TAG, "Error loading more wallpapers: ${e.message}")
+            } finally {
+                // Always reset loading state when done, regardless of success or failure
+                _isLoading.value = false
+            }
+        }
+    }
 }

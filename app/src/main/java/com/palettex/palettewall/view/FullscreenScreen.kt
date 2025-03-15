@@ -73,6 +73,7 @@ import kotlin.math.abs
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun FullscreenScreen(
+    catalog: String,
     itemId: String,
     navController: NavController?,
     wallpaperViewModel: WallpaperViewModel,
@@ -103,6 +104,7 @@ fun FullscreenScreen(
     }
 
     LaunchedEffect(itemId) {
+        wallpaperViewModel.initFullScreenDataSource(catalog)
         wallpaperViewModel.setThumbnailImageByItemId(currentItemId, "HD")
     }
 
@@ -204,6 +206,8 @@ fun FullscreenScreen(
                         ) {
                             if (downloadBtnStatus == 1) {
                                 Text("Downloading...")
+                            } else if (downloadBtnStatus == 2) {
+                                Text("Download Completed!")
                             }
                             if (isButtonVisible) {
                                 Row(
@@ -211,7 +215,7 @@ fun FullscreenScreen(
                                     verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    ShareButton(currentItemId, wallpaperViewModel)
+                                    ShareButton(currentItemId, wallpaperViewModel, currentImage)
                                     Spacer(Modifier.size(16.dp))
                                     Column(
                                         modifier = Modifier.width(52.dp),
@@ -243,7 +247,7 @@ fun FullscreenScreen(
                                         }
                                     }
                                     Spacer(Modifier.size(16.dp))
-                                    LikeButton(isLiked, dao, currentItemId, wallpaperViewModel, coroutineScope)
+                                    LikeButton(isLiked, dao, currentItemId, wallpaperViewModel, coroutineScope, currentImage)
                                 }
                             }
                         }
@@ -406,5 +410,5 @@ fun PreviewFullscreenScreen() {
     val mockWallpaperViewModel = WallpaperViewModel().apply {}
     val mockBillingViewModel = BillingViewModel(context).apply {}
     val mockTopBarViewModel = TopBarViewModel().apply {}
-    FullscreenScreen(itemId = "mockItemId", null, mockWallpaperViewModel, mockBillingViewModel, mockTopBarViewModel)
+    FullscreenScreen("",itemId = "mockItemId", null, mockWallpaperViewModel, mockBillingViewModel, mockTopBarViewModel)
 }

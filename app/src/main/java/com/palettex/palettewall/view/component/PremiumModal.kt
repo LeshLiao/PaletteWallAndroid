@@ -40,10 +40,6 @@ fun PremiumModal(
 ) {
     val isPremium by billingViewModel.isPremium.collectAsState()
 
-    LaunchedEffect(Unit) {
-
-    }
-
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true  // Avoid partially expanded state
     )

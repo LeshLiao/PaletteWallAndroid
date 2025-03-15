@@ -54,13 +54,14 @@ fun CatalogRow(
 
                             when (item.key) {
                                 "Wallpapers" -> {
-                                    wallpaperViewModel.showCurrentAllWallpaper()
+//                                    wallpaperViewModel.showCurrentAllWallpaper()
+                                    wallpaperViewModel.fetchWallpaperBy(item.key)
                                 }
                                 else -> {
                                     wallpaperViewModel.fetchWallpaperBy(item.key)
                                 }
                             }
-                            wallpaperViewModel.setCurrentCatalog(item.key)
+//                            wallpaperViewModel.setCurrentCatalog(item.key)
                             wallpaperViewModel.firebaseCatalogEvent(item.key)
                         },
                     elevation = CardDefaults.cardElevation(8.dp),

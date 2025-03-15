@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
 fun ShareButton(
     itemId: String,
     wallpaperViewModel: WallpaperViewModel,
+    currentImage: String
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -29,15 +30,13 @@ fun ShareButton(
         modifier = Modifier.padding(4.dp),
         onClick = {
             coroutineScope.launch {
-                val imageUrl = wallpaperViewModel.getThumbnailByItemId(itemId)
-
-                if (imageUrl != null) {
+                if (currentImage != null) {
                     val sendIntent = Intent().apply {
                         action = Intent.ACTION_SEND
                         putExtra(Intent.EXTRA_TEXT,
                             "- Check out more amazing wallpaper!\n" +
                                     "    https://www.palettex.ca/ \n\n" +
-                                    "- Share Wallpaper: $imageUrl")
+                                    "- Share Wallpaper: $currentImage")
                         type = "text/plain"
                     }
                     wallpaperViewModel.firebaseShareEvent(itemId)

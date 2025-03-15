@@ -1,6 +1,7 @@
 package com.palettex.palettewall.view
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,6 +26,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -46,10 +48,12 @@ import com.palettex.palettewall.R
 import com.palettex.palettewall.data.WallpaperDatabase
 import com.palettex.palettewall.view.utility.throttleClick
 import com.palettex.palettewall.viewmodel.TopBarViewModel
+import com.palettex.palettewall.viewmodel.WallpaperViewModel
 
 @Composable
 fun LikeCollection(
     topViewModel: TopBarViewModel,
+    wallpaperViewModel: WallpaperViewModel,
     navController: NavController,
     topOffset: Dp,
     bottomOffset: Dp,
@@ -59,6 +63,30 @@ fun LikeCollection(
     val dao = remember { database.likedWallpaperDao() }
     val likedWallpapers by dao.getAllLikedWallpapers().collectAsState(initial = emptyList())
     val topSystemOffset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    val carouselAllWallpapers by wallpaperViewModel.carouselAllWallpapers.collectAsState()
+
+    // This helps debugging
+    Log.d("GDT", "LikeCollection recompose, likedWallpapers size=${likedWallpapers.size}")
+
+    // Run this effect when either likedWallpapers or carouselAllWallpapers changes
+    LaunchedEffect(likedWallpapers, carouselAllWallpapers) {
+        Log.d("GDT", "LaunchedEffect LikeCollection, likedWallpapers size=${likedWallpapers.size}")
+        Log.d("GDT", "LaunchedEffect LikeCollection, carouselAllWallpapers size=${carouselAllWallpapers.size}")
+
+        // Only initialize if both lists have data
+        if (likedWallpapers.isNotEmpty() && carouselAllWallpapers.isNotEmpty()) {
+            wallpaperViewModel.initLikeCollection(likedWallpapers)
+        }
+    }
+
+    // Add an initial effect to ensure carousel wallpapers are loaded
+    LaunchedEffect(Unit) {
+        Log.d("GDT", "Initial LaunchedEffect in LikeCollection")
+        if (carouselAllWallpapers.isEmpty()) {
+            Log.d("GDT", "Fetching wallpapers because carousel is empty")
+            wallpaperViewModel.fetchAllWallpapersToCarouselAll()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -110,7 +138,7 @@ fun LikeCollection(
                             .clip(RoundedCornerShape(8.dp))
                             .clickable {
                                 topViewModel.hideTopBar()
-                                navController.navigate("fullscreen/${wallpaper.wallpaperId}")
+                                navController.navigate("fullscreen/like/${wallpaper.wallpaperId}")
                             },
                         contentScale = ContentScale.Crop
                     )
@@ -149,5 +177,6 @@ fun EmptyBox() {
 fun PreviewEmptyBox() {
     val navController = rememberNavController()
     val mockTopBarViewModel = TopBarViewModel().apply {}
-    LikeCollection(mockTopBarViewModel, navController, 100.dp, 100.dp)
+    val mockWallpaperViewModel = WallpaperViewModel().apply {}
+    LikeCollection(mockTopBarViewModel, mockWallpaperViewModel, navController, 100.dp, 100.dp)
 }

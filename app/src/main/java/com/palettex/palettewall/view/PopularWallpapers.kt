@@ -52,14 +52,16 @@ fun PopularWallpapers(
         // Execute in IO dispatcher to avoid blocking the UI thread
         launch(Dispatchers.IO) {
             topTenWallpapers.forEach { wallpaper ->
-                val thumbnailUrl = wallpaperViewModel.getThumbnailByItemId(wallpaper.itemId)
+                val imageUrl = wallpaper.imageList.firstOrNull {
+                    it.type == "LD" && it.link.isNotEmpty()
+                }?.link ?: ""
 
                 // Create an image request with aggressive caching
                 val request = ImageRequest.Builder(context)
-                    .data(thumbnailUrl)
+                    .data(imageUrl)
                     .diskCachePolicy(CachePolicy.ENABLED)
                     .memoryCachePolicy(CachePolicy.ENABLED)
-                    .placeholderMemoryCacheKey(thumbnailUrl)
+                    .placeholderMemoryCacheKey(imageUrl)
                     .build()
 
                 // Execute the request to preload it
@@ -78,8 +80,9 @@ fun PopularWallpapers(
             item {
                 // Use the color from the rainbow list in cyclic order
                 val rainbowColor = borderColorList[index % borderColorList.size]
-                val thumbnailUrl = wallpaperViewModel.getThumbnailByItemId(wallpaper.itemId)
-
+                val imageUrl = wallpaper.imageList.firstOrNull {
+                    it.type == "LD" && it.link.isNotEmpty()
+                }?.link ?: ""
                 Card(
                     modifier = Modifier
                         .fillMaxHeight()
@@ -87,7 +90,7 @@ fun PopularWallpapers(
                         .border(2.dp, rainbowColor, RoundedCornerShape(8.dp)) // Add border
                         .clickable {
                             viewModel.hideTopBar()
-                            navController.navigate("fullscreen/${wallpaper.itemId}")
+                            navController.navigate("fullscreen/popular/${wallpaper.itemId}")
                         },
                     shape = RoundedCornerShape(8.dp),
                     colors = CardDefaults.cardColors(
@@ -97,11 +100,11 @@ fun PopularWallpapers(
                     Image(
                         painter = rememberAsyncImagePainter(
                             ImageRequest.Builder(context)
-                                .data(thumbnailUrl)
+                                .data(imageUrl)
                                 .crossfade(true)
                                 .diskCachePolicy(CachePolicy.ENABLED)
                                 .memoryCachePolicy(CachePolicy.ENABLED)
-                                .placeholderMemoryCacheKey(thumbnailUrl)
+                                .placeholderMemoryCacheKey(imageUrl)
                                 .build(),
                             imageLoader = imageLoader
                         ),

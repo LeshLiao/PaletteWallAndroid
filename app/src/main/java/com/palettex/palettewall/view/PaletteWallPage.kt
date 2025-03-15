@@ -74,7 +74,7 @@ fun PaletteWallPage(
                     CarouselPage(topOffset, bottomOffset, navController, wallpaperViewModel, topViewModel)
                 }
                 composable("Favorite") {
-                    LikeCollection(topViewModel, navController, topOffset, bottomOffset)
+                    LikeCollection(topViewModel, wallpaperViewModel, navController, topOffset, bottomOffset)
                 }
                 composable("AboutUs") {
                     AboutUs(navController)
@@ -83,15 +83,21 @@ fun PaletteWallPage(
 //                    AIScreen("")
 //                }
 
-
-
                 composable(
-                    route = "fullscreen/{itemId}",
-                    arguments = listOf(navArgument("itemId") { type = NavType.StringType })
+                    route = "fullscreen/{catalog}/{itemId}",
+                    arguments = listOf(
+                        navArgument("catalog") {
+                            type = NavType.StringType
+                            defaultValue = "" // Optional default value if not provided
+                        },
+                        navArgument("itemId") { type = NavType.StringType }
+                    )
                 ) { backStackEntry ->
+                    val catalog = backStackEntry.arguments?.getString("catalog")
                     val itemId = backStackEntry.arguments?.getString("itemId")
                     if (itemId != null) {
                         FullscreenScreen(
+                            catalog ?: "",
                             itemId,
                             navController,
                             wallpaperViewModel,
