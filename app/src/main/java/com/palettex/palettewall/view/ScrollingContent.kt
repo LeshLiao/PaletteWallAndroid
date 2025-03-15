@@ -263,6 +263,7 @@ fun ScrollingContent(
             // Add loading indicator at the bottom when loading more content
             item {
                 if (isLoading) {
+                    Spacer(modifier = Modifier.height(32.dp))
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -271,6 +272,7 @@ fun ScrollingContent(
                     ) {
                         androidx.compose.material3.CircularProgressIndicator()
                     }
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
             }
 

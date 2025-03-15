@@ -180,7 +180,7 @@ open class WallpaperViewModel(
     private fun fetchTopTenWallpapers() {
         viewModelScope.launch {
             try {
-                val popularWallpapers = RetrofitInstance.api.getPopular(10)
+                val popularWallpapers = RetrofitInstance.api.getPopular(16)
                 _topTenWallpapers.value = popularWallpapers
             } catch (e: Exception) {
                 Log.e(TAG, "Error fetching wallpapers: ${e.message}")

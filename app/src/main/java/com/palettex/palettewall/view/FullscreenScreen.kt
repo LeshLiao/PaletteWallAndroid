@@ -54,12 +54,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
+import coil.request.CachePolicy
+import coil.request.ImageRequest
+import coil.size.Size
 import com.palettex.palettewall.BuildConfig
 import com.palettex.palettewall.R
 import com.palettex.palettewall.data.WallpaperDatabase
-import com.palettex.palettewall.view.component.NormalModal
+import com.palettex.palettewall.view.component.DarkShimmerSkeletonLoader
 import com.palettex.palettewall.view.component.LikeButton
+import com.palettex.palettewall.view.component.NormalModal
 import com.palettex.palettewall.view.component.PremiumModal
 import com.palettex.palettewall.view.component.ShareButton
 import com.palettex.palettewall.view.component.SubscriptionModal
@@ -153,8 +158,28 @@ fun FullscreenScreen(
                         }
                     )
             ) {
+                val painter = rememberAsyncImagePainter(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(currentImage)
+                        .crossfade(true)
+                        .diskCachePolicy(CachePolicy.ENABLED)
+                        .memoryCachePolicy(CachePolicy.ENABLED)
+                        .size(Size.ORIGINAL)
+                        .build()
+                )
+
+                val painterState = painter.state
+
+                // Show skeleton loader while loading
+                if (painterState is AsyncImagePainter.State.Loading ||
+                    painterState is AsyncImagePainter.State.Error) {
+                    DarkShimmerSkeletonLoader(
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+
                 Image(
-                    painter = rememberAsyncImagePainter(model = currentImage),
+                    painter = painter,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
@@ -166,7 +191,6 @@ fun FullscreenScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(boxHeight*2) // 1/8
-//                            .border(1.dp,Color.White, RectangleShape)
                             .padding(start = 26.dp)
                             .throttleClick {
                                 viewModel.showTopBar()
@@ -183,7 +207,6 @@ fun FullscreenScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(boxHeight*5)  // 6/8
-                            // .border(1.dp,Color.White, RectangleShape)
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null // No ripple effect
