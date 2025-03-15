@@ -144,7 +144,6 @@ open class WallpaperViewModel(
     }
 
     fun setCurrentCatalog(catalog: String) {
-        Log.d("GDT","setCurrentCatalog")
         if (_currentCatalog.value != catalog) {
             _currentCatalog.value = catalog
         }
@@ -570,7 +569,7 @@ open class WallpaperViewModel(
 
                 // Update the wallpapers list
                 _wallpapers.value = currentList
-                Log.d(TAG, "Loaded ${response.items.size} wallpapers, total: ${currentList.size}, hasMore: ${response.hasMore}")
+                // Log.d(TAG, "Loaded ${response.items.size} wallpapers, total: ${currentList.size}, hasMore: ${response.hasMore}")
 
                 // Increment the page number for the next request
                 currentPage++

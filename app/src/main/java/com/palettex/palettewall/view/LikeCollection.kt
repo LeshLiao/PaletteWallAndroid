@@ -67,12 +67,13 @@ fun LikeCollection(
     val likeWallpapers by wallpaperViewModel.likeWallpapers.collectAsState()
 
     // This helps debugging
-    Log.d("GDT", "LikeCollection recompose, likedWallpapers size=${likedItemsDb.size}")
+    // Log.d("GDT", "LikeCollection recompose, likedWallpapers size=${likedItemsDb.size}")
 
     // Run this effect when either likedWallpapers or carouselAllWallpapers changes
     LaunchedEffect(likedItemsDb, carouselAllWallpapers) {
-        Log.d("GDT", "LaunchedEffect LikeCollection, likedWallpapers size=${likedItemsDb.size}")
-        Log.d("GDT", "LaunchedEffect LikeCollection, carouselAllWallpapers size=${carouselAllWallpapers.size}")
+        // Log.d("GDT", "LaunchedEffect LikeCollection, likedWallpapers size=${likedItemsDb.size}")
+        // Log.d("GDT", "LaunchedEffect LikeCollection, carouselAllWallpapers size=${carouselAllWallpapers.size}")
+
 
         // Only initialize if both lists have data
         if (likedItemsDb.isNotEmpty() && carouselAllWallpapers.isNotEmpty()) {
@@ -82,9 +83,9 @@ fun LikeCollection(
 
     // Add an initial effect to ensure carousel wallpapers are loaded
     LaunchedEffect(Unit) {
-        Log.d("GDT", "Initial LaunchedEffect in LikeCollection")
+        // Log.d("GDT", "Initial LaunchedEffect in LikeCollection")
         if (carouselAllWallpapers.isEmpty()) {
-            Log.d("GDT", "Fetching wallpapers because carousel is empty")
+            // Log.d("GDT", "Fetching wallpapers because carousel is empty")
             wallpaperViewModel.fetchAllWallpapersToCarouselAll()
         }
     }
