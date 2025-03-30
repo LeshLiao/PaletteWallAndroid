@@ -131,14 +131,13 @@ fun ScrollingContent(
         }
             .distinctUntilChanged()
             .collect { isNearBottom ->
-                Log.d("GDT", "isNearBottom=$isNearBottom isLoading=$isLoading wallpaperCount=${wallpapers.size}")
+                // Log.d("GDT", "isNearBottom=$isNearBottom isLoading=$isLoading wallpaperCount=${wallpapers.size}")
 
                 // Only trigger loading more if:
                 // 1. We're near the bottom
                 // 2. We're not already loading
                 // 3. We have already loaded some wallpapers (to avoid double-loading on init)
                 if (isNearBottom && !isLoading && wallpapers.isNotEmpty()) {
-                    Log.d("GDT", "should loadMoreWallpapers >>>")
                     wallpaperViewModel.loadMoreWallpapers()
                 }
             }
