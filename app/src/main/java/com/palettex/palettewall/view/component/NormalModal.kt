@@ -132,7 +132,8 @@ fun NormalModal(
                     Log.d("GDT", "Ad failed to load: ${adError.message}")
                     rewardedAd = null
                     isLoading = false  // Stop loading if failed
-                    Toast.makeText(context, "Msg: ${adError.message}, please try again.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Msg: ${adError.message}, Skip Ads! Start Download...", Toast.LENGTH_SHORT).show()
+                    onAdWatchedAndStartDownload()
                 }
             }
         )

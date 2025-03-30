@@ -54,12 +54,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
+import coil.request.CachePolicy
+import coil.request.ImageRequest
+import coil.size.Size
 import com.palettex.palettewall.BuildConfig
 import com.palettex.palettewall.R
 import com.palettex.palettewall.data.WallpaperDatabase
-import com.palettex.palettewall.view.component.NormalModal
+import com.palettex.palettewall.view.component.DarkShimmerSkeletonLoader
 import com.palettex.palettewall.view.component.LikeButton
+import com.palettex.palettewall.view.component.NormalModal
 import com.palettex.palettewall.view.component.PremiumModal
 import com.palettex.palettewall.view.component.ShareButton
 import com.palettex.palettewall.view.component.SubscriptionModal
@@ -73,6 +78,7 @@ import kotlin.math.abs
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun FullscreenScreen(
+    catalog: String,
     itemId: String,
     navController: NavController?,
     wallpaperViewModel: WallpaperViewModel,
@@ -103,6 +109,7 @@ fun FullscreenScreen(
     }
 
     LaunchedEffect(itemId) {
+        wallpaperViewModel.initFullScreenDataSource(catalog)
         wallpaperViewModel.setThumbnailImageByItemId(currentItemId, "HD")
     }
 
@@ -151,8 +158,28 @@ fun FullscreenScreen(
                         }
                     )
             ) {
+                val painter = rememberAsyncImagePainter(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(currentImage)
+                        .crossfade(true)
+                        .diskCachePolicy(CachePolicy.ENABLED)
+                        .memoryCachePolicy(CachePolicy.ENABLED)
+                        .size(Size.ORIGINAL)
+                        .build()
+                )
+
+                val painterState = painter.state
+
+                // Show skeleton loader while loading
+                if (painterState is AsyncImagePainter.State.Loading ||
+                    painterState is AsyncImagePainter.State.Error) {
+                    DarkShimmerSkeletonLoader(
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+
                 Image(
-                    painter = rememberAsyncImagePainter(model = currentImage),
+                    painter = painter,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
@@ -164,7 +191,6 @@ fun FullscreenScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(boxHeight*2) // 1/8
-//                            .border(1.dp,Color.White, RectangleShape)
                             .padding(start = 26.dp)
                             .throttleClick {
                                 viewModel.showTopBar()
@@ -181,7 +207,6 @@ fun FullscreenScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(boxHeight*5)  // 6/8
-                            // .border(1.dp,Color.White, RectangleShape)
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null // No ripple effect
@@ -204,6 +229,8 @@ fun FullscreenScreen(
                         ) {
                             if (downloadBtnStatus == 1) {
                                 Text("Downloading...")
+                            } else if (downloadBtnStatus == 2) {
+                                Text("Download Completed!")
                             }
                             if (isButtonVisible) {
                                 Row(
@@ -211,7 +238,7 @@ fun FullscreenScreen(
                                     verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    ShareButton(currentItemId, wallpaperViewModel)
+                                    ShareButton(currentItemId, wallpaperViewModel, currentImage)
                                     Spacer(Modifier.size(16.dp))
                                     Column(
                                         modifier = Modifier.width(52.dp),
@@ -243,7 +270,7 @@ fun FullscreenScreen(
                                         }
                                     }
                                     Spacer(Modifier.size(16.dp))
-                                    LikeButton(isLiked, dao, currentItemId, wallpaperViewModel, coroutineScope)
+                                    LikeButton(isLiked, dao, currentItemId, wallpaperViewModel, coroutineScope, currentImage)
                                 }
                             }
                         }
@@ -406,5 +433,5 @@ fun PreviewFullscreenScreen() {
     val mockWallpaperViewModel = WallpaperViewModel().apply {}
     val mockBillingViewModel = BillingViewModel(context).apply {}
     val mockTopBarViewModel = TopBarViewModel().apply {}
-    FullscreenScreen(itemId = "mockItemId", null, mockWallpaperViewModel, mockBillingViewModel, mockTopBarViewModel)
+    FullscreenScreen("",itemId = "mockItemId", null, mockWallpaperViewModel, mockBillingViewModel, mockTopBarViewModel)
 }

@@ -63,7 +63,7 @@ fun HomeTopBar(
                     text = "PaletteX",
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth().throttleClick {
-                        wallpaperViewModel.showCurrentAllWallpaper()
+                        wallpaperViewModel.setCurrentCatalog("Wallpapers")
                         wallpaperViewModel.scrollToTop()
                     }
                 ) },

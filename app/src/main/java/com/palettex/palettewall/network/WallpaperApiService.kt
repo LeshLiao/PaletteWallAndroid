@@ -3,15 +3,22 @@ package com.palettex.palettewall.network
 import com.palettex.palettewall.data.LogEventRequest
 import com.palettex.palettewall.model.AppSettings
 import com.palettex.palettewall.model.CatalogItem
+import com.palettex.palettewall.model.PaginatedResponse
 import com.palettex.palettewall.model.WallpaperItem
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface WallpaperApiService {
     @GET("items/photoType/static")
     suspend fun getWallpapers(): List<WallpaperItem>
+
+    @GET("items/wallpapers/popular")
+    suspend fun getPopular(
+        @Query("number") page: Int
+    ): List<WallpaperItem>
 
     @GET("items/tag/Anime")
     suspend fun getAnime(): List<WallpaperItem>
@@ -34,4 +41,11 @@ interface WallpaperApiService {
 
     @POST("items/log")
     suspend fun sendLogEvent(@Body logEvent: LogEventRequest)
+
+    @GET("items/wallpapers/page")
+    suspend fun getWallpapersByPage(
+        @Query("page") page: Int,
+        @Query("pageSize") pageSize: Int,
+        @Query("catalog") catalog: String
+    ): PaginatedResponse
 }
