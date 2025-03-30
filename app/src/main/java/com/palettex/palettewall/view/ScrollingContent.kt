@@ -19,7 +19,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.Icon
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -31,7 +30,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -44,21 +42,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import coil.size.Size
 import com.palettex.palettewall.R
-import com.palettex.palettewall.data.PaletteRemoteConfig
 import com.palettex.palettewall.data.WallpaperDatabase
-import com.palettex.palettewall.view.component.LikeButton
-import com.palettex.palettewall.viewmodel.AdManager
 import com.palettex.palettewall.viewmodel.BillingViewModel
 import com.palettex.palettewall.viewmodel.TopBarViewModel
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
+import coil.compose.AsyncImagePainter
+import com.palettex.palettewall.view.component.ImageSkeletonLoader
+
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -77,13 +74,14 @@ fun ScrollingContent(
     val currentCatalog by wallpaperViewModel.currentCatalog.collectAsState()
     val isRemoteConfigInitialized by wallpaperViewModel.isRemoteConfigInitialized.collectAsState()
     val isPremium by billingViewModel.isPremium.collectAsState()
+    val isLoading by wallpaperViewModel.isLoading.collectAsState()
 
     // Add pull-to-refresh state
     val refreshing by remember { mutableStateOf(false) }
     val pullRefreshState = rememberPullRefreshState(
         refreshing = refreshing,
         onRefresh = {
-            wallpaperViewModel.updateCurrentCatalog()
+            wallpaperViewModel.pullRefreshCurrentCatalog()
         }
     )
 
@@ -115,6 +113,36 @@ fun ScrollingContent(
             }
     }
 
+    // Add paging functionality
+    LaunchedEffect(listState) {
+        snapshotFlow {
+            // Get the last visible item index
+            val lastVisibleItemIndex = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+
+            // Get the total number of items currently rendered
+            val totalItemsCount = listState.layoutInfo.totalItemsCount
+
+            // Log for debugging
+            // Log.d("GDT", "lastVisibleItemIndex=$lastVisibleItemIndex totalItemsCount=$totalItemsCount")
+
+            // Check if we're near the end of the list
+            // We need to consider if we're viewing the last 2-3 items
+            lastVisibleItemIndex >= totalItemsCount - 3
+        }
+            .distinctUntilChanged()
+            .collect { isNearBottom ->
+                // Log.d("GDT", "isNearBottom=$isNearBottom isLoading=$isLoading wallpaperCount=${wallpapers.size}")
+
+                // Only trigger loading more if:
+                // 1. We're near the bottom
+                // 2. We're not already loading
+                // 3. We have already loaded some wallpapers (to avoid double-loading on init)
+                if (isNearBottom && !isLoading && wallpapers.isNotEmpty()) {
+                    wallpaperViewModel.loadMoreWallpapers()
+                }
+            }
+    }
+
     LaunchedEffect(currentCatalog) {
         if (currentCatalog == "Wallpapers") {
             showPopular = true
@@ -136,89 +164,123 @@ fun ScrollingContent(
             .pullRefresh(pullRefreshState)
     ) {
 
-    LazyColumn(state = listState) {
-        item { Spacer(modifier = Modifier.height(80.dp).fillMaxWidth()) }
-        item { Spacer(modifier = Modifier.height(16.dp)) }
-        item { CatalogRow(wallpaperViewModel) }
+        LazyColumn(state = listState) {
+            item { Spacer(modifier = Modifier.height(80.dp).fillMaxWidth()) }
+            item { Spacer(modifier = Modifier.height(16.dp)) }
+            item { CatalogRow(wallpaperViewModel) }
 
-        if (showPopular) {
-            item {
-                Titles(
-                    title = "Popular Collections",
-                    modifier = Modifier.padding(16.dp, 16.dp, 16.dp, 2.dp)
-                )
+            if (showPopular) {
+                item {
+                    Titles(
+                        title = "Popular Wallpapers",
+                        modifier = Modifier.padding(16.dp, 16.dp, 16.dp, 2.dp)
+                    )
+                }
+                item {
+                    PopularWallpapers(topViewModel, navController, wallpaperViewModel)
+                }
             }
-            item {
-                PopularWallpapers(topViewModel, navController, wallpaperViewModel)
-            }
-        }
 
-        item { Spacer(modifier = Modifier.height(10.dp)) }
+            item { Spacer(modifier = Modifier.height(10.dp)) }
 
-        itemsIndexed(wallpapers.chunked(3)) { index, rowItems ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(0.dp),
-                horizontalArrangement = Arrangement.spacedBy(0.dp)
-            ) {
-                rowItems.forEach { wallpaper ->
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .aspectRatio(0.5f)
-                            .clickable {
-                                topViewModel.hideTopBar()
-                                navController.navigate("fullscreen/${wallpaper.itemId}")
-                            },
-                    ) {
-                        Image(
-                            painter = rememberAsyncImagePainter(
+            itemsIndexed(wallpapers.chunked(3)) { index, rowItems ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(0.dp),
+                    horizontalArrangement = Arrangement.spacedBy(0.dp)
+                ) {
+                    rowItems.forEach { wallpaper ->
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight()
+                                .aspectRatio(0.5f)
+                                .clickable {
+                                    topViewModel.hideTopBar()
+                                    navController.navigate("fullscreen/normal/${wallpaper.itemId}")
+                                },
+                        ) {
+                            // Create the image painter
+                            val imageUrl = wallpaper.imageList.firstOrNull {
+                                it.type == "LD" && it.link.isNotEmpty()
+                            }?.link ?: ""
+                            val painter = rememberAsyncImagePainter(
                                 model = ImageRequest.Builder(LocalContext.current)
-                                    .data(wallpaperViewModel.getImage(wallpaper.itemId,"LD"))
+                                    .data(imageUrl)
                                     .crossfade(true)
                                     .diskCachePolicy(CachePolicy.ENABLED)
                                     .memoryCachePolicy(CachePolicy.ENABLED)
                                     .size(Size.ORIGINAL)
                                     .build()
-                            ),
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
+                            )
 
-                        if (!wallpaper.freeDownload) {
-                            Box(
-                                modifier = Modifier
-                                    .align(Alignment.BottomEnd)
-                                    .padding(6.dp)
-                            ) {
-                                Image(
-                                    painterResource(R.drawable.diamond),
-                                    contentDescription = "",
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier.size(18.dp)
+                            // Check the state of the painter
+                            val painterState = painter.state
+
+                            // Show skeleton loader while loading
+                            if (painterState is AsyncImagePainter.State.Loading ||
+                                painterState is AsyncImagePainter.State.Error) {
+                                ImageSkeletonLoader(
+                                    modifier = Modifier.fillMaxSize()
                                 )
+                            }
+
+                            // Show the image
+                            Image(
+                                painter = painter,
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
+                            )
+
+                            if (!wallpaper.freeDownload) {
+                                Box(
+                                    modifier = Modifier
+                                        .align(Alignment.BottomEnd)
+                                        .padding(6.dp)
+                                ) {
+                                    Image(
+                                        painterResource(R.drawable.diamond),
+                                        contentDescription = "",
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
                             }
                         }
                     }
-                }
 
-                if (rowItems.size < 3) {
-                    repeat(3 - rowItems.size) {
-                        Spacer(modifier = Modifier.weight(1f))
+                    if (rowItems.size < 3) {
+                        repeat(3 - rowItems.size) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
                     }
                 }
             }
-        }
 
-        item {
-            // Bottom Area
-            Spacer(modifier = Modifier.height(12.dp))
-            Spacer(modifier = Modifier.height(bottomOffset))
+            // Add loading indicator at the bottom when loading more content
+            item {
+                if (isLoading) {
+                    Spacer(modifier = Modifier.height(32.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        androidx.compose.material3.CircularProgressIndicator()
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+            }
+
+            item {
+                // Bottom Area
+                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(bottomOffset))
+            }
         }
-    }
         // Add pull-to-refresh indicator
         PullRefreshIndicator(
             refreshing = refreshing,

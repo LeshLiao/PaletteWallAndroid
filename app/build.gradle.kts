@@ -15,8 +15,8 @@ android {
         applicationId = "com.palettex.palettewall"
         minSdk = 30
         targetSdk = 34
-        versionCode = 215
-        versionName = "2.15"
+        versionCode = 222
+        versionName = "2.22"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -124,4 +124,8 @@ dependencies {
     implementation ("com.google.firebase:firebase-analytics-ktx")
 
     implementation ("com.android.billingclient:billing-ktx:6.1.0")
+
+    // Play In-App Update library (replacing the deprecated Play Core library)
+    implementation("com.google.android.play:app-update:2.1.0")
+    implementation("com.google.android.play:app-update-ktx:2.1.0")
 }

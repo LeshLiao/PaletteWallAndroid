@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsIgnoringVisibility
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -40,10 +41,6 @@ fun PremiumModal(
 ) {
     val isPremium by billingViewModel.isPremium.collectAsState()
 
-    LaunchedEffect(Unit) {
-
-    }
-
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true  // Avoid partially expanded state
     )
@@ -51,7 +48,9 @@ fun PremiumModal(
     ModalBottomSheet(
         containerColor = Color.Transparent,
         onDismissRequest = { onDismissRequest() },
-        sheetState = sheetState
+        sheetState = sheetState,
+        scrimColor = Color.Black.copy(alpha = 0.5f), // Let gray area cover top system bar
+        windowInsets = WindowInsets.navigationBars // Let gray area cover top system bar
     ) {
         Column(
             modifier = Modifier

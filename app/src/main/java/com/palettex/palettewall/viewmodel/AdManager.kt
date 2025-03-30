@@ -13,9 +13,10 @@ import com.palettex.palettewall.data.PaletteRemoteConfig
 // Create a singleton object to manage the ad state
 object AdManager {
     private var adMobBannerView: AdView? = null
-    private var isAdLoaded = false
+    private var isRequestAdLoaded = false
     private var lastLoadTime: Long = 0
-    private const val REFRESH_INTERVAL = 60_000 * 1 // 3 minutes in milliseconds
+    // private const val REFRESH_INTERVAL = 60_000 * 2 // 2 minutes in milliseconds
+    private var refreshInterval: Int = 60_000 * 2 // 2 minutes in milliseconds
 
     fun getOrCreateAd(context: Context): AdView {
         if (adMobBannerView == null) {
@@ -39,11 +40,11 @@ object AdManager {
 
     private fun shouldRefreshAd(): Boolean {
         val currentTime = System.currentTimeMillis()
-        return currentTime - lastLoadTime >= REFRESH_INTERVAL
+        return currentTime - lastLoadTime >= refreshInterval
     }
 
     fun loadAdIfNeeded(viewModel: WallpaperViewModel, forceReload: Boolean = false) {
-        if ((!isAdLoaded || forceReload || shouldRefreshAd()) &&
+        if ((!isRequestAdLoaded || forceReload || shouldRefreshAd()) &&
             PaletteRemoteConfig.shouldShowBannerAds()) {
             adMobBannerView?.let { adView ->
                 val adRequest = AdRequest.Builder().build()
@@ -54,7 +55,8 @@ object AdManager {
                 adView.adListener = object : AdListener() {
                     override fun onAdLoaded() {
                         super.onAdLoaded()
-                        isAdLoaded = true
+                        isRequestAdLoaded = true
+                        refreshInterval = 60_000 * 2
                         viewModel.setBottomAdsLoaded(true)
                         Log.d("GDT","Ad Banner onAdLoaded()")
                         if (!BuildConfig.DEBUG_MODE) {
@@ -63,11 +65,12 @@ object AdManager {
                     }
 
                     override fun onAdFailedToLoad(adError: LoadAdError) {
-                        isAdLoaded = false
+                        isRequestAdLoaded = true // prevent multiple ad requests
+                        refreshInterval = 60_000 * 1 // retry it after 1 minute
                         viewModel.setBottomAdsLoaded(false)
-                        Log.e("GDT", "Ad Banner onAdFailedToLoad():$adError")
+                        Log.e("GDT", "Ad Banner onAdFailedToLoad:${adError.message}")
                         if (!BuildConfig.DEBUG_MODE) {
-                            viewModel.sendLogEvent("0", "Ad_Banner_onAdFailedToLoad:$adError")
+                            viewModel.sendLogEvent("0", "Ad_Banner_onAdFailedToLoad:${adError.message}")
                         }
                     }
                 }
@@ -78,7 +81,7 @@ object AdManager {
     fun cleanup() {
         adMobBannerView?.destroy()
         adMobBannerView = null
-        isAdLoaded = false
+        isRequestAdLoaded = false
         lastLoadTime = 0
     }
 }

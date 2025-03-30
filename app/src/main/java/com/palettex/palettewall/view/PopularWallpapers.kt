@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,9 +26,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.ImageLoader
+import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.CachePolicy
 import coil.request.ImageRequest
+import com.palettex.palettewall.view.component.ImageSkeletonLoader
 import com.palettex.palettewall.viewmodel.TopBarViewModel
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
 import kotlinx.coroutines.Dispatchers
@@ -52,14 +55,16 @@ fun PopularWallpapers(
         // Execute in IO dispatcher to avoid blocking the UI thread
         launch(Dispatchers.IO) {
             topTenWallpapers.forEach { wallpaper ->
-                val thumbnailUrl = wallpaperViewModel.getThumbnailByItemId(wallpaper.itemId)
+                val imageUrl = wallpaper.imageList.firstOrNull {
+                    it.type == "LD" && it.link.isNotEmpty()
+                }?.link ?: ""
 
                 // Create an image request with aggressive caching
                 val request = ImageRequest.Builder(context)
-                    .data(thumbnailUrl)
+                    .data(imageUrl)
                     .diskCachePolicy(CachePolicy.ENABLED)
                     .memoryCachePolicy(CachePolicy.ENABLED)
-                    .placeholderMemoryCacheKey(thumbnailUrl)
+                    .placeholderMemoryCacheKey(imageUrl)
                     .build()
 
                 // Execute the request to preload it
@@ -78,7 +83,9 @@ fun PopularWallpapers(
             item {
                 // Use the color from the rainbow list in cyclic order
                 val rainbowColor = borderColorList[index % borderColorList.size]
-                val thumbnailUrl = wallpaperViewModel.getThumbnailByItemId(wallpaper.itemId)
+                val imageUrl = wallpaper.imageList.firstOrNull {
+                    it.type == "LD" && it.link.isNotEmpty()
+                }?.link ?: ""
 
                 Card(
                     modifier = Modifier
@@ -87,28 +94,45 @@ fun PopularWallpapers(
                         .border(2.dp, rainbowColor, RoundedCornerShape(8.dp)) // Add border
                         .clickable {
                             viewModel.hideTopBar()
-                            navController.navigate("fullscreen/${wallpaper.itemId}")
+                            navController.navigate("fullscreen/popular/${wallpaper.itemId}")
                         },
                     shape = RoundedCornerShape(8.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = Color.Black
                     )
                 ) {
-                    Image(
-                        painter = rememberAsyncImagePainter(
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        // Create the painter with ImageRequest for better control
+                        val painter = rememberAsyncImagePainter(
                             ImageRequest.Builder(context)
-                                .data(thumbnailUrl)
+                                .data(imageUrl)
                                 .crossfade(true)
                                 .diskCachePolicy(CachePolicy.ENABLED)
                                 .memoryCachePolicy(CachePolicy.ENABLED)
-                                .placeholderMemoryCacheKey(thumbnailUrl)
+                                .placeholderMemoryCacheKey(imageUrl)
                                 .build(),
                             imageLoader = imageLoader
-                        ),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
+                        )
+
+                        // Check the state of the painter
+                        val painterState = painter.state
+
+                        // Show skeleton loader while loading
+                        if (painterState is AsyncImagePainter.State.Loading ||
+                            painterState is AsyncImagePainter.State.Error) {
+                            ImageSkeletonLoader(
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+
+                        // Show the image (will be drawn on top of skeleton when loaded)
+                        Image(
+                            painter = painter,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
                 }
             }
         }

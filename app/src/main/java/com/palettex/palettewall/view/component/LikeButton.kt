@@ -17,15 +17,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
-fun LikeButton(isLiked: Boolean, dao: LikedWallpaperDao, itemId: String, wallpaperViewModel: WallpaperViewModel, coroutineScope: CoroutineScope) {
+fun LikeButton(isLiked: Boolean, dao: LikedWallpaperDao, itemId: String, wallpaperViewModel: WallpaperViewModel, coroutineScope: CoroutineScope, currentImage: String) {
     IconButton(
         modifier = Modifier.padding(4.dp),
         onClick = {
             coroutineScope.launch {
                 if (isLiked) {
-                    dao.deleteLikedWallpaper(LikedWallpaper(itemId, wallpaperViewModel.getThumbnailByItemId(itemId)))
+                    dao.deleteLikedWallpaper(LikedWallpaper(itemId, currentImage))
                 } else {
-                    dao.insertLikedWallpaper(LikedWallpaper(itemId, wallpaperViewModel.getThumbnailByItemId(itemId)))
+                    dao.insertLikedWallpaper(LikedWallpaper(itemId, currentImage))
                     wallpaperViewModel.firebaseLikeEvent(itemId)
                 }
             }

@@ -1,8 +1,6 @@
 package com.palettex.palettewall.view
 
 import android.content.Context
-import android.util.Log
-import android.widget.Space
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -46,11 +44,16 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
+import coil.request.CachePolicy
+import coil.request.ImageRequest
+import coil.size.Size
 import com.palettex.palettewall.R
 import com.palettex.palettewall.data.WallpaperDatabase
 import com.palettex.palettewall.model.WallpaperItem
 import com.palettex.palettewall.view.component.ColorPaletteMatrix
+import com.palettex.palettewall.view.component.ImageSkeletonLoader
 import com.palettex.palettewall.view.component.LikeButton
 import com.palettex.palettewall.viewmodel.AdManager
 import com.palettex.palettewall.viewmodel.TopBarViewModel
@@ -67,6 +70,7 @@ fun CarouselPage(
     topViewModel: TopBarViewModel,
 ) {
     val carouselWallpapers by wallpaperViewModel.carouselWallpapers.collectAsState()
+    val carouselAllWallpapers by wallpaperViewModel.carouselAllWallpapers.collectAsState()
     val firstSelectedColor by wallpaperViewModel.firstSelectedColor.collectAsState()
     val secondSelectedColor by wallpaperViewModel.secondSelectedColor.collectAsState()
     val isRemoteConfigInitialized by wallpaperViewModel.isRemoteConfigInitialized.collectAsState()
@@ -76,8 +80,8 @@ fun CarouselPage(
     val scope = rememberCoroutineScope()
 
     DisposableEffect(Unit) {
-        Log.d("GDT","CarouselPage")
         topViewModel.showTopBar()
+
         if (carouselWallpapers.isEmpty()) {
             wallpaperViewModel.updateFilteredWallpapers()
         }
@@ -85,7 +89,7 @@ fun CarouselPage(
             AdManager.loadAdIfNeeded(wallpaperViewModel)
         }
         onDispose {
-            Log.d("GDT","CarouselPage onDispose()")
+            // Log.d("GDT","CarouselPage onDispose()")
         }
     }
 
@@ -122,7 +126,7 @@ fun CarouselPage(
                 bottomOffset = bottomOffset,
                 onWallpaperSelected = { itemId ->
                     topViewModel.hideTopBar()
-                    navController.navigate("fullscreen/${itemId}")
+                    navController.navigate("fullscreen/carousel/${itemId}")
                 },
                 onColorTagsChanged = { tags ->
                     colorBrowseList = tags
@@ -160,8 +164,6 @@ fun WallpaperCarousel(
     LaunchedEffect(pagerState.currentPage) {
         wallpaperViewModel.setCurrentCarouselPage(pagerState.currentPage)
     }
-
-//    val middlePageIndex = filterWallpapers.size / 2
 
     // Notify parent about the PagerState
     LaunchedEffect(pagerState) {
@@ -201,7 +203,6 @@ fun WallpaperCarousel(
             pageSpacing = 10.dp,
             modifier = Modifier
                 .fillMaxWidth()
-                //.height(LocalConfiguration.current.screenHeightDp.dp / 2)
                 .weight(1f)
         ) { page ->
             val pageOffset = (
@@ -224,13 +225,40 @@ fun WallpaperCarousel(
                     .background(Color.Gray)
                     .clickable { onWallpaperSelected(itemId) }
             ) {
-                val imageUrl = wallpaperViewModel.getImage(itemId,"LD")
+                val imageUrl = filterWallpapers[page].imageList.firstOrNull {
+                    it.type == "LD" && it.link.isNotEmpty()
+                }?.link ?: ""
+
+                // Create the image painter with state
+                val painter = rememberAsyncImagePainter(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(imageUrl)
+                        .crossfade(true)
+                        .diskCachePolicy(CachePolicy.ENABLED)
+                        .memoryCachePolicy(CachePolicy.ENABLED)
+                        .size(Size.ORIGINAL)
+                        .build()
+                )
+
+                // Check the state of the painter
+                val painterState = painter.state
+
+                // Show skeleton loader while loading
+                if (painterState is AsyncImagePainter.State.Loading ||
+                    painterState is AsyncImagePainter.State.Error) {
+                    ImageSkeletonLoader(
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+
+                // Show the image
                 Image(
-                    painter = rememberAsyncImagePainter(imageUrl),
+                    painter = painter,
                     contentDescription = "Wallpaper ${page + 1}",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
                 )
+
                 val isLiked by dao.isWallpaperLiked(itemId).collectAsState(initial = false)
 
                 Box(
@@ -253,7 +281,7 @@ fun WallpaperCarousel(
                             )
                         }
                         Spacer(modifier = Modifier.weight(1f))
-                        LikeButton(isLiked, dao, itemId, wallpaperViewModel, coroutineScope)
+                        LikeButton(isLiked, dao, itemId, wallpaperViewModel, coroutineScope, imageUrl)
                     }
                 }
             }
@@ -287,9 +315,35 @@ fun WallpaperCarousel(
                             }
                         }
                 ) {
-                    val imageUrl = wallpaperViewModel.getImage(filterWallpapers[index].itemId,"LD")
+                    val imageUrl = filterWallpapers[index].imageList.firstOrNull {
+                        it.type == "LD" && it.link.isNotEmpty()
+                    }?.link ?: ""
+
+                    // Create the thumbnail painter with state
+                    val thumbnailPainter = rememberAsyncImagePainter(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(imageUrl)
+                            .crossfade(true)
+                            .diskCachePolicy(CachePolicy.ENABLED)
+                            .memoryCachePolicy(CachePolicy.ENABLED)
+                            .size(Size.ORIGINAL)
+                            .build()
+                    )
+
+                    // Check the state of the thumbnail painter
+                    val thumbnailPainterState = thumbnailPainter.state
+
+                    // Show skeleton loader for thumbnails while loading
+                    if (thumbnailPainterState is AsyncImagePainter.State.Loading ||
+                        thumbnailPainterState is AsyncImagePainter.State.Error) {
+                        ImageSkeletonLoader(
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+
+                    // Show the thumbnail image
                     Image(
-                        painter = rememberAsyncImagePainter(imageUrl),
+                        painter = thumbnailPainter,
                         contentDescription = "Thumbnail ${index + 1}",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
@@ -300,7 +354,6 @@ fun WallpaperCarousel(
         Spacer(modifier = Modifier.height(bottomOffset))
     }
 }
-
 @Preview(showBackground = true)
 @Composable
 fun PreviewTestCarousel() {

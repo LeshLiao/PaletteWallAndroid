@@ -1,6 +1,7 @@
 package com.palettex.palettewall.view
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,6 +26,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -46,10 +48,12 @@ import com.palettex.palettewall.R
 import com.palettex.palettewall.data.WallpaperDatabase
 import com.palettex.palettewall.view.utility.throttleClick
 import com.palettex.palettewall.viewmodel.TopBarViewModel
+import com.palettex.palettewall.viewmodel.WallpaperViewModel
 
 @Composable
 fun LikeCollection(
     topViewModel: TopBarViewModel,
+    wallpaperViewModel: WallpaperViewModel,
     navController: NavController,
     topOffset: Dp,
     bottomOffset: Dp,
@@ -57,8 +61,34 @@ fun LikeCollection(
 ) {
     val database = remember { WallpaperDatabase.getDatabase(context) }
     val dao = remember { database.likedWallpaperDao() }
-    val likedWallpapers by dao.getAllLikedWallpapers().collectAsState(initial = emptyList())
+    val likedItemsDb by dao.getAllLikedWallpapers().collectAsState(initial = emptyList())
     val topSystemOffset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    val carouselAllWallpapers by wallpaperViewModel.carouselAllWallpapers.collectAsState()
+    val likeWallpapers by wallpaperViewModel.likeWallpapers.collectAsState()
+
+    // This helps debugging
+    // Log.d("GDT", "LikeCollection recompose, likedWallpapers size=${likedItemsDb.size}")
+
+    // Run this effect when either likedWallpapers or carouselAllWallpapers changes
+    LaunchedEffect(likedItemsDb, carouselAllWallpapers) {
+        // Log.d("GDT", "LaunchedEffect LikeCollection, likedWallpapers size=${likedItemsDb.size}")
+        // Log.d("GDT", "LaunchedEffect LikeCollection, carouselAllWallpapers size=${carouselAllWallpapers.size}")
+
+
+        // Only initialize if both lists have data
+        if (likedItemsDb.isNotEmpty() && carouselAllWallpapers.isNotEmpty()) {
+            wallpaperViewModel.initLikeCollection(likedItemsDb)
+        }
+    }
+
+    // Add an initial effect to ensure carousel wallpapers are loaded
+    LaunchedEffect(Unit) {
+        // Log.d("GDT", "Initial LaunchedEffect in LikeCollection")
+        if (carouselAllWallpapers.isEmpty()) {
+            // Log.d("GDT", "Fetching wallpapers because carousel is empty")
+            wallpaperViewModel.fetchAllWallpapersToCarouselAll()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -90,7 +120,7 @@ fun LikeCollection(
             Spacer(modifier = Modifier.weight(1f))
         }
 
-        if (likedWallpapers.isEmpty()) {
+        if (likeWallpapers.isEmpty()) {
             EmptyBox()
         } else {
             LazyVerticalGrid(
@@ -100,17 +130,20 @@ fun LikeCollection(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(likedWallpapers.size) { index ->
-                    val wallpaper = likedWallpapers[index]
+                items(likeWallpapers.size) { index ->
+                    val wallpaper = likeWallpapers[index]
+                    val imageUrl = likeWallpapers[index].imageList.firstOrNull {
+                        it.type == "SD" && it.link.isNotEmpty()
+                    }?.link ?: ""
                     AsyncImage(
-                        model = wallpaper.imageUrl,
+                        model = imageUrl,
                         contentDescription = null,
                         modifier = Modifier
                             .aspectRatio(9f / 18f)
                             .clip(RoundedCornerShape(8.dp))
                             .clickable {
                                 topViewModel.hideTopBar()
-                                navController.navigate("fullscreen/${wallpaper.wallpaperId}")
+                                navController.navigate("fullscreen/like/${wallpaper.itemId}")
                             },
                         contentScale = ContentScale.Crop
                     )
@@ -149,5 +182,6 @@ fun EmptyBox() {
 fun PreviewEmptyBox() {
     val navController = rememberNavController()
     val mockTopBarViewModel = TopBarViewModel().apply {}
-    LikeCollection(mockTopBarViewModel, navController, 100.dp, 100.dp)
+    val mockWallpaperViewModel = WallpaperViewModel().apply {}
+    LikeCollection(mockTopBarViewModel, mockWallpaperViewModel, navController, 100.dp, 100.dp)
 }
