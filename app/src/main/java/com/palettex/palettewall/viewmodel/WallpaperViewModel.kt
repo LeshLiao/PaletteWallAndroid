@@ -18,8 +18,11 @@ import com.palettex.palettewall.model.PaginatedResponse
 import com.palettex.palettewall.model.WallpaperItem
 import com.palettex.palettewall.network.RetrofitInstance
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Locale
 import kotlin.math.sqrt
@@ -96,16 +99,15 @@ open class WallpaperViewModel(
     private val _isRemoteConfigInitialized = MutableStateFlow(false)
     val isRemoteConfigInitialized: StateFlow<Boolean> = _isRemoteConfigInitialized
 
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
-
     // Pagination properties
     private var currentPage = 1
     private var isLastPage = false
     private var pageSize = DEFAULT_PAGE_SIZE
 
-    init {
-        viewModelScope.launch {
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading = _isLoading
+        .onStart {
+            resetPagination()
             getAppSettings()
             getCatalogs()
             fetchTopTenWallpapers()
@@ -113,7 +115,13 @@ open class WallpaperViewModel(
             loadMoreWallpapers()
             fetchAllWallpapersToCarouselAll()
         }
-    }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000L),
+            false
+        )
+
+    init { }
 
     fun scrollToTop() {
         viewModelScope.launch {
