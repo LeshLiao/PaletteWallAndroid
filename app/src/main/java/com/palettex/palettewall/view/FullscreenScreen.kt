@@ -50,6 +50,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -258,7 +259,8 @@ fun FullscreenScreen(
                                                 },
                                                 isCurrentFreeDownload = isCurrentFreeDownload,
                                                 modifier = Modifier.size(52.dp),
-                                                isLoading = downloadBtnStatus == 1 || loadAdsBtnStatus
+                                                isLoading = downloadBtnStatus == 1 || loadAdsBtnStatus,
+                                                testTag = "download_button"
                                             )
                                         } else {
                                             Icon(
@@ -356,7 +358,8 @@ fun AnimatedFloatingActionButton(
     onClick: () -> Unit,
     isCurrentFreeDownload: Boolean,
     modifier: Modifier = Modifier,
-    isLoading: Boolean = false
+    isLoading: Boolean = false,
+    testTag: String? = null
 ) {
     // Define a list of colors for the animation
     val colors = listOf(Color.White, Color.Transparent)
@@ -374,9 +377,15 @@ fun AnimatedFloatingActionButton(
 
     FloatingActionButton(
         onClick = onClick,
-        modifier = modifier,
+        modifier = modifier.then(
+            if (testTag != null) {
+                Modifier.testTag(testTag)
+            } else {
+                Modifier
+            }
+        ),
         containerColor = animatedColor.value,
-        shape = CircleShape,
+        shape = CircleShape
     ) {
         Box (
             contentAlignment = Alignment.Center,
