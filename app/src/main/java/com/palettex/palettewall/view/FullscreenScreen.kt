@@ -108,6 +108,7 @@ fun FullscreenScreen(
         // Add horizontal drag gesture state
         // Handle drag delta
     }
+    var showInformation by remember { mutableStateOf(false) }
 
     LaunchedEffect(itemId) {
         wallpaperViewModel.initFullScreenDataSource(catalog)
@@ -188,19 +189,25 @@ fun FullscreenScreen(
 
                 Column() {
                     val boxHeight = LocalConfiguration.current.screenHeightDp.dp * 1 / 8
-                    Box(
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(boxHeight*2) // 1/8
-                            .padding(start = 26.dp)
+                            .height(boxHeight * 2)
+                            .padding(horizontal = 26.dp)
                             .throttleClick {
                                 viewModel.showTopBar()
                                 navController?.popBackStack()
                             },
-                        contentAlignment = Alignment.CenterStart
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         if (isButtonVisible) {
-                            GetBackButton()
+                            GetBackButton() // left side
+                            InfoButton(
+                                onClick = {
+                                    showInformation = !showInformation // Toggle the state
+                                }
+                            ) // right side
                         }
                     }
 
@@ -214,7 +221,18 @@ fun FullscreenScreen(
                             ) {
                                 isButtonVisible = !isButtonVisible
                             }
-                    )
+                    ) {
+                        if (showInformation && isButtonVisible) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .align(Alignment.BottomCenter) // ✅ key part
+                            ) {
+                                val imageTitle = wallpaperViewModel.getImageInfoByItemId(currentItemId)
+                                ImageInformation(imageTitle)
+                            }
+                        }
+                    }
 
                     Box(
                         modifier = Modifier
@@ -426,7 +444,7 @@ fun GetBackButton() {
             .background(Color.Black, shape = RoundedCornerShape(25.dp)),
     ) {
         Icon(
-            painter = painterResource(R.drawable.icon_back_crop),
+            painter = painterResource(R.drawable.icon_back_left),
             modifier = Modifier
                 .fillMaxSize(),
             contentDescription = "Back",
@@ -435,12 +453,50 @@ fun GetBackButton() {
     }
 }
 
+@Composable
+fun InfoButton(onClick: () -> Unit = {}) {
+    Box(
+        modifier = Modifier
+            .size(42.dp)
+            .background(Color.Black, shape = RoundedCornerShape(25.dp))
+            .clickable { onClick() }, // Add clickable modifier
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.icon_info),
+            modifier = Modifier
+                .fillMaxSize(),
+            contentDescription = "Info",
+            tint = Color.White
+        )
+    }
+}
+
+@Composable
+fun ImageInformation(imageTitle: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 8.dp)
+            .background(
+                color = Color.DarkGray.copy(alpha = 0.6f), // Light gray, 50% transparent
+                shape = RoundedCornerShape(6.dp)
+            )
+    ) {
+
+        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+            Text(
+                text = imageTitle,
+                color = Color.White
+            )
+        }
+    }
+}
+
+
 @Preview(showBackground = true)
 @Composable
-fun PreviewFullscreenScreen() {
-    val context = LocalContext.current
-    val mockWallpaperViewModel = WallpaperViewModel().apply {}
-    val mockBillingViewModel = BillingViewModel(context).apply {}
-    val mockTopBarViewModel = TopBarViewModel().apply {}
-    FullscreenScreen("",itemId = "mockItemId", null, mockWallpaperViewModel, mockBillingViewModel, mockTopBarViewModel)
+fun PreviewInfoScreen() {
+    Column (modifier = Modifier.fillMaxWidth()) {
+        ImageInformation("Test Information")
+    }
 }
