@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,8 +27,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import com.palettex.palettewall.R
+import com.palettex.palettewall.view.component.ImageSkeletonLoader
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
 
 @Composable
@@ -51,17 +54,14 @@ fun CatalogRow(
                         .height(item.height.dp)
                         .width(item.width.dp)
                         .clickable {
-
                             when (item.key) {
                                 "Wallpapers" -> {
-//                                    wallpaperViewModel.showCurrentAllWallpaper()
                                     wallpaperViewModel.fetchWallpaperBy(item.key)
                                 }
                                 else -> {
                                     wallpaperViewModel.fetchWallpaperBy(item.key)
                                 }
                             }
-//                            wallpaperViewModel.setCurrentCatalog(item.key)
                             wallpaperViewModel.firebaseCatalogEvent(item.key)
                         },
                     elevation = CardDefaults.cardElevation(8.dp),
@@ -70,12 +70,25 @@ fun CatalogRow(
                         containerColor = colorResource(id = R.color.black)
                     )
                 ) {
-                    Image(
-                        painter = rememberAsyncImagePainter(model = item.photoUrl),
-                        contentDescription = item.title,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        val painter = rememberAsyncImagePainter(model = item.photoUrl)
+                        val painterState = painter.state
+
+                        // Show skeleton loader while loading
+                        if (painterState is AsyncImagePainter.State.Loading ||
+                            painterState is AsyncImagePainter.State.Error) {
+                            ImageSkeletonLoader(
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+
+                        Image(
+                            painter = painter,
+                            contentDescription = item.title,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(2.dp))

@@ -1,4 +1,4 @@
- import java.util.Properties
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
@@ -15,8 +15,8 @@ android {
         applicationId = "com.palettex.palettewall"
         minSdk = 30
         targetSdk = 34
-        versionCode = 222
-        versionName = "2.22"
+        versionCode = 223
+        versionName = "2.23"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -97,6 +97,12 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation("androidx.test.espresso:espresso-contrib:3.5.1")
+    androidTestImplementation("androidx.test.espresso:espresso-intents:3.5.1")
+    androidTestImplementation("androidx.test:runner:1.5.2")
+    androidTestImplementation("androidx.test:rules:1.5.0")
+    androidTestImplementation("androidx.test.ext:junit-ktx:1.1.5")
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.5.4")
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)

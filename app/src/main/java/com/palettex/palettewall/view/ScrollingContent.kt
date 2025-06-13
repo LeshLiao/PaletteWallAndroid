@@ -42,6 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.CachePolicy
@@ -74,7 +75,7 @@ fun ScrollingContent(
     val currentCatalog by wallpaperViewModel.currentCatalog.collectAsState()
     val isRemoteConfigInitialized by wallpaperViewModel.isRemoteConfigInitialized.collectAsState()
     val isPremium by billingViewModel.isPremium.collectAsState()
-    val isLoading by wallpaperViewModel.isLoading.collectAsState()
+    val isLoading by wallpaperViewModel.isLoading.collectAsStateWithLifecycle()
 
     // Add pull-to-refresh state
     val refreshing by remember { mutableStateOf(false) }
