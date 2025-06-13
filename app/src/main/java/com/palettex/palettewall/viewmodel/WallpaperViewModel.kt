@@ -267,6 +267,28 @@ open class WallpaperViewModel(
         return wallpaperItem?.downloadList?.firstOrNull()?.link
     }
 
+    fun getImageInfoByItemId(itemId: String): String {
+        val wallpaperItem = _fullScreenWallpapers.value.find { it.itemId == itemId }
+
+        val colorTags = wallpaperItem?.tags?.filter { it.contains("#") }
+            ?.map { tag ->
+                tag.split("%").firstOrNull() ?: tag
+            }
+            ?.distinct() // Remove duplicates
+            ?.joinToString(", ") // Convert list to string
+
+        val imageName = wallpaperItem?.name ?: ""
+
+        // Properly format the return string
+        val imageInfo = if (colorTags.isNullOrEmpty()) {
+            imageName
+        } else {
+            "$imageName\nColors: $colorTags"
+        }
+
+        return imageInfo
+    }
+
     fun fetchWallpaperBy(param: String) {
         Log.d("GDT","fetchWallpaperBy")
         viewModelScope.launch {
