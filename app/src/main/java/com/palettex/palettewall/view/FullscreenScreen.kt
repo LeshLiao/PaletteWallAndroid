@@ -111,7 +111,6 @@ fun FullscreenScreen(
     var showInformation by remember { mutableStateOf(false) }
 
     LaunchedEffect(itemId) {
-        wallpaperViewModel.initFullScreenDataSource(catalog)
         wallpaperViewModel.setThumbnailImageByItemId(currentItemId, "HD")
     }
 

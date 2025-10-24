@@ -143,7 +143,8 @@ fun LikeCollection(
                             .clip(RoundedCornerShape(8.dp))
                             .clickable {
                                 topViewModel.hideTopBar()
-                                navController.navigate("fullscreen/like/${wallpaper.itemId}")
+                                wallpaperViewModel.initFullScreenDataSourceByList(likeWallpapers)
+                                navController.navigate("fullscreen/${wallpaper.itemId}")
                             },
                         contentScale = ContentScale.Crop
                     )

@@ -82,22 +82,16 @@ fun PaletteWallPage(
 //                composable("AI") {
 //                    AIScreen("")
 //                }
-
                 composable(
-                    route = "fullscreen/{catalog}/{itemId}",
+                    route = "fullscreen/{itemId}",
                     arguments = listOf(
-                        navArgument("catalog") {
-                            type = NavType.StringType
-                            defaultValue = "" // Optional default value if not provided
-                        },
                         navArgument("itemId") { type = NavType.StringType }
                     )
                 ) { backStackEntry ->
-                    val catalog = backStackEntry.arguments?.getString("catalog")
                     val itemId = backStackEntry.arguments?.getString("itemId")
                     if (itemId != null) {
                         FullscreenScreen(
-                            catalog ?: "",
+                            "",
                             itemId,
                             navController,
                             wallpaperViewModel,

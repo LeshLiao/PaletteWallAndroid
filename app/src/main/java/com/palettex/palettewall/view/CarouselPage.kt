@@ -126,7 +126,8 @@ fun CarouselPage(
                 bottomOffset = bottomOffset,
                 onWallpaperSelected = { itemId ->
                     topViewModel.hideTopBar()
-                    navController.navigate("fullscreen/carousel/${itemId}")
+                    wallpaperViewModel.initFullScreenDataSourceByList(carouselWallpapers)
+                    navController.navigate("fullscreen/${itemId}")
                 },
                 onColorTagsChanged = { tags ->
                     colorBrowseList = tags

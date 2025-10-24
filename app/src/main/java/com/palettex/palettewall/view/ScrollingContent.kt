@@ -1,7 +1,6 @@
 package com.palettex.palettewall.view
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -56,6 +55,7 @@ import com.palettex.palettewall.viewmodel.WallpaperViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
 import coil.compose.AsyncImagePainter
 import com.palettex.palettewall.view.component.ImageSkeletonLoader
+import com.palettex.palettewall.view.component.RowWallpapers
 
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -76,6 +76,8 @@ fun ScrollingContent(
     val isRemoteConfigInitialized by wallpaperViewModel.isRemoteConfigInitialized.collectAsState()
     val isPremium by billingViewModel.isPremium.collectAsState()
     val isLoading by wallpaperViewModel.isLoading.collectAsStateWithLifecycle()
+    val popularWallpapers by wallpaperViewModel.popularWallpapers.collectAsState()
+    val animeWallpapers by wallpaperViewModel.animeWallpapers.collectAsState()
 
     // Add pull-to-refresh state
     val refreshing by remember { mutableStateOf(false) }
@@ -172,13 +174,19 @@ fun ScrollingContent(
 
             if (showPopular) {
                 item {
-                    Titles(
-                        title = "Popular Wallpapers",
-                        modifier = Modifier.padding(16.dp, 16.dp, 16.dp, 2.dp)
-                    )
+                    RowWallpapers("Popular Wallpapers", popularWallpapers) { itemId ->
+                        topViewModel.hideTopBar()
+                        wallpaperViewModel.initFullScreenDataSourceByList(popularWallpapers)
+                        navController.navigate("pageFullscreen/${itemId}")
+                    }
                 }
+
                 item {
-                    PopularWallpapers(topViewModel, navController, wallpaperViewModel)
+                    RowWallpapers("Anime", animeWallpapers) { itemId ->
+                        topViewModel.hideTopBar()
+                        wallpaperViewModel.initFullScreenDataSourceByList(animeWallpapers)
+                        navController.navigate("fullscreen/${itemId}")
+                    }
                 }
             }
 
@@ -199,7 +207,8 @@ fun ScrollingContent(
                                 .aspectRatio(0.5f)
                                 .clickable {
                                     topViewModel.hideTopBar()
-                                    navController.navigate("fullscreen/normal/${wallpaper.itemId}")
+                                    wallpaperViewModel.initFullScreenDataSourceByList(wallpapers)
+                                    navController.navigate("fullscreen/${wallpaper.itemId}")
                                 },
                         ) {
                             // Create the image painter

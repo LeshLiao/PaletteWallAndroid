@@ -75,8 +75,11 @@ open class WallpaperViewModel(
     private val _isBottomAdsLoaded = MutableStateFlow(false)
     val isBottomAdsLoaded: StateFlow<Boolean> = _isBottomAdsLoaded
 
-    private val _topTenWallpapers = MutableStateFlow<List<WallpaperItem>>(emptyList())
-    val topTenWallpapers: StateFlow<List<WallpaperItem>> = _topTenWallpapers
+    private val _popularWallpapers = MutableStateFlow<List<WallpaperItem>>(emptyList())
+    val popularWallpapers: StateFlow<List<WallpaperItem>> = _popularWallpapers
+
+    private val _animeWallpapers = MutableStateFlow<List<WallpaperItem>>(emptyList())
+    val animeWallpapers: StateFlow<List<WallpaperItem>> = _animeWallpapers
 
     private val _currentCatalog = MutableStateFlow<String>("")
     val currentCatalog: StateFlow<String> = _currentCatalog
@@ -114,6 +117,8 @@ open class WallpaperViewModel(
             setCurrentCatalog("Wallpapers") // main catalog
             loadMoreWallpapers()
             fetchAllWallpapersToCarouselAll()
+
+            _animeWallpapers.value = fetchSpecificWallpapers(0, 12, "anime").items
         }
         .stateIn(
             viewModelScope,
@@ -188,7 +193,7 @@ open class WallpaperViewModel(
         viewModelScope.launch {
             try {
                 val popularWallpapers = RetrofitInstance.api.getPopular(16)
-                _topTenWallpapers.value = popularWallpapers
+                _popularWallpapers.value = popularWallpapers
             } catch (e: Exception) {
                 Log.e(TAG, "Error fetching wallpapers: ${e.message}")
             }
@@ -230,25 +235,9 @@ open class WallpaperViewModel(
         }
     }
 
-    fun initFullScreenDataSource(catalog: String) {
+    fun initFullScreenDataSourceByList(list: List<WallpaperItem>) {
         viewModelScope.launch {
-            when (catalog) {
-                "popular" -> {
-                    _fullScreenWallpapers.value = _topTenWallpapers.value
-                }
-                "carousel" -> {
-                    _fullScreenWallpapers.value = _carouselWallpapers.value
-                }
-                "like" -> {
-                    _fullScreenWallpapers.value = _likeWallpapers.value
-                }
-                else -> {
-                    // Default case - use current wallpapers from the main catalog
-                    _fullScreenWallpapers.value = _wallpapers.value
-                }
-            }
-            // Log the data source being used
-            Log.d(TAG, "Initialized fullscreen data source from: $catalog with ${_fullScreenWallpapers.value.size} items")
+            _fullScreenWallpapers.value = list
         }
     }
 
@@ -553,6 +542,19 @@ open class WallpaperViewModel(
                     catalog = catalog     // set filter by tag
                 )
             }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error fetching wallpapers: ${e.message}")
+            PaginatedResponse(emptyList(), page, 1, 0, false)
+        }
+    }
+
+    private suspend fun fetchSpecificWallpapers(page: Int, pageSize: Int, catalog : String): PaginatedResponse {
+        return try {
+            RetrofitInstance.api.getWallpapersByPage(
+                page = page,
+                pageSize = pageSize,
+                catalog = catalog     // set filter by tag
+            )
         } catch (e: Exception) {
             Log.e(TAG, "Error fetching wallpapers: ${e.message}")
             PaginatedResponse(emptyList(), page, 1, 0, false)
