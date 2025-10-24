@@ -177,7 +177,7 @@ fun ScrollingContent(
                     RowWallpapers("Popular Wallpapers", popularWallpapers) { itemId ->
                         topViewModel.hideTopBar()
                         wallpaperViewModel.initFullScreenDataSourceByList(popularWallpapers)
-                        navController.navigate("pageFullscreen/${itemId}")
+                        navController.navigate("fullscreen/${itemId}")
                     }
                 }
 
