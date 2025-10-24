@@ -34,13 +34,13 @@ class MainActivityTest {
         // Wait for wallpaper cards to load
         composeTestRule.waitUntil(timeoutMillis = 10000) {
             composeTestRule
-                .onAllNodesWithTag("popular_wallpaper_card")
+                .onAllNodesWithTag("wallpaper_card")
                 .fetchSemanticsNodes()
                 .isNotEmpty()
         }
 
         // Click the first popular wallpaper card
-        composeTestRule.onAllNodesWithTag("popular_wallpaper_card")
+        composeTestRule.onAllNodesWithTag("wallpaper_card")
             .onFirst()
             .assertIsDisplayed()
             .performClick()

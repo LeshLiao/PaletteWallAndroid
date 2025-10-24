@@ -21,7 +21,6 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -33,30 +32,24 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import coil.compose.rememberAsyncImagePainter
-import coil.request.CachePolicy
-import coil.request.ImageRequest
-import coil.size.Size
+import coil.ImageLoader
+import com.palettex.palettewall.PaletteWallApplication
 import com.palettex.palettewall.R
 import com.palettex.palettewall.data.WallpaperDatabase
+import com.palettex.palettewall.utils.getImageSourceFromAssets
+import com.palettex.palettewall.view.component.ProgressiveImageLoaderBest
+import com.palettex.palettewall.view.component.RowWallpapers
 import com.palettex.palettewall.viewmodel.BillingViewModel
 import com.palettex.palettewall.viewmodel.TopBarViewModel
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
-import coil.compose.AsyncImagePainter
-import com.palettex.palettewall.view.component.ImageSkeletonLoader
-import com.palettex.palettewall.view.component.RowWallpapers
-
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -70,14 +63,18 @@ fun ScrollingContent(
 ) {
     val listState = rememberLazyListState()
     val lastScrollOffset = remember { mutableIntStateOf(0) }
+    val imageLoader = remember { ImageLoader(context) }
     val appSettings by wallpaperViewModel.appSettings.collectAsState()
     val wallpapers by wallpaperViewModel.wallpapers.collectAsState()
     val currentCatalog by wallpaperViewModel.currentCatalog.collectAsState()
     val isRemoteConfigInitialized by wallpaperViewModel.isRemoteConfigInitialized.collectAsState()
     val isPremium by billingViewModel.isPremium.collectAsState()
     val isLoading by wallpaperViewModel.isLoading.collectAsStateWithLifecycle()
+
     val popularWallpapers by wallpaperViewModel.popularWallpapers.collectAsState()
-    val animeWallpapers by wallpaperViewModel.animeWallpapers.collectAsState()
+    val catalogConfigs by wallpaperViewModel.catalogConfigs.collectAsState()
+    val catalogWallpapers by wallpaperViewModel.catalogWallpapers.collectAsState()
+    val imageCacheList = PaletteWallApplication.imageCacheList
 
     // Add pull-to-refresh state
     val refreshing by remember { mutableStateOf(false) }
@@ -130,7 +127,7 @@ fun ScrollingContent(
 
             // Check if we're near the end of the list
             // We need to consider if we're viewing the last 2-3 items
-            lastVisibleItemIndex >= totalItemsCount - 3
+            lastVisibleItemIndex >= totalItemsCount - 12
         }
             .distinctUntilChanged()
             .collect { isNearBottom ->
@@ -181,11 +178,20 @@ fun ScrollingContent(
                     }
                 }
 
-                item {
-                    RowWallpapers("Anime", animeWallpapers) { itemId ->
-                        topViewModel.hideTopBar()
-                        wallpaperViewModel.initFullScreenDataSourceByList(animeWallpapers)
-                        navController.navigate("fullscreen/${itemId}")
+                catalogConfigs.forEach { config ->
+                    val catalogItems = catalogWallpapers[config.key] ?: emptyList()
+
+                    if (catalogItems.isNotEmpty()) {
+                        item {
+                            RowWallpapers(
+                                title = config.title,
+                                wallpapers = catalogItems
+                            ) { itemId ->
+                                topViewModel.hideTopBar()
+                                wallpaperViewModel.initFullScreenDataSourceByList(catalogItems)
+                                navController.navigate("fullscreen/${itemId}")
+                            }
+                        }
                     }
                 }
             }
@@ -211,38 +217,25 @@ fun ScrollingContent(
                                     navController.navigate("fullscreen/${wallpaper.itemId}")
                                 },
                         ) {
-                            // Create the image painter
+
                             val imageUrl = wallpaper.imageList.firstOrNull {
                                 it.type == "LD" && it.link.isNotEmpty()
                             }?.link ?: ""
-                            val painter = rememberAsyncImagePainter(
-                                model = ImageRequest.Builder(LocalContext.current)
-                                    .data(imageUrl)
-                                    .crossfade(true)
-                                    .diskCachePolicy(CachePolicy.ENABLED)
-                                    .memoryCachePolicy(CachePolicy.ENABLED)
-                                    .size(Size.ORIGINAL)
-                                    .build()
-                            )
 
-                            // Check the state of the painter
-                            val painterState = painter.state
+                            val blurImageUrl = wallpaper.imageList.firstOrNull {
+                                it.type == "BL" && it.link.isNotEmpty()
+                            }?.link ?: ""
 
-                            // Show skeleton loader while loading
-                            if (painterState is AsyncImagePainter.State.Loading ||
-                                painterState is AsyncImagePainter.State.Error) {
-                                ImageSkeletonLoader(
-                                    modifier = Modifier.fillMaxSize()
+                            val imageSource = imageUrl.getImageSourceFromAssets(context, imageCacheList)
+                            val blurSource = blurImageUrl.getImageSourceFromAssets(context, imageCacheList)
+
+                            Box(modifier = Modifier.fillMaxSize()) {
+                                ProgressiveImageLoaderBest(
+                                    blurImageUrl = blurSource,
+                                    fullImageSource = imageSource,
+                                    imageLoader = imageLoader
                                 )
                             }
-
-                            // Show the image
-                            Image(
-                                painter = painter,
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.fillMaxSize()
-                            )
 
                             if (!wallpaper.freeDownload) {
                                 Box(
@@ -296,27 +289,6 @@ fun ScrollingContent(
             refreshing = refreshing,
             state = pullRefreshState,
             modifier = Modifier.align(Alignment.TopCenter)
-        )
-    }
-}
-
-@Composable
-fun Titles(title: String, modifier: Modifier) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = title,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.W600,
-            color = Color.White,
-        )
-        Text(
-            text = "",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.W600,
-            color = Color.White,
         )
     }
 }

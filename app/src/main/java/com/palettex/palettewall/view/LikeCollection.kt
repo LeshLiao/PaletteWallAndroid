@@ -44,8 +44,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
+import com.palettex.palettewall.PaletteWallApplication
 import com.palettex.palettewall.R
 import com.palettex.palettewall.data.WallpaperDatabase
+import com.palettex.palettewall.utils.getImageSourceFromAssets
 import com.palettex.palettewall.view.utility.throttleClick
 import com.palettex.palettewall.viewmodel.TopBarViewModel
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
@@ -65,6 +67,7 @@ fun LikeCollection(
     val topSystemOffset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val carouselAllWallpapers by wallpaperViewModel.carouselAllWallpapers.collectAsState()
     val likeWallpapers by wallpaperViewModel.likeWallpapers.collectAsState()
+    val imageCacheList = PaletteWallApplication.imageCacheList
 
     // This helps debugging
     // Log.d("GDT", "LikeCollection recompose, likedWallpapers size=${likedItemsDb.size}")
@@ -133,10 +136,13 @@ fun LikeCollection(
                 items(likeWallpapers.size) { index ->
                     val wallpaper = likeWallpapers[index]
                     val imageUrl = likeWallpapers[index].imageList.firstOrNull {
-                        it.type == "SD" && it.link.isNotEmpty()
+                        it.type == "HD" && it.link.isNotEmpty()
                     }?.link ?: ""
+
+                    val imageSource = imageUrl.getImageSourceFromAssets(context, imageCacheList)
+
                     AsyncImage(
-                        model = imageUrl,
+                        model = imageSource,
                         contentDescription = null,
                         modifier = Modifier
                             .aspectRatio(9f / 18f)

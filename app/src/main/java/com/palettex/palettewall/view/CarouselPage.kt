@@ -49,9 +49,11 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import coil.size.Size
+import com.palettex.palettewall.PaletteWallApplication
 import com.palettex.palettewall.R
 import com.palettex.palettewall.data.WallpaperDatabase
 import com.palettex.palettewall.model.WallpaperItem
+import com.palettex.palettewall.utils.getImageSourceFromAssets
 import com.palettex.palettewall.view.component.ColorPaletteMatrix
 import com.palettex.palettewall.view.component.ImageSkeletonLoader
 import com.palettex.palettewall.view.component.LikeButton
@@ -155,6 +157,7 @@ fun WallpaperCarousel(
 
     // Use the saved page index from ViewModel
     val currentPage by wallpaperViewModel.currentCarouselPage.collectAsState()
+    val imageCacheList = PaletteWallApplication.imageCacheList
 
     val pagerState = rememberPagerState(
         initialPage = currentPage,
@@ -230,10 +233,12 @@ fun WallpaperCarousel(
                     it.type == "LD" && it.link.isNotEmpty()
                 }?.link ?: ""
 
+                val imageSource = imageUrl.getImageSourceFromAssets(context, imageCacheList)
+
                 // Create the image painter with state
                 val painter = rememberAsyncImagePainter(
                     model = ImageRequest.Builder(LocalContext.current)
-                        .data(imageUrl)
+                        .data(imageSource)
                         .crossfade(true)
                         .diskCachePolicy(CachePolicy.ENABLED)
                         .memoryCachePolicy(CachePolicy.ENABLED)
@@ -320,10 +325,12 @@ fun WallpaperCarousel(
                         it.type == "LD" && it.link.isNotEmpty()
                     }?.link ?: ""
 
+                    val imageSource = imageUrl.getImageSourceFromAssets(context, imageCacheList)
+
                     // Create the thumbnail painter with state
                     val thumbnailPainter = rememberAsyncImagePainter(
                         model = ImageRequest.Builder(LocalContext.current)
-                            .data(imageUrl)
+                            .data(imageSource)
                             .crossfade(true)
                             .diskCachePolicy(CachePolicy.ENABLED)
                             .memoryCachePolicy(CachePolicy.ENABLED)

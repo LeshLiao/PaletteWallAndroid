@@ -55,18 +55,21 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil.ImageLoader
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import coil.size.Size
 import com.palettex.palettewall.BuildConfig
+import com.palettex.palettewall.PaletteWallApplication
 import com.palettex.palettewall.R
 import com.palettex.palettewall.data.WallpaperDatabase
 import com.palettex.palettewall.view.component.DarkShimmerSkeletonLoader
 import com.palettex.palettewall.view.component.LikeButton
 import com.palettex.palettewall.view.component.NormalModal
 import com.palettex.palettewall.view.component.PremiumModal
+import com.palettex.palettewall.view.component.ProgressiveImageLoaderBest
 import com.palettex.palettewall.view.component.ShareButton
 import com.palettex.palettewall.view.component.SubscriptionModal
 import com.palettex.palettewall.view.utility.throttleClick
@@ -87,6 +90,7 @@ fun FullscreenScreen(
     viewModel: TopBarViewModel,
 ) {
     val context = LocalContext.current
+    val imageLoader = remember { ImageLoader(context) }
     var isDialogVisible by remember { mutableStateOf(false) }
     var msg by remember { mutableStateOf("") }
     var currentItemId by remember { mutableStateOf(itemId) }
@@ -97,6 +101,7 @@ fun FullscreenScreen(
     val downloadBtnStatus by wallpaperViewModel.downloadBtnStatus.collectAsState()
     val loadAdsBtnStatus by wallpaperViewModel.loadAdsBtnStatus.collectAsState()
     val currentImage by wallpaperViewModel.currentImage.collectAsState()
+    val currentBlurImage by wallpaperViewModel.currentBlurImage.collectAsState()
     val isCurrentFreeDownload by wallpaperViewModel.isCurrentFreeDownload.collectAsState()
     val isPremium by billingViewModel.isPremium.collectAsState()
     val fullScreenWallpapers by wallpaperViewModel.fullScreenWallpapers.collectAsState()
@@ -109,9 +114,11 @@ fun FullscreenScreen(
         // Handle drag delta
     }
     var showInformation by remember { mutableStateOf(false) }
+    val cache = PaletteWallApplication.imageCacheList
 
     LaunchedEffect(itemId) {
-        wallpaperViewModel.setThumbnailImageByItemId(currentItemId, "HD")
+        Log.d("GDT", "currentItemId = $currentItemId")
+        wallpaperViewModel.setThumbnailImageByItemId(currentItemId, "HD", context, cache)
     }
 
     LaunchedEffect(currentItemId) {
@@ -147,44 +154,25 @@ fun FullscreenScreen(
                                 if (velocity > 0) {  // Swipe right - previous wallpaper
                                     if (currentIndex > 0) {
                                         currentItemId = fullScreenWallpapers[currentIndex - 1].itemId
-                                        wallpaperViewModel.setThumbnailImageByItemId(currentItemId, "HD")
+                                        wallpaperViewModel.setThumbnailImageByItemId(currentItemId, "HD", context, cache)
                                     }
                                 } else {  // Swipe left - next wallpaper
                                     if (currentIndex < fullScreenWallpapers.size - 1) {
                                         currentItemId = fullScreenWallpapers[currentIndex + 1].itemId
-                                        wallpaperViewModel.setThumbnailImageByItemId(currentItemId, "HD")
+                                        wallpaperViewModel.setThumbnailImageByItemId(currentItemId, "HD", context, cache)
                                     }
                                 }
                             }
                         }
                     )
             ) {
-                val painter = rememberAsyncImagePainter(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(currentImage)
-                        .crossfade(true)
-                        .diskCachePolicy(CachePolicy.ENABLED)
-                        .memoryCachePolicy(CachePolicy.ENABLED)
-                        .size(Size.ORIGINAL)
-                        .build()
-                )
-
-                val painterState = painter.state
-
-                // Show skeleton loader while loading
-                if (painterState is AsyncImagePainter.State.Loading ||
-                    painterState is AsyncImagePainter.State.Error) {
-                    DarkShimmerSkeletonLoader(
-                        modifier = Modifier.fillMaxSize()
+                Box(modifier = Modifier.fillMaxSize()) {
+                    ProgressiveImageLoaderBest(
+                        blurImageUrl = currentBlurImage,
+                        fullImageSource = currentImage,
+                        imageLoader = imageLoader
                     )
                 }
-
-                Image(
-                    painter = painter,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
 
                 Column() {
                     val boxHeight = LocalConfiguration.current.screenHeightDp.dp * 1 / 8

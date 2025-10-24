@@ -1,5 +1,6 @@
 package com.palettex.palettewall.viewmodel
 
+import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -10,6 +11,8 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
 import com.palettex.palettewall.BuildConfig
+import com.palettex.palettewall.data.CatalogConfig
+import com.palettex.palettewall.data.ImageCacheList
 import com.palettex.palettewall.data.LikedWallpaper
 import com.palettex.palettewall.data.LogEventRequest
 import com.palettex.palettewall.model.AppSettings
@@ -17,6 +20,7 @@ import com.palettex.palettewall.model.CatalogItem
 import com.palettex.palettewall.model.PaginatedResponse
 import com.palettex.palettewall.model.WallpaperItem
 import com.palettex.palettewall.network.RetrofitInstance
+import com.palettex.palettewall.utils.getImageSourceFromAssets
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -33,7 +37,7 @@ open class WallpaperViewModel(
 
     companion object {
         private val TAG = WallpaperViewModel::class.java.simpleName + "_GDT"
-        private const val DEFAULT_PAGE_SIZE = 12
+        private const val DEFAULT_PAGE_SIZE = 36
     }
 
     private val _appSettings = MutableStateFlow(AppSettings())
@@ -75,12 +79,6 @@ open class WallpaperViewModel(
     private val _isBottomAdsLoaded = MutableStateFlow(false)
     val isBottomAdsLoaded: StateFlow<Boolean> = _isBottomAdsLoaded
 
-    private val _popularWallpapers = MutableStateFlow<List<WallpaperItem>>(emptyList())
-    val popularWallpapers: StateFlow<List<WallpaperItem>> = _popularWallpapers
-
-    private val _animeWallpapers = MutableStateFlow<List<WallpaperItem>>(emptyList())
-    val animeWallpapers: StateFlow<List<WallpaperItem>> = _animeWallpapers
-
     private val _currentCatalog = MutableStateFlow<String>("")
     val currentCatalog: StateFlow<String> = _currentCatalog
 
@@ -89,6 +87,9 @@ open class WallpaperViewModel(
 
     private val _currentImage = MutableStateFlow("")
     var currentImage: StateFlow<String> = _currentImage
+
+    private val _currentBlurImage = MutableStateFlow("")
+    var currentBlurImage: StateFlow<String> = _currentBlurImage
 
     private val _isCurrentFreeDownload = MutableStateFlow(false)
     var isCurrentFreeDownload: StateFlow<Boolean> = _isCurrentFreeDownload
@@ -102,6 +103,17 @@ open class WallpaperViewModel(
     private val _isRemoteConfigInitialized = MutableStateFlow(false)
     val isRemoteConfigInitialized: StateFlow<Boolean> = _isRemoteConfigInitialized
 
+    private val _popularWallpapers = MutableStateFlow<List<WallpaperItem>>(emptyList())
+    val popularWallpapers: StateFlow<List<WallpaperItem>> = _popularWallpapers
+
+    // Replace individual catalog flows with a map (using key as the map key)
+    private val _catalogWallpapers = MutableStateFlow<Map<String, List<WallpaperItem>>>(emptyMap())
+    val catalogWallpapers: StateFlow<Map<String, List<WallpaperItem>>> = _catalogWallpapers.asStateFlow()
+
+    // Store catalog configurations
+    private val _catalogConfigs = MutableStateFlow<List<CatalogConfig>>(emptyList())
+    val catalogConfigs: StateFlow<List<CatalogConfig>> = _catalogConfigs.asStateFlow()
+
     // Pagination properties
     private var currentPage = 1
     private var isLastPage = false
@@ -113,12 +125,10 @@ open class WallpaperViewModel(
             resetPagination()
             getAppSettings()
             getCatalogs()
-            fetchTopTenWallpapers()
+            fetchPopularWallpapers()
             setCurrentCatalog("Wallpapers") // main catalog
             loadMoreWallpapers()
             fetchAllWallpapersToCarouselAll()
-
-            _animeWallpapers.value = fetchSpecificWallpapers(0, 12, "anime").items
         }
         .stateIn(
             viewModelScope,
@@ -126,7 +136,40 @@ open class WallpaperViewModel(
             false
         )
 
-    init { }
+    init {
+        initializeCatalogs(
+            listOf(
+                CatalogConfig(title = "Anime", key = "anime"),
+                CatalogConfig(title = "Minimalistic", key = "minimalistic"),
+                CatalogConfig(title = "Nature", key = "nature"),
+                CatalogConfig(title = "Space", key = "space"),
+                CatalogConfig(title = "Landscape", key = "landscape")
+            )
+        )
+    }
+
+    fun initializeCatalogs(catalogs: List<CatalogConfig>) {
+        _catalogConfigs.value = catalogs
+
+        _catalogWallpapers.value = catalogs.associate { it.key to emptyList<WallpaperItem>() }
+
+        catalogs.forEach { config ->
+            loadCatalogWallpapers(config.key)
+        }
+    }
+
+    fun loadCatalogWallpapers(catalogKeyName: String) {
+        viewModelScope.launch {
+            try {
+                val wallpapers = fetchSpecificWallpapers(0, 12, catalogKeyName).items
+                _catalogWallpapers.value = _catalogWallpapers.value.toMutableMap().apply {
+                    put(catalogKeyName, wallpapers)
+                }
+            } catch (e: Exception) {
+                Log.e("WallpaperViewModel", "Error loading $catalogKeyName wallpapers", e)
+            }
+        }
+    }
 
     fun scrollToTop() {
         viewModelScope.launch {
@@ -184,12 +227,12 @@ open class WallpaperViewModel(
         Log.d("GDT","pullRefreshCurrentCatalog")
         getAppSettings()
         getCatalogs()
-        fetchTopTenWallpapers()
+        fetchPopularWallpapers()
         resetPagination()
         loadMoreWallpapers()
     }
 
-    private fun fetchTopTenWallpapers() {
+    private fun fetchPopularWallpapers() {
         viewModelScope.launch {
             try {
                 val popularWallpapers = RetrofitInstance.api.getPopular(16)
@@ -241,13 +284,24 @@ open class WallpaperViewModel(
         }
     }
 
-    fun setThumbnailImageByItemId(itemId: String, type: String) {
+    fun setThumbnailImageByItemId(itemId: String, type: String, context: Context, imageCacheList: ImageCacheList) {
         val wallpaper = _fullScreenWallpapers.value.find { it.itemId == itemId }
         if (wallpaper != null) {
             _isCurrentFreeDownload.value = wallpaper.freeDownload
-            _currentImage.value = wallpaper.imageList.firstOrNull {
+
+            val imageUrl = wallpaper.imageList.firstOrNull {
                 it.type == type && it.link.isNotEmpty()
             }?.link ?: ""
+
+            val blurImageUrl = wallpaper.imageList.firstOrNull {
+                it.type == "BL" && it.link.isNotEmpty()
+            }?.link ?: ""
+
+            val imageSource = imageUrl.getImageSourceFromAssets(context, imageCacheList)
+            val blurSource = blurImageUrl.getImageSourceFromAssets(context, imageCacheList)
+
+            _currentBlurImage.value = blurSource
+            _currentImage.value = imageSource
         }
     }
 
@@ -611,6 +665,17 @@ open class WallpaperViewModel(
                 // Always reset loading state when done, regardless of success or failure
                 _isLoading.value = false
             }
+        }
+    }
+
+    fun logOutImages(list: List<WallpaperItem>, num: Int) {
+        var count = num
+        list.forEach { wallpaper->
+            val imageUrl = wallpaper.imageList.firstOrNull {
+                it.type == "HD" && it.link.isNotEmpty()
+            }?.link ?: ""
+            count++
+            if (count <= 6) Log.d("GDT","=== HD" + imageUrl)
         }
     }
 }

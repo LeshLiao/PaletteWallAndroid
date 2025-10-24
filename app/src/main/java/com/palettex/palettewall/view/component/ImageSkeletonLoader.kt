@@ -312,3 +312,32 @@ fun InstagramSkeletonLoader(
         Box(modifier = Modifier.fillMaxSize())
     }
 }
+
+// Style 7: Simple Gray Pulse Skeleton
+@Composable
+fun SimpleGraySkeletonLoader(
+    modifier: Modifier = Modifier,
+    repeatMode: RepeatMode
+) {
+    val transition = rememberInfiniteTransition(label = "simpleGray")
+
+    // Animate from dark gray to light gray
+    val grayValue by transition.animateFloat(
+        initialValue = 0.0f,
+        targetValue = 0.18f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(
+                durationMillis = 1000,
+                easing = FastOutSlowInEasing
+            ),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "grayPulse"
+    )
+
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(Color.Gray.copy(alpha = grayValue))
+    )
+}

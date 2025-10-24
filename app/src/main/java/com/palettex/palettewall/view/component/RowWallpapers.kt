@@ -1,26 +1,20 @@
 package com.palettex.palettewall.view.component
 
 import androidx.compose.foundation.Image
-import com.palettex.palettewall.model.WallpaperItem
-
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -30,27 +24,27 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil.ImageLoader
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.CachePolicy
 import coil.request.ImageRequest
+import com.palettex.palettewall.PaletteWallApplication
+import com.palettex.palettewall.data.ImageCacheList
 import com.palettex.palettewall.model.ImageItem
-import com.palettex.palettewall.view.Titles
+import com.palettex.palettewall.model.WallpaperItem
+import com.palettex.palettewall.utils.getImageSourceFromAssets
 
 @Composable
 fun RowWallpapers(
     title: String,
-    list: List<WallpaperItem>,
+    wallpapers: List<WallpaperItem>,
     onClick: (itemId: String) -> Unit
 ) {
     val context = LocalContext.current
     val imageLoader = remember { ImageLoader(context) }
+    val imageCacheList = PaletteWallApplication.imageCacheList
 
-    val borderColorList = listOf(
-        Color(0xFF7A7A7A) // Medium-Dark Gray
-    )
     Column {
         Titles(
             title = title,
@@ -63,58 +57,42 @@ fun RowWallpapers(
                 .padding(10.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            list.forEachIndexed { index, wallpaper ->
+            val borderColorList = listOf(
+                Color(0xFF7A7A7A)
+            )
+            wallpapers.forEachIndexed { index, wallpaper ->
                 item {
-                    // Use the color from the rainbow list in cyclic order
                     val rainbowColor = borderColorList[index % borderColorList.size]
                     val imageUrl = wallpaper.imageList.firstOrNull {
                         it.type == "LD" && it.link.isNotEmpty()
                     }?.link ?: ""
 
+                    val blurImageUrl = wallpaper.imageList.firstOrNull {
+                        it.type == "BL" && it.link.isNotEmpty()
+                    }?.link ?: ""
+
+                    val imageSource = imageUrl.getImageSourceFromAssets(context, imageCacheList)
+                    val blurSource = blurImageUrl.getImageSourceFromAssets(context, imageCacheList)
+
                     Card(
                         modifier = Modifier
                             .fillMaxHeight()
                             .aspectRatio(0.5f)
-                            .border(2.dp, rainbowColor, RoundedCornerShape(8.dp)) // Add border
+                            //.border(2.dp, rainbowColor, RoundedCornerShape(8.dp))
                             .clickable {
                                 onClick(wallpaper.itemId)
                             }
-                            .testTag("popular_wallpaper_card"),
+                            .testTag("wallpaper_card"),
                         shape = RoundedCornerShape(8.dp),
                         colors = CardDefaults.cardColors(
                             containerColor = Color.Black
                         )
                     ) {
                         Box(modifier = Modifier.fillMaxSize()) {
-                            // Create the painter with ImageRequest for better control
-                            val painter = rememberAsyncImagePainter(
-                                ImageRequest.Builder(context)
-                                    .data(imageUrl)
-                                    .crossfade(true)
-                                    .diskCachePolicy(CachePolicy.ENABLED)
-                                    .memoryCachePolicy(CachePolicy.ENABLED)
-                                    .placeholderMemoryCacheKey(imageUrl)
-                                    .build(),
+                            ProgressiveImageLoaderBest(
+                                blurImageUrl = blurSource,
+                                fullImageSource = imageSource,
                                 imageLoader = imageLoader
-                            )
-
-                            // Check the state of the painter
-                            val painterState = painter.state
-
-                            // Show skeleton loader while loading
-                            if (painterState is AsyncImagePainter.State.Loading ||
-                                painterState is AsyncImagePainter.State.Error) {
-                                ImageSkeletonLoader(
-                                    modifier = Modifier.fillMaxSize()
-                                )
-                            }
-
-                            // Show the image (will be drawn on top of skeleton when loaded)
-                            Image(
-                                painter = painter,
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.fillMaxSize()
                             )
                         }
                     }
@@ -257,7 +235,7 @@ fun RowWallpapersPreview() {
 
     RowWallpapers(
         title = "Popular Wallpapers",
-        list = sampleWallpapers,
+        wallpapers = sampleWallpapers,
         onClick = { itemId ->
             println("Clicked wallpaper: $itemId")
         }
