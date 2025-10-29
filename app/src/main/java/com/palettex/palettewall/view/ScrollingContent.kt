@@ -56,6 +56,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 fun ScrollingContent(
     bottomOffset: Dp,
     topViewModel: TopBarViewModel,
+    outerNav: NavController,
     navController: NavController,
     wallpaperViewModel: WallpaperViewModel,
     billingViewModel: BillingViewModel,
@@ -170,13 +171,13 @@ fun ScrollingContent(
             item { CatalogRow(wallpaperViewModel) }
 
             if (showPopular) {
-                item {
-                    RowWallpapers("Popular Wallpapers", popularWallpapers) { itemId ->
-                        topViewModel.hideTopBar()
-                        wallpaperViewModel.initFullScreenDataSourceByList(popularWallpapers)
-                        navController.navigate("fullscreen/${itemId}")
-                    }
-                }
+//                item {
+//                    RowWallpapers("Popular Wallpapers", popularWallpapers) { itemId ->
+//                        topViewModel.hideTopBar()
+//                        wallpaperViewModel.initFullScreenDataSourceByList(popularWallpapers)
+//                        navController.navigate("fullscreen/${itemId}")
+//                    }
+//                }
 
                 catalogConfigs.forEach { config ->
                     val catalogItems = catalogWallpapers[config.key] ?: emptyList()
@@ -185,7 +186,10 @@ fun ScrollingContent(
                         item {
                             RowWallpapers(
                                 title = config.title,
-                                wallpapers = catalogItems
+                                wallpapers = catalogItems,
+                                onSeeMore = {
+                                    outerNav.navigate("see_more/${config.key}")
+                                }
                             ) { itemId ->
                                 topViewModel.hideTopBar()
                                 wallpaperViewModel.initFullScreenDataSourceByList(catalogItems)

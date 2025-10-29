@@ -48,4 +48,9 @@ interface WallpaperApiService {
         @Query("pageSize") pageSize: Int,
         @Query("catalog") catalog: String
     ): PaginatedResponse
+
+    @GET("items/search/{searchTerm}")
+    suspend fun getWallpapersBySearch(
+        @Path("searchTerm") searchTerm: String
+    ): List<WallpaperItem>
 }

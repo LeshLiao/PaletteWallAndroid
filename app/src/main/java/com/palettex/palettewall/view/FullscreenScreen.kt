@@ -56,16 +56,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.ImageLoader
-import coil.compose.AsyncImagePainter
-import coil.compose.rememberAsyncImagePainter
-import coil.request.CachePolicy
-import coil.request.ImageRequest
-import coil.size.Size
 import com.palettex.palettewall.BuildConfig
 import com.palettex.palettewall.PaletteWallApplication
 import com.palettex.palettewall.R
 import com.palettex.palettewall.data.WallpaperDatabase
-import com.palettex.palettewall.view.component.DarkShimmerSkeletonLoader
 import com.palettex.palettewall.view.component.LikeButton
 import com.palettex.palettewall.view.component.NormalModal
 import com.palettex.palettewall.view.component.PremiumModal
@@ -84,7 +78,7 @@ import kotlin.math.abs
 fun FullscreenScreen(
     catalog: String,
     itemId: String,
-    navController: NavController?,
+    outerNav: NavController?,
     wallpaperViewModel: WallpaperViewModel,
     billingViewModel: BillingViewModel,
     viewModel: TopBarViewModel,
@@ -183,7 +177,7 @@ fun FullscreenScreen(
                             .padding(horizontal = 26.dp)
                             .throttleClick {
                                 viewModel.showTopBar()
-                                navController?.popBackStack()
+                                outerNav?.popBackStack()
                             },
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
@@ -213,7 +207,7 @@ fun FullscreenScreen(
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .align(Alignment.BottomCenter) // ✅ key part
+                                    .align(Alignment.BottomCenter)
                             ) {
                                 val imageTitle = wallpaperViewModel.getImageInfoByItemId(currentItemId)
                                 ImageInformation(imageTitle)
@@ -469,7 +463,6 @@ fun ImageInformation(imageTitle: String) {
                 shape = RoundedCornerShape(6.dp)
             )
     ) {
-
         Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
             Text(
                 text = imageTitle,
@@ -478,7 +471,6 @@ fun ImageInformation(imageTitle: String) {
         }
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable

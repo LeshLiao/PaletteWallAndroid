@@ -76,57 +76,72 @@ fun BottomBarBox(
             animationSpec = tween(durationMillis = 2000)
         ) + fadeOut(animationSpec = tween(durationMillis = 2000))
     ) {
-        val items = listOf("Home", "Carousel", "Favorite")
+        val items = listOf("Home", "Carousel", "Favorite", "Settings")
 
-    Column(
-        modifier = Modifier
-            .background(Color.Black)
-            .onGloballyPositioned { coordinates ->
-                val navigationBarHeight = with(density) { coordinates.size.height.toDp() }
-                onHeightMeasured(navigationBarHeight)
-            },
-    ) {
-        Spacer(modifier = Modifier.height(1.dp))
-        if (!isPremium && PaletteRemoteConfig.shouldShowBannerAds()) {
-            adMobBannerView?.let { adView ->
-                AndroidView(
-                    modifier = Modifier.fillMaxWidth(),
-                    factory = { adView }
-                )
+        Column(
+            modifier = Modifier
+                .background(Color.Black)
+                .onGloballyPositioned { coordinates ->
+                    val navigationBarHeight = with(density) { coordinates.size.height.toDp() }
+                    onHeightMeasured(navigationBarHeight)
+                },
+        ) {
+            Spacer(modifier = Modifier.height(1.dp))
+            if (!isPremium && PaletteRemoteConfig.shouldShowBannerAds()) {
+                adMobBannerView?.let { adView ->
+                    AndroidView(
+                        modifier = Modifier.fillMaxWidth(),
+                        factory = { adView }
+                    )
+                }
+            }
+
+            NavigationBar(containerColor = Color.Black) {
+                items.forEachIndexed { index, item ->
+                    NavigationBarItem(
+                        icon = {
+                            Icon(
+                                imageVector = when (item) {
+                                    "Home" -> ImageVector.vectorResource(id = R.drawable.icon_home)
+                                    "Carousel" -> ImageVector.vectorResource(id = R.drawable.icon_search_alt)
+                                    "Favorite" -> ImageVector.vectorResource(id = R.drawable.icon_heart)
+                                    "Settings" -> ImageVector.vectorResource(id = R.drawable.icon_setting)
+                                    else -> ImageVector.vectorResource(id = R.drawable.ic_home)
+                                },
+                                contentDescription = item,
+                                modifier = Modifier.size(25.dp), // Set the size of the icon
+                                tint = Color.White // Set the icon color to white
+                            )
+                        },
+                        selected = false,
+                        onClick = {
+                            navController.navigate(item) {
+                                popUpTo(navController.graph.startDestinationId)
+                                launchSingleTop = true
+                            }
+                            when (item) {
+                                "Home" -> {
+                                    topViewModel.setTopBarTitle("PaletteX")
+                                    wallpaperViewModel.setCurrentCatalog("Wallpapers")
+                                    wallpaperViewModel.scrollToTop()
+                                }
+
+                                "Carousel" -> {
+                                    topViewModel.setTopBarTitle("Color Picker")
+                                }
+
+                                "Favorite" -> {
+                                    topViewModel.setTopBarTitle("Liked Collection")
+                                }
+
+                                "Settings" -> {
+                                    topViewModel.setTopBarTitle("Settings")
+                                }
+                            }
+                        }
+                    )
+                }
             }
         }
-
-        NavigationBar(containerColor = Color.Black) {
-            items.forEachIndexed { index, item ->
-                NavigationBarItem(
-                    icon = {
-                        Icon(
-                            imageVector = when (item) {
-                                "Home" -> ImageVector.vectorResource(id = R.drawable.icon_home)
-                                "Carousel" -> ImageVector.vectorResource(id = R.drawable.icon_search_alt)
-                                "Favorite" -> ImageVector.vectorResource(id = R.drawable.icon_heart)
-                                //"AI" -> ImageVector.vectorResource(id = R.drawable.ic_ai)
-                                else -> ImageVector.vectorResource(id = R.drawable.ic_home)
-                            },
-                            contentDescription = item,
-                            modifier = Modifier.size(25.dp), // Set the size of the icon
-                            tint = Color.White // Set the icon color to white
-                        )
-                    },
-                    selected = false,
-                    onClick = {
-                        navController.navigate(item) {
-                            popUpTo(navController.graph.startDestinationId)
-                            launchSingleTop = true
-                        }
-                        if (item == "Home") {
-                            wallpaperViewModel.setCurrentCatalog("Wallpapers")
-                            wallpaperViewModel.scrollToTop()
-                        }
-                    }
-                )
-            }
-        }
-    }
     }
 }

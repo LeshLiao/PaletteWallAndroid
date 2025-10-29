@@ -1,7 +1,5 @@
 package com.palettex.palettewall.view.component
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,18 +17,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.ImageLoader
-import coil.compose.AsyncImagePainter
-import coil.compose.rememberAsyncImagePainter
-import coil.request.CachePolicy
-import coil.request.ImageRequest
 import com.palettex.palettewall.PaletteWallApplication
-import com.palettex.palettewall.data.ImageCacheList
 import com.palettex.palettewall.model.ImageItem
 import com.palettex.palettewall.model.WallpaperItem
 import com.palettex.palettewall.utils.getImageSourceFromAssets
@@ -39,6 +31,7 @@ import com.palettex.palettewall.utils.getImageSourceFromAssets
 fun RowWallpapers(
     title: String,
     wallpapers: List<WallpaperItem>,
+    onSeeMore: () -> Unit,
     onClick: (itemId: String) -> Unit
 ) {
     val context = LocalContext.current
@@ -49,7 +42,9 @@ fun RowWallpapers(
         Titles(
             title = title,
             modifier = Modifier.padding(16.dp, 16.dp, 16.dp, 2.dp)
-        )
+        ) {
+            onSeeMore()
+        }
 
         LazyRow(
             modifier = Modifier
@@ -236,6 +231,7 @@ fun RowWallpapersPreview() {
     RowWallpapers(
         title = "Popular Wallpapers",
         wallpapers = sampleWallpapers,
+        onSeeMore = {},
         onClick = { itemId ->
             println("Clicked wallpaper: $itemId")
         }

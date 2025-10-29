@@ -18,13 +18,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.palettex.palettewall.view.utility.throttleClick
 import com.palettex.palettewall.viewmodel.BillingViewModel
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
 import kotlinx.coroutines.launch
 
 @Composable
-fun DrawerContent(navController: NavController, drawerState: DrawerState, viewModel: WallpaperViewModel, billingViewModel: BillingViewModel) {
-    val scope = rememberCoroutineScope() // Create a coroutine scope to handle drawer operations
+fun DrawerContent(
+    navController: NavController,
+    drawerState: DrawerState,
+    viewModel: WallpaperViewModel,
+    billingViewModel: BillingViewModel,
+    onClickCatalog: (String) -> Unit
+) {
+    val scope = rememberCoroutineScope()
     val versionName by viewModel.versionName.collectAsState()
     val isPremium by billingViewModel.isPremium.collectAsState()
 
@@ -55,6 +62,20 @@ fun DrawerContent(navController: NavController, drawerState: DrawerState, viewMo
                 }
         )
 
+        CatalogItem("river") {
+            scope.launch {
+                drawerState.close()
+            }
+            onClickCatalog("river")
+        }
+
+        CatalogItem("rose") {
+            scope.launch {
+                drawerState.close()
+            }
+            onClickCatalog("rose")
+        }
+
         if (isPremium) {
             Spacer(modifier = Modifier.height(2.dp))
             Text(
@@ -80,5 +101,24 @@ fun DrawerContent(navController: NavController, drawerState: DrawerState, viewMo
                 }
         )
         Spacer(modifier = Modifier.height(100.dp))
+    }
+}
+
+@Composable
+fun CatalogItem(
+    name: String,
+    onClick: (String) -> Unit
+) {
+    Column {
+        Spacer(modifier = Modifier.height(2.dp))
+        Text(
+            text = name,
+            color = Color.White,
+            modifier = Modifier
+                .padding(16.dp)
+                .throttleClick{
+                    onClick(name)
+                }
+        )
     }
 }

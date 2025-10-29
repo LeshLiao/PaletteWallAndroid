@@ -6,7 +6,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
@@ -18,18 +20,20 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.palettex.palettewall.view.utility.throttleClick
 import com.palettex.palettewall.viewmodel.TopBarViewModel
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,9 +42,11 @@ fun HomeTopBar(
     wallpaperViewModel: WallpaperViewModel,
     scope: CoroutineScope,
     drawerState: DrawerState,
-    onBannerHeightMeasured: (Dp) -> Unit
+    onBannerHeightMeasured: (Dp) -> Unit,
+    onClickSearch: () -> Unit
 ) {
     val density = LocalDensity.current
+    val topTitle by topViewModel.topBarTitle.collectAsState()
 
     AnimatedVisibility(
         visible = topViewModel.isTopBarVisible,
@@ -60,13 +66,14 @@ fun HomeTopBar(
             },
             title = {
                 Text(
-                    text = "PaletteX",
+                    text = topTitle,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth().throttleClick {
                         wallpaperViewModel.setCurrentCatalog("Wallpapers")
                         wallpaperViewModel.scrollToTop()
                     }
-                ) },
+                )
+            },
             navigationIcon = {
                 IconButton(onClick = {
                     scope.launch {
@@ -81,14 +88,18 @@ fun HomeTopBar(
                 }
             },
             actions = {
-                IconButton(onClick = {
-                    // Handle search button click here
-                }) {
-//                    Icon(
-//                        imageVector = Icons.Default.Search,
-//                        contentDescription = "Search",
-//                        tint = Color.White // Set the color to white
-//                    )
+                if (topTitle == "PaletteX") {
+                    IconButton(onClick = {
+                        onClickSearch()
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Search",
+                            tint = Color.White
+                        )
+                    }
+                } else {
+                    Box(modifier = Modifier.size(48.dp))
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(
@@ -98,5 +109,4 @@ fun HomeTopBar(
             ),
         )
     }
-
 }

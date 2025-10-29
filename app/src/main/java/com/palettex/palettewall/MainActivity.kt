@@ -30,6 +30,7 @@ import com.google.firebase.remoteconfig.ktx.remoteConfig
 import com.google.firebase.remoteconfig.ktx.remoteConfigSettings
 import com.palettex.palettewall.data.PaletteRemoteConfig
 import com.palettex.palettewall.ui.theme.PaletteWallTheme
+import com.palettex.palettewall.view.OuterPage
 import com.palettex.palettewall.view.PaletteWallPage
 import com.palettex.palettewall.viewmodel.AdManager
 import com.palettex.palettewall.viewmodel.BillingViewModel
@@ -83,7 +84,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             PaletteWallTheme {
-                PaletteWallPage(
+                OuterPage(
                     wallpaperViewModel = wallpaperViewModel,
                     billingViewModel = billingViewModel,
                     topViewModel = topViewModel
