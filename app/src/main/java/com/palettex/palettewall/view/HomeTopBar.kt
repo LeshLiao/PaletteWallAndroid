@@ -16,6 +16,7 @@ import androidx.compose.material3.DrawerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -71,7 +72,8 @@ fun HomeTopBar(
                     modifier = Modifier.fillMaxWidth().throttleClick {
                         wallpaperViewModel.setCurrentCatalog("Wallpapers")
                         wallpaperViewModel.scrollToTop()
-                    }
+                    },
+                    color = MaterialTheme.colorScheme.primary
                 )
             },
             navigationIcon = {
@@ -83,7 +85,7 @@ fun HomeTopBar(
                     Icon(
                         imageVector = Icons.Default.Menu,
                         contentDescription = "Menu",
-                        tint = Color.White
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
             },
@@ -95,7 +97,7 @@ fun HomeTopBar(
                         Icon(
                             imageVector = Icons.Default.Search,
                             contentDescription = "Search",
-                            tint = Color.White
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 } else {
@@ -104,8 +106,8 @@ fun HomeTopBar(
             },
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = Color.Transparent,
-                titleContentColor = Color.White,
-                navigationIconContentColor = Color.White
+                titleContentColor = MaterialTheme.colorScheme.primary,
+                navigationIconContentColor = MaterialTheme.colorScheme.primary
             ),
         )
     }

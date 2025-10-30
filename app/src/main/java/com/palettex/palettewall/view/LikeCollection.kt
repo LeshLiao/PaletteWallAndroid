@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -62,9 +63,7 @@ fun LikeCollection(
     val imageCacheList = PaletteWallApplication.imageCacheList
 
     LaunchedEffect(likedItemsDb, carouselAllWallpapers) {
-        if (likedItemsDb.isNotEmpty() && carouselAllWallpapers.isNotEmpty()) {
-            wallpaperViewModel.initLikeCollection(likedItemsDb)
-        }
+        wallpaperViewModel.initLikeCollection(likedItemsDb)
     }
 
     LaunchedEffect(Unit) {
@@ -76,7 +75,7 @@ fun LikeCollection(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black)
+            .background(MaterialTheme.colorScheme.background)
             .padding(top = topOffset, bottom = bottomOffset)
     ) {
         if (likeWallpapers.isEmpty()) {
@@ -123,11 +122,11 @@ fun EmptyBox() {
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .background(Color.Black),
+                .background(MaterialTheme.colorScheme.background),
             contentAlignment = Alignment.Center
         ) {
             Box(
-                modifier = Modifier.size(136.dp).background(Color.Black)
+                modifier = Modifier.size(136.dp).background(MaterialTheme.colorScheme.background)
             ) {
                 Icon(
                     painter = painterResource(R.drawable.icon_empty_box),

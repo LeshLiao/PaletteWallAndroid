@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.runtime.Composable
@@ -25,7 +26,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
@@ -80,7 +80,7 @@ fun BottomBarBox(
 
         Column(
             modifier = Modifier
-                .background(Color.Black)
+                .background(MaterialTheme.colorScheme.background)
                 .onGloballyPositioned { coordinates ->
                     val navigationBarHeight = with(density) { coordinates.size.height.toDp() }
                     onHeightMeasured(navigationBarHeight)
@@ -96,7 +96,7 @@ fun BottomBarBox(
                 }
             }
 
-            NavigationBar(containerColor = Color.Black) {
+            NavigationBar(containerColor = MaterialTheme.colorScheme.background) {
                 items.forEachIndexed { index, item ->
                     NavigationBarItem(
                         icon = {
@@ -110,7 +110,7 @@ fun BottomBarBox(
                                 },
                                 contentDescription = item,
                                 modifier = Modifier.size(25.dp), // Set the size of the icon
-                                tint = Color.White // Set the icon color to white
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         },
                         selected = false,

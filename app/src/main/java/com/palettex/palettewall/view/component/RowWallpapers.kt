@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -41,7 +42,7 @@ fun RowWallpapers(
     Column {
         Titles(
             title = title,
-            modifier = Modifier.padding(16.dp, 16.dp, 16.dp, 2.dp)
+            modifier = Modifier.padding(16.dp, 6.dp, 16.dp, 4.dp)
         ) {
             onSeeMore()
         }
@@ -80,7 +81,8 @@ fun RowWallpapers(
                             .testTag("wallpaper_card"),
                         shape = RoundedCornerShape(8.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = Color.Black
+                            // containerColor = MaterialTheme.colorScheme.background
+                            containerColor = Color(0xFF111111)
                         )
                     ) {
                         Box(modifier = Modifier.fillMaxSize()) {

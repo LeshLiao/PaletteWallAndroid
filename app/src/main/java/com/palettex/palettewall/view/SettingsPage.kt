@@ -1,5 +1,8 @@
 package com.palettex.palettewall.view
 
+import android.content.Intent
+import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,27 +32,32 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 
 @Composable
 fun SettingsPage(
     topOffset: Dp,
     bottomOffset: Dp,
+    isDarkModeEnabled: Boolean,
+    isPremium: Boolean,
+    onDarkModeToggle: (Boolean) -> Unit
 ) {
     val listState = rememberLazyListState()
-    val isDarkModeEnabled = remember { mutableStateOf(true) }
+    val context = LocalContext.current
+    val paletteXUrl = "https://play.google.com/store/apps/details?id=com.palettex.palettewall"
 
     Scaffold(
         topBar = {},
-        containerColor = Color.Black
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         val test = paddingValues
         Box(modifier = Modifier.fillMaxSize()) {
@@ -60,7 +68,12 @@ fun SettingsPage(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = topOffset, bottom = bottomOffset, start = 16.dp, end = 16.dp)
+                            .padding(
+                                top = topOffset,
+                                bottom = bottomOffset,
+                                start = 16.dp,
+                                end = 16.dp
+                            )
                     ) {
                         // GENERAL Section
                         Text(
@@ -75,11 +88,22 @@ fun SettingsPage(
                                 .fillMaxWidth()
                                 .padding(bottom = 32.dp),
                             colors = CardDefaults.cardColors(
-                                containerColor = Color(0xFF2C2C2E)
+                                containerColor = MaterialTheme.colorScheme.tertiaryContainer
                             ),
                             shape = RoundedCornerShape(12.dp)
                         ) {
                             Column {
+                                Row() {
+                                    if (isPremium) {
+                                        Text(
+                                            text = "✨ You are a Premium Member",
+                                            color = Color(0xfffbad0b),
+                                            fontWeight = FontWeight.W600,
+                                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
+                                        )
+                                    }
+                                }
+
                                 // Dark Mode Toggle
                                 Row(
                                     modifier = Modifier
@@ -91,11 +115,11 @@ fun SettingsPage(
                                     Text(
                                         text = "Dark Mode",
                                         fontSize = 16.sp,
-                                        color = Color(0xFFFFD700)
+                                        color = MaterialTheme.colorScheme.tertiary
                                     )
                                     Switch(
-                                        checked = isDarkModeEnabled.value,
-                                        onCheckedChange = { isDarkModeEnabled.value = it },
+                                        checked = isDarkModeEnabled,
+                                        onCheckedChange = onDarkModeToggle,
                                         colors = SwitchDefaults.colors(
                                             checkedThumbColor = Color.White,
                                             checkedTrackColor = Color(0xFF34C759)
@@ -113,21 +137,32 @@ fun SettingsPage(
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .clickable { /* Handle contact click */ }
+                                        .clickable {
+                                            val intent = Intent(Intent.ACTION_SENDTO).apply {
+                                                data = "mailto:service@palettex.ca?subject=${
+                                                    Uri.encode("PaletteWall Service")
+                                                }".toUri()
+                                            }
+                                            try {
+                                                context.startActivity(intent)
+                                            } catch (e: Exception) {
+                                                Log.e("SettingsPage", "No email app found", e)
+                                            }
+                                        }
                                         .padding(horizontal = 16.dp, vertical = 12.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Email,
                                         contentDescription = "Email",
-                                        tint = Color(0xFFFFD700),
+                                        tint = MaterialTheme.colorScheme.tertiary,
                                         modifier = Modifier.size(28.dp)
                                     )
                                     Spacer(modifier = Modifier.width(16.dp))
                                     Text(
                                         text = "Contact the Developers",
                                         fontSize = 16.sp,
-                                        color = Color(0xFFFFD700)
+                                        color = MaterialTheme.colorScheme.tertiary
                                     )
                                 }
 
@@ -137,25 +172,31 @@ fun SettingsPage(
                                     modifier = Modifier.padding(horizontal = 16.dp)
                                 )
 
-                                // Rate Us On App Store
+                                // Rate Us On Play Store
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .clickable { /* Handle rate us click */ }
+                                        .clickable {
+                                            val intent = Intent(
+                                                Intent.ACTION_VIEW,
+                                                paletteXUrl.toUri()
+                                            )
+                                            context.startActivity(intent)
+                                        }
                                         .padding(horizontal = 16.dp, vertical = 12.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Star,
                                         contentDescription = "Star",
-                                        tint = Color(0xFFFFD700),
+                                        tint = MaterialTheme.colorScheme.tertiary,
                                         modifier = Modifier.size(28.dp)
                                     )
                                     Spacer(modifier = Modifier.width(16.dp))
                                     Text(
-                                        text = "Rate Us On App Store",
+                                        text = "Rate Us On Play Store",
                                         fontSize = 16.sp,
-                                        color = Color(0xFFFFD700)
+                                        color = MaterialTheme.colorScheme.tertiary
                                     )
                                 }
                             }
@@ -172,7 +213,7 @@ fun SettingsPage(
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             colors = CardDefaults.cardColors(
-                                containerColor = Color(0xFF2C2C2E)
+                                containerColor = MaterialTheme.colorScheme.tertiaryContainer
                             ),
                             shape = RoundedCornerShape(12.dp)
                         ) {
@@ -181,21 +222,27 @@ fun SettingsPage(
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .clickable { /* Handle privacy policy click */ }
+                                        .clickable {
+                                            val intent = Intent(
+                                                Intent.ACTION_VIEW,
+                                                "https://www.palettex.ca/policy".toUri()
+                                            )
+                                            context.startActivity(intent)
+                                        }
                                         .padding(horizontal = 16.dp, vertical = 12.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Info,
                                         contentDescription = "Link",
-                                        tint = Color(0xFFFFD700),
+                                        tint = MaterialTheme.colorScheme.tertiary,
                                         modifier = Modifier.size(28.dp)
                                     )
                                     Spacer(modifier = Modifier.width(16.dp))
                                     Text(
                                         text = "Privacy Policy",
                                         fontSize = 16.sp,
-                                        color = Color(0xFFFFD700)
+                                        color = MaterialTheme.colorScheme.tertiary
                                     )
                                 }
 
@@ -209,21 +256,27 @@ fun SettingsPage(
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .clickable { /* Handle terms click */ }
+                                        .clickable {
+                                            val intent = Intent(
+                                                Intent.ACTION_VIEW,
+                                                "https://www.palettex.ca/policy".toUri()
+                                            )
+                                            context.startActivity(intent)
+                                        }
                                         .padding(horizontal = 16.dp, vertical = 12.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Info,
                                         contentDescription = "Link",
-                                        tint = Color(0xFFFFD700),
+                                        tint = MaterialTheme.colorScheme.tertiary,
                                         modifier = Modifier.size(28.dp)
                                     )
                                     Spacer(modifier = Modifier.width(16.dp))
                                     Text(
                                         text = "Terms of Use",
                                         fontSize = 16.sp,
-                                        color = Color(0xFFFFD700)
+                                        color = MaterialTheme.colorScheme.tertiary
                                     )
                                 }
                             }
@@ -239,10 +292,30 @@ fun SettingsPage(
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
+@Preview(showBackground = true, showSystemUi = true, name = "Dark Theme")
 @Composable
-fun SettingsPagePreview() {
+fun SettingsPagePreviewDark() {
     MaterialTheme {
-        SettingsPage(1.dp, 1.dp)
+        SettingsPage(
+            topOffset = 1.dp,
+            bottomOffset = 1.dp,
+            isDarkModeEnabled = true,
+            isPremium = true,
+            onDarkModeToggle = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true, name = "Light Theme")
+@Composable
+fun SettingsPagePreviewLight() {
+    MaterialTheme {
+        SettingsPage(
+            topOffset = 1.dp,
+            bottomOffset = 1.dp,
+            isDarkModeEnabled = false,
+            isPremium = false,
+            onDarkModeToggle = {}
+        )
     }
 }

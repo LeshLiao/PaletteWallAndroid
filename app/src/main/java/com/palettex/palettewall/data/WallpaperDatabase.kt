@@ -5,9 +5,14 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [LikedWallpaper::class], version = 1)
+@Database(
+    entities = [LikedWallpaper::class, UserSettings::class],
+    version = 2,
+    exportSchema = false
+)
 abstract class WallpaperDatabase : RoomDatabase() {
     abstract fun likedWallpaperDao(): LikedWallpaperDao
+    abstract fun userSettingsDao(): UserSettingsDao
 
     companion object {
         @Volatile
@@ -19,7 +24,9 @@ abstract class WallpaperDatabase : RoomDatabase() {
                     context.applicationContext,
                     WallpaperDatabase::class.java,
                     "wallpaper_database"
-                ).build()
+                )
+                    .fallbackToDestructiveMigration()
+                    .build()
                 INSTANCE = instance
                 instance
             }

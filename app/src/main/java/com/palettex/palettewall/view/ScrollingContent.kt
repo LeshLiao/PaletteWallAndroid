@@ -1,5 +1,6 @@
 package com.palettex.palettewall.view
 
+import AutoScrollCarousel
 import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -17,10 +18,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -32,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -76,6 +82,8 @@ fun ScrollingContent(
     val catalogConfigs by wallpaperViewModel.catalogConfigs.collectAsState()
     val catalogWallpapers by wallpaperViewModel.catalogWallpapers.collectAsState()
     val imageCacheList = PaletteWallApplication.imageCacheList
+
+    val boards by wallpaperViewModel.boards.collectAsState()
 
     // Add pull-to-refresh state
     val refreshing by remember { mutableStateOf(false) }
@@ -168,7 +176,28 @@ fun ScrollingContent(
         LazyColumn(state = listState) {
             item { Spacer(modifier = Modifier.height(80.dp).fillMaxWidth()) }
             item { Spacer(modifier = Modifier.height(16.dp)) }
-            item { CatalogRow(wallpaperViewModel) }
+
+            item {
+                if (boards.isNotEmpty()) {
+                    AutoScrollCarousel(
+                        items = boards.map { it.photoUrl },
+                        autoScrollDelay = 3000L,
+                        itemSpacing = 12,
+                        onItemClick = { index ->
+                            val board = boards[index]
+                            when (board.action) {
+                                "NAVIGATION_HALLOWEEN" -> {
+                                    outerNav.navigate("see_more/halloween")
+                                }
+                                "NAVIGATION_CHRISTMAS" -> {
+                                    outerNav.navigate("see_more/christmas")
+                                }
+                                else -> {}
+                            }
+                        }
+                    )
+                }
+            }
 
             if (showPopular) {
 //                item {
@@ -206,11 +235,11 @@ fun ScrollingContent(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(0.dp),
-                    horizontalArrangement = Arrangement.spacedBy(0.dp)
+                        .padding(6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     rowItems.forEach { wallpaper ->
-                        Box(
+                        Card (
                             modifier = Modifier
                                 .weight(1f)
                                 .fillMaxHeight()
@@ -220,6 +249,11 @@ fun ScrollingContent(
                                     wallpaperViewModel.initFullScreenDataSourceByList(wallpapers)
                                     navController.navigate("fullscreen/${wallpaper.itemId}")
                                 },
+                            shape = RoundedCornerShape(10.dp),
+                            colors = CardDefaults.cardColors(
+                                //containerColor = MaterialTheme.colorScheme.background
+                                containerColor = Color(0xFF111111)
+                            )
                         ) {
 
                             val imageUrl = wallpaper.imageList.firstOrNull {
@@ -239,20 +273,20 @@ fun ScrollingContent(
                                     fullImageSource = imageSource,
                                     imageLoader = imageLoader
                                 )
-                            }
 
-                            if (!wallpaper.freeDownload) {
-                                Box(
-                                    modifier = Modifier
-                                        .align(Alignment.BottomEnd)
-                                        .padding(6.dp)
-                                ) {
-                                    Image(
-                                        painterResource(R.drawable.diamond),
-                                        contentDescription = "",
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier.size(18.dp)
-                                    )
+                                if (!wallpaper.freeDownload) {
+                                    Box(
+                                        modifier = Modifier
+                                            .align(Alignment.BottomEnd)
+                                            .padding(6.dp)
+                                    ) {
+                                        Image(
+                                            painterResource(R.drawable.diamond),
+                                            contentDescription = "",
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
                                 }
                             }
                         }

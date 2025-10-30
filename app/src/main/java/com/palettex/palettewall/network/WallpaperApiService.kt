@@ -1,5 +1,6 @@
 package com.palettex.palettewall.network
 
+import com.palettex.palettewall.data.BoardItem
 import com.palettex.palettewall.data.LogEventRequest
 import com.palettex.palettewall.model.AppSettings
 import com.palettex.palettewall.model.CatalogItem
@@ -35,6 +36,9 @@ interface WallpaperApiService {
 
     @GET("items/catalogs/top")
     suspend fun getCatalogs(): List<CatalogItem>
+
+    @GET("items/boards/top")
+    suspend fun getBoards(): List<BoardItem>
 
     @GET("items/settings/init")
     suspend fun getAppSettings(): AppSettings

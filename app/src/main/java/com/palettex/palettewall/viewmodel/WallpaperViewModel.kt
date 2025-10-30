@@ -11,6 +11,7 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
 import com.palettex.palettewall.BuildConfig
+import com.palettex.palettewall.data.BoardItem
 import com.palettex.palettewall.data.CatalogConfig
 import com.palettex.palettewall.data.ImageCacheList
 import com.palettex.palettewall.data.LikedWallpaper
@@ -45,6 +46,9 @@ open class WallpaperViewModel(
 
     private val _catalogs = MutableStateFlow<List<CatalogItem>>(emptyList())
     val catalogs: StateFlow<List<CatalogItem>> = _catalogs
+
+    private val _boards = MutableStateFlow<List<BoardItem>>(emptyList())
+    val boards: StateFlow<List<BoardItem>> = _boards
 
     private val _allWallpapers = MutableStateFlow<List<WallpaperItem>>(emptyList())
     val allWallpapers: StateFlow<List<WallpaperItem>> = _allWallpapers
@@ -122,12 +126,18 @@ open class WallpaperViewModel(
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading
         .onStart {
+            Log.d("GDT","onStart")
+
+            setCurrentCatalog("Wallpapers") // main catalog
+
             resetPagination()
             getAppSettings()
-            getCatalogs()
+            //getCatalogs()
+            getBoards()
             fetchPopularWallpapers()
-            setCurrentCatalog("Wallpapers") // main catalog
             loadMoreWallpapers()
+            initAllCatalogs()
+
             fetchAllWallpapersToCarouselAll()
         }
         .stateIn(
@@ -137,6 +147,22 @@ open class WallpaperViewModel(
         )
 
     init {
+
+    }
+
+    fun pullRefreshCurrentCatalog() {
+        Log.d("GDT","pullRefreshCurrentCatalog")
+
+        resetPagination()
+        getAppSettings()
+        //getCatalogs()
+        getBoards()
+        fetchPopularWallpapers()
+        loadMoreWallpapers()
+        initAllCatalogs()
+    }
+
+    fun initAllCatalogs() {
         initializeCatalogs(
             listOf(
                 CatalogConfig(title = "Anime", key = "anime"),
@@ -223,15 +249,6 @@ open class WallpaperViewModel(
         _fullScreenWallpapers.value = list
     }
 
-    fun pullRefreshCurrentCatalog() {
-        Log.d("GDT","pullRefreshCurrentCatalog")
-        getAppSettings()
-        getCatalogs()
-        fetchPopularWallpapers()
-        resetPagination()
-        loadMoreWallpapers()
-    }
-
     private fun fetchPopularWallpapers() {
         viewModelScope.launch {
             try {
@@ -248,10 +265,43 @@ open class WallpaperViewModel(
             try {
                 val allWallpapers = RetrofitInstance.api.getWallpapers().shuffled()
                 _carouselAllWallpapers.value = allWallpapers
+
+                // Calculate and print most common 20 tags (excluding color tags)
+                // printMostCommonTags(allWallpapers)
             } catch (e: Exception) {
                 Log.e(TAG, "Error fetching wallpapers: ${e.message}")
             }
         }
+    }
+
+    private fun printMostCommonTags(wallpapers: List<WallpaperItem>) {
+        // Flatten all tags from all wallpapers, filter out color tags (starting with #)
+        val tagFrequency = wallpapers
+            .flatMap { it.tags }
+            .filter { !it.startsWith("#") }
+            .groupingBy { it.lowercase().trim() } // Normalize to lowercase and trim
+            .eachCount()
+            .toList()
+            .sortedByDescending { it.second }
+            .take(20)
+
+        Log.d(TAG, "=".repeat(60))
+        Log.d(TAG, "Most Common 20 Tags:")
+        Log.d(TAG, "=".repeat(60))
+
+        tagFrequency.forEachIndexed { index, (tag, count) ->
+            Log.d(TAG, "${index + 1}. \"$tag\" - appears $count times")
+        }
+
+        Log.d(TAG, "=".repeat(60))
+        Log.d(TAG, "Total unique tags (excluding colors): ${
+            wallpapers.flatMap { it.tags }
+                .filter { !it.startsWith("#") }
+                .map { it.lowercase().trim() }
+                .distinct()
+                .size
+        }")
+        Log.d(TAG, "=".repeat(60))
     }
 
     fun initLikeCollection(likeList: List<LikedWallpaper>) {
@@ -351,6 +401,16 @@ open class WallpaperViewModel(
                 _catalogs.value = RetrofitInstance.api.getCatalogs()
             } catch (e: Exception) {
                 Log.e(TAG, "Error(getCatalogs):$e")
+            }
+        }
+    }
+
+    private fun getBoards() {
+        viewModelScope.launch {
+            try {
+                _boards.value = RetrofitInstance.api.getBoards()
+            } catch (e: Exception) {
+                Log.e(TAG, "Error(getBoards):$e")
             }
         }
     }

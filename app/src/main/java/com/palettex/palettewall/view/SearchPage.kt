@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -75,7 +76,7 @@ fun SearchPage(
 
     Scaffold(
         topBar = {},
-        containerColor = Color.Black
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize()) {
             LazyColumn(
@@ -97,7 +98,7 @@ fun SearchPage(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Back",
-                                tint = Color.White
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         }
 
@@ -105,9 +106,9 @@ fun SearchPage(
                             modifier = Modifier
                                 .align(Alignment.Center)
                                 .padding(16.dp),
-                            text = "SEARCH",
+                            text = "Search",
                             fontSize = 26.sp,
-                            color = Color.White
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -129,7 +130,7 @@ fun SearchPage(
                             Icon(
                                 imageVector = Icons.Default.Search,
                                 contentDescription = "Search",
-                                tint = Color.White
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         },
                         trailingIcon = {
@@ -138,18 +139,18 @@ fun SearchPage(
                                     Icon(
                                         imageVector = Icons.Default.Clear,
                                         contentDescription = "Clear",
-                                        tint = Color.White
+                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                 }
                             }
                         },
                         colors = TextFieldDefaults.colors(
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White,
-                            focusedContainerColor = Color(0xFF1A1A1A),
-                            unfocusedContainerColor = Color(0xFF1A1A1A),
-                            focusedIndicatorColor = Color.White,
-                            unfocusedIndicatorColor = Color.Gray
+                            focusedTextColor = MaterialTheme.colorScheme.primary,
+                            unfocusedTextColor = MaterialTheme.colorScheme.primary,
+                            focusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                            unfocusedIndicatorColor = MaterialTheme.colorScheme.primary
                         ),
                         shape = RoundedCornerShape(12.dp),
                         singleLine = true,
@@ -172,7 +173,7 @@ fun SearchPage(
                                 .padding(32.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            CircularProgressIndicator(color = Color.White)
+                            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                         }
                     }
                 }
@@ -244,8 +245,8 @@ fun SearchPage(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(0.dp),
-                            horizontalArrangement = Arrangement.spacedBy(0.dp)
+                                .padding(6.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             rowItems.forEach { wallpaper ->
                                 Box(

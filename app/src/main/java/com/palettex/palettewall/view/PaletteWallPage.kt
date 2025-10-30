@@ -2,6 +2,7 @@ package com.palettex.palettewall.view
 
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
@@ -35,6 +36,8 @@ fun PaletteWallPage(
     wallpaperViewModel: WallpaperViewModel,
     billingViewModel: BillingViewModel,
     topViewModel: TopBarViewModel,
+    isDarkModeEnabled: Boolean,
+    onDarkModeToggle: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
     outerNav: NavController,
     navController: NavHostController = rememberNavController(),
@@ -46,12 +49,13 @@ fun PaletteWallPage(
     val snackBarHostState = remember { SnackbarHostState() }
     var topOffset by remember { mutableStateOf(0.dp) }
     var bottomOffset by remember { mutableStateOf(0.dp) }
+    val isPremium by billingViewModel.isPremium.collectAsState()
 
     ModalNavigationDrawer(
         drawerState = drawerState,
         gesturesEnabled = !isFullScreen,
         drawerContent = {
-            ModalDrawerSheet(drawerContainerColor =  Color(0xCC000000)) {
+            ModalDrawerSheet(drawerContainerColor =  if (isDarkModeEnabled) Color(0xCC000000) else Color(0xEEFFFFFF)) {
                 DrawerContent(navController, drawerState, wallpaperViewModel, billingViewModel) { catalog ->
                     outerNav.navigate("see_more/$catalog")
                 }
@@ -60,7 +64,7 @@ fun PaletteWallPage(
         scrimColor = Color(0x55000000),
     ) {
         Scaffold(
-            containerColor = Color.Black,
+            containerColor = MaterialTheme.colorScheme.background,
             topBar = {
                 HomeTopBar(
                     topViewModel,
@@ -94,7 +98,7 @@ fun PaletteWallPage(
                     AboutUs(navController)
                 }
                 composable("Settings") {
-                    SettingsPage(topOffset, bottomOffset)
+                    SettingsPage(topOffset, bottomOffset, isDarkModeEnabled, isPremium, onDarkModeToggle)
                 }
                 composable(
                     route = "fullscreen/{itemId}",

@@ -13,6 +13,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.ads.MobileAds
 import com.google.android.play.core.appupdate.AppUpdateInfo
@@ -31,9 +33,9 @@ import com.google.firebase.remoteconfig.ktx.remoteConfigSettings
 import com.palettex.palettewall.data.PaletteRemoteConfig
 import com.palettex.palettewall.ui.theme.PaletteWallTheme
 import com.palettex.palettewall.view.OuterPage
-import com.palettex.palettewall.view.PaletteWallPage
 import com.palettex.palettewall.viewmodel.AdManager
 import com.palettex.palettewall.viewmodel.BillingViewModel
+import com.palettex.palettewall.viewmodel.SettingsViewModel
 import com.palettex.palettewall.viewmodel.TopBarViewModel
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -46,6 +48,7 @@ class MainActivity : ComponentActivity() {
     }
     private val wallpaperViewModel: WallpaperViewModel by viewModels()
     private val topViewModel: TopBarViewModel by viewModels()
+    private val settingsViewModel: SettingsViewModel by viewModels()
     private val billingViewModel: BillingViewModel by viewModels {
         BillingViewModel.Factory(this)
     }
@@ -83,11 +86,17 @@ class MainActivity : ComponentActivity() {
         )
 
         setContent {
-            PaletteWallTheme {
+            val isDarkTheme by settingsViewModel.isDarkThemeEnabled.collectAsState()
+
+            PaletteWallTheme(darkTheme = isDarkTheme) {
                 OuterPage(
                     wallpaperViewModel = wallpaperViewModel,
                     billingViewModel = billingViewModel,
-                    topViewModel = topViewModel
+                    topViewModel = topViewModel,
+                    isDarkModeEnabled = isDarkTheme,
+                    onDarkModeToggle = { it ->
+                        settingsViewModel.toggleDarkTheme(it)
+                    }
                 )
             }
         }

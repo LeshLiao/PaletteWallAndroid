@@ -5,9 +5,9 @@ import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.EaseOut
 import androidx.compose.animation.core.tween
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -25,12 +25,14 @@ fun OuterPage(
     wallpaperViewModel: WallpaperViewModel,
     billingViewModel: BillingViewModel,
     topViewModel: TopBarViewModel,
+    isDarkModeEnabled: Boolean,
+    onDarkModeToggle: (Boolean) -> Unit
 ) {
     val customEasing = CubicBezierEasing(0.0f, 0.93f, 0.74f, 0.97f)
     val customEasingOut = CubicBezierEasing(0.95f, 0.05f, 0.95f, 0.23f)
 
     Scaffold(
-        containerColor = Color.Black,
+        containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
         val test = innerPadding
 
@@ -67,6 +69,8 @@ fun OuterPage(
                     wallpaperViewModel = wallpaperViewModel,
                     billingViewModel = billingViewModel,
                     topViewModel = topViewModel,
+                    isDarkModeEnabled,
+                    onDarkModeToggle,
                     outerNav = outerNav
                 )
             }

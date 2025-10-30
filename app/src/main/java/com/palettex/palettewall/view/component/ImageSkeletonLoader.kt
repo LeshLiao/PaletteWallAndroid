@@ -338,6 +338,6 @@ fun SimpleGraySkeletonLoader(
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
-            .background(Color.Gray.copy(alpha = grayValue))
+            .background(Color.Black.copy(alpha = grayValue))
     )
 }

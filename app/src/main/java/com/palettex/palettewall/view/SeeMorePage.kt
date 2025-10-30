@@ -16,14 +16,18 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -100,7 +104,7 @@ fun SeeMorePage(
     Scaffold(
         modifier = Modifier.pullRefresh(pullRefreshState),
         topBar = {},
-        containerColor = Color.Black
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize()) {
             LazyColumn(
@@ -122,17 +126,20 @@ fun SeeMorePage(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Back",
-                                tint = Color.White
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         }
 
+                        val title = catalog.replaceFirstChar {
+                            if (it.isLowerCase()) it.titlecase() else it.toString()
+                        }
                         Text(
                             modifier = Modifier
                                 .align(Alignment.Center)
                                 .padding(16.dp),
-                            text = catalog.uppercase(),
+                            text = title,
                             fontSize = 26.sp,
-                            color = Color.White
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -145,19 +152,23 @@ fun SeeMorePage(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(0.dp),
-                        horizontalArrangement = Arrangement.spacedBy(0.dp)
+                            .padding(6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         rowItems.forEach { wallpaper ->
-                            Box(
+                            Card(
                                 modifier = Modifier
                                     .weight(1f)
                                     .fillMaxHeight()
-                                    .aspectRatio(0.5f)
+                                    .aspectRatio(9f / 16f)
                                     .clickable {
                                         wallpaperViewModel.initFullScreenDataSourceByList(wallpapers)
                                         outerNav.navigate("fullscreen/${wallpaper.itemId}")
                                     },
+                                shape = RoundedCornerShape(10.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = Color(0xFF111111)
+                                )
                             ) {
                                 val imageUrl = wallpaper.imageList.firstOrNull {
                                     it.type == "LD" && it.link.isNotEmpty()
@@ -176,20 +187,20 @@ fun SeeMorePage(
                                         fullImageSource = imageSource,
                                         imageLoader = imageLoader
                                     )
-                                }
 
-                                if (!wallpaper.freeDownload) {
-                                    Box(
-                                        modifier = Modifier
-                                            .align(Alignment.BottomEnd)
-                                            .padding(6.dp)
-                                    ) {
-                                        Image(
-                                            painterResource(R.drawable.diamond),
-                                            contentDescription = "",
-                                            contentScale = ContentScale.Crop,
-                                            modifier = Modifier.size(18.dp)
-                                        )
+                                    if (!wallpaper.freeDownload) {
+                                        Box(
+                                            modifier = Modifier
+                                                .align(Alignment.BottomEnd)
+                                                .padding(6.dp)
+                                        ) {
+                                            Image(
+                                                painterResource(R.drawable.diamond),
+                                                contentDescription = "",
+                                                contentScale = ContentScale.Crop,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -214,7 +225,7 @@ fun SeeMorePage(
                             contentAlignment = Alignment.Center
                         ) {
                             androidx.compose.material3.CircularProgressIndicator(
-                                color = Color.White
+                                color = MaterialTheme.colorScheme.primary
                             )
                         }
                     }
@@ -230,7 +241,8 @@ fun SeeMorePage(
             PullRefreshIndicator(
                 refreshing = isRefreshing,
                 state = pullRefreshState,
-                modifier = Modifier.align(Alignment.TopCenter)
+                modifier = Modifier.align(Alignment.TopCenter),
+                contentColor = MaterialTheme.colorScheme.primary
             )
         }
     }
