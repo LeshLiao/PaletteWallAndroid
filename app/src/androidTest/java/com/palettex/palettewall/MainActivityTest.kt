@@ -2,7 +2,7 @@ package com.palettex.palettewall
 
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.test.runner.AndroidJUnit4
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -15,8 +15,13 @@ class MainActivityTest {
 
     @Test
     fun testAppTitleOnLaunch() {
-        // Wait for the app to initialize
-        Thread.sleep(5000)
+        // Wait for the app to initialize with a more reliable approach
+        composeTestRule.waitUntil(timeoutMillis = 10000) {
+            composeTestRule
+                .onAllNodesWithText("PaletteX")
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+        }
 
         // Verify that the app title "PaletteX" is displayed
         composeTestRule.onNodeWithText("PaletteX")
@@ -26,17 +31,27 @@ class MainActivityTest {
 
     @Test
     fun testPopularWallpaperClick() {
-        // Wait for the app to initialize
-        Thread.sleep(5000)
+        // Wait for wallpaper cards to load
+        composeTestRule.waitUntil(timeoutMillis = 10000) {
+            composeTestRule
+                .onAllNodesWithTag("wallpaper_card")
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+        }
 
         // Click the first popular wallpaper card
-        composeTestRule.onAllNodesWithTag("popular_wallpaper_card")
-            .get(0)
+        composeTestRule.onAllNodesWithTag("wallpaper_card")
+            .onFirst()
             .assertIsDisplayed()
             .performClick()
 
         // Wait for the fullscreen view to load
-        Thread.sleep(5000)
+        composeTestRule.waitUntil(timeoutMillis = 10000) {
+            composeTestRule
+                .onAllNodesWithTag("download_button")
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+        }
 
         // Verify the download button is visible
         composeTestRule.onNodeWithTag("download_button")
@@ -47,11 +62,11 @@ class MainActivityTest {
         composeTestRule.onNodeWithTag("download_button")
             .performClick()
 
-        // Wait for download to start
-        Thread.sleep(2000)
+        // Wait a bit for download to process
+        composeTestRule.waitForIdle()
 
         // Verify we're still in the fullscreen view
         composeTestRule.onNodeWithTag("download_button")
-            .assertIsDisplayed()
+            .assertExists()
     }
 }

@@ -10,3 +10,10 @@ data class LikedWallpaper(
     val imageUrl: String,
     val timestamp: Long = System.currentTimeMillis()
 )
+
+@Entity(tableName = "user_settings")
+data class UserSettings(
+    @PrimaryKey
+    val id: Int = 1,
+    val isDarkThemeEnabled: Boolean = true
+)

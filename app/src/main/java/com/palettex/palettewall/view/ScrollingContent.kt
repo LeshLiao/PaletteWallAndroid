@@ -1,7 +1,7 @@
 package com.palettex.palettewall.view
 
+import AutoScrollCarousel
 import android.content.Context
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -18,11 +18,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
-import androidx.compose.material3.Text
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -38,31 +41,28 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import coil.compose.rememberAsyncImagePainter
-import coil.request.CachePolicy
-import coil.request.ImageRequest
-import coil.size.Size
+import coil.ImageLoader
+import com.palettex.palettewall.PaletteWallApplication
 import com.palettex.palettewall.R
 import com.palettex.palettewall.data.WallpaperDatabase
+import com.palettex.palettewall.utils.getImageSourceFromAssets
+import com.palettex.palettewall.view.component.ProgressiveImageLoaderBest
+import com.palettex.palettewall.view.component.RowWallpapers
 import com.palettex.palettewall.viewmodel.BillingViewModel
 import com.palettex.palettewall.viewmodel.TopBarViewModel
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
-import coil.compose.AsyncImagePainter
-import com.palettex.palettewall.view.component.ImageSkeletonLoader
-
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ScrollingContent(
     bottomOffset: Dp,
     topViewModel: TopBarViewModel,
+    outerNav: NavController,
     navController: NavController,
     wallpaperViewModel: WallpaperViewModel,
     billingViewModel: BillingViewModel,
@@ -70,12 +70,20 @@ fun ScrollingContent(
 ) {
     val listState = rememberLazyListState()
     val lastScrollOffset = remember { mutableIntStateOf(0) }
+    val imageLoader = remember { ImageLoader(context) }
     val appSettings by wallpaperViewModel.appSettings.collectAsState()
     val wallpapers by wallpaperViewModel.wallpapers.collectAsState()
     val currentCatalog by wallpaperViewModel.currentCatalog.collectAsState()
     val isRemoteConfigInitialized by wallpaperViewModel.isRemoteConfigInitialized.collectAsState()
     val isPremium by billingViewModel.isPremium.collectAsState()
     val isLoading by wallpaperViewModel.isLoading.collectAsStateWithLifecycle()
+
+    val popularWallpapers by wallpaperViewModel.popularWallpapers.collectAsState()
+    val catalogConfigs by wallpaperViewModel.catalogConfigs.collectAsState()
+    val catalogWallpapers by wallpaperViewModel.catalogWallpapers.collectAsState()
+    val imageCacheList = PaletteWallApplication.imageCacheList
+
+    val boards by wallpaperViewModel.boards.collectAsState()
 
     // Add pull-to-refresh state
     val refreshing by remember { mutableStateOf(false) }
@@ -128,7 +136,7 @@ fun ScrollingContent(
 
             // Check if we're near the end of the list
             // We need to consider if we're viewing the last 2-3 items
-            lastVisibleItemIndex >= totalItemsCount - 3
+            lastVisibleItemIndex >= totalItemsCount - 12
         }
             .distinctUntilChanged()
             .collect { isNearBottom ->
@@ -168,17 +176,56 @@ fun ScrollingContent(
         LazyColumn(state = listState) {
             item { Spacer(modifier = Modifier.height(80.dp).fillMaxWidth()) }
             item { Spacer(modifier = Modifier.height(16.dp)) }
-            item { CatalogRow(wallpaperViewModel) }
 
-            if (showPopular) {
-                item {
-                    Titles(
-                        title = "Popular Wallpapers",
-                        modifier = Modifier.padding(16.dp, 16.dp, 16.dp, 2.dp)
+            item {
+                if (boards.isNotEmpty()) {
+                    AutoScrollCarousel(
+                        items = boards.map { it.photoUrl },
+                        autoScrollDelay = 3000L,
+                        itemSpacing = 12,
+                        onItemClick = { index ->
+                            val board = boards[index]
+                            when (board.action) {
+                                "NAVIGATION_HALLOWEEN" -> {
+                                    outerNav.navigate("see_more/halloween")
+                                }
+                                "NAVIGATION_CHRISTMAS" -> {
+                                    outerNav.navigate("see_more/christmas")
+                                }
+                                else -> {}
+                            }
+                        }
                     )
                 }
-                item {
-                    PopularWallpapers(topViewModel, navController, wallpaperViewModel)
+            }
+
+            if (showPopular) {
+//                item {
+//                    RowWallpapers("Popular Wallpapers", popularWallpapers) { itemId ->
+//                        topViewModel.hideTopBar()
+//                        wallpaperViewModel.initFullScreenDataSourceByList(popularWallpapers)
+//                        navController.navigate("fullscreen/${itemId}")
+//                    }
+//                }
+
+                catalogConfigs.forEach { config ->
+                    val catalogItems = catalogWallpapers[config.key] ?: emptyList()
+
+                    if (catalogItems.isNotEmpty()) {
+                        item {
+                            RowWallpapers(
+                                title = config.title,
+                                wallpapers = catalogItems,
+                                onSeeMore = {
+                                    outerNav.navigate("see_more/${config.key}")
+                                }
+                            ) { itemId ->
+                                topViewModel.hideTopBar()
+                                wallpaperViewModel.initFullScreenDataSourceByList(catalogItems)
+                                navController.navigate("fullscreen/${itemId}")
+                            }
+                        }
+                    }
                 }
             }
 
@@ -188,65 +235,58 @@ fun ScrollingContent(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(0.dp),
-                    horizontalArrangement = Arrangement.spacedBy(0.dp)
+                        .padding(6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     rowItems.forEach { wallpaper ->
-                        Box(
+                        Card (
                             modifier = Modifier
                                 .weight(1f)
                                 .fillMaxHeight()
                                 .aspectRatio(0.5f)
                                 .clickable {
                                     topViewModel.hideTopBar()
-                                    navController.navigate("fullscreen/normal/${wallpaper.itemId}")
+                                    wallpaperViewModel.initFullScreenDataSourceByList(wallpapers)
+                                    navController.navigate("fullscreen/${wallpaper.itemId}")
                                 },
+                            shape = RoundedCornerShape(10.dp),
+                            colors = CardDefaults.cardColors(
+                                //containerColor = MaterialTheme.colorScheme.background
+                                containerColor = Color(0xFF111111)
+                            )
                         ) {
-                            // Create the image painter
+
                             val imageUrl = wallpaper.imageList.firstOrNull {
                                 it.type == "LD" && it.link.isNotEmpty()
                             }?.link ?: ""
-                            val painter = rememberAsyncImagePainter(
-                                model = ImageRequest.Builder(LocalContext.current)
-                                    .data(imageUrl)
-                                    .crossfade(true)
-                                    .diskCachePolicy(CachePolicy.ENABLED)
-                                    .memoryCachePolicy(CachePolicy.ENABLED)
-                                    .size(Size.ORIGINAL)
-                                    .build()
-                            )
 
-                            // Check the state of the painter
-                            val painterState = painter.state
+                            val blurImageUrl = wallpaper.imageList.firstOrNull {
+                                it.type == "BL" && it.link.isNotEmpty()
+                            }?.link ?: ""
 
-                            // Show skeleton loader while loading
-                            if (painterState is AsyncImagePainter.State.Loading ||
-                                painterState is AsyncImagePainter.State.Error) {
-                                ImageSkeletonLoader(
-                                    modifier = Modifier.fillMaxSize()
+                            val imageSource = imageUrl.getImageSourceFromAssets(context, imageCacheList)
+                            val blurSource = blurImageUrl.getImageSourceFromAssets(context, imageCacheList)
+
+                            Box(modifier = Modifier.fillMaxSize()) {
+                                ProgressiveImageLoaderBest(
+                                    blurImageUrl = blurSource,
+                                    fullImageSource = imageSource,
+                                    imageLoader = imageLoader
                                 )
-                            }
 
-                            // Show the image
-                            Image(
-                                painter = painter,
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.fillMaxSize()
-                            )
-
-                            if (!wallpaper.freeDownload) {
-                                Box(
-                                    modifier = Modifier
-                                        .align(Alignment.BottomEnd)
-                                        .padding(6.dp)
-                                ) {
-                                    Image(
-                                        painterResource(R.drawable.diamond),
-                                        contentDescription = "",
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier.size(18.dp)
-                                    )
+                                if (!wallpaper.freeDownload) {
+                                    Box(
+                                        modifier = Modifier
+                                            .align(Alignment.BottomEnd)
+                                            .padding(6.dp)
+                                    ) {
+                                        Image(
+                                            painterResource(R.drawable.diamond),
+                                            contentDescription = "",
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -287,27 +327,6 @@ fun ScrollingContent(
             refreshing = refreshing,
             state = pullRefreshState,
             modifier = Modifier.align(Alignment.TopCenter)
-        )
-    }
-}
-
-@Composable
-fun Titles(title: String, modifier: Modifier) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = title,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.W600,
-            color = Color.White,
-        )
-        Text(
-            text = "",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.W600,
-            color = Color.White,
         )
     }
 }

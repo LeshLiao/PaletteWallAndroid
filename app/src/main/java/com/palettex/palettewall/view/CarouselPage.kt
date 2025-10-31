@@ -44,17 +44,21 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import coil.ImageLoader
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import coil.size.Size
+import com.palettex.palettewall.PaletteWallApplication
 import com.palettex.palettewall.R
 import com.palettex.palettewall.data.WallpaperDatabase
 import com.palettex.palettewall.model.WallpaperItem
+import com.palettex.palettewall.utils.getImageSourceFromAssets
 import com.palettex.palettewall.view.component.ColorPaletteMatrix
 import com.palettex.palettewall.view.component.ImageSkeletonLoader
 import com.palettex.palettewall.view.component.LikeButton
+import com.palettex.palettewall.view.component.ProgressiveImageLoaderBest
 import com.palettex.palettewall.viewmodel.AdManager
 import com.palettex.palettewall.viewmodel.TopBarViewModel
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
@@ -126,7 +130,8 @@ fun CarouselPage(
                 bottomOffset = bottomOffset,
                 onWallpaperSelected = { itemId ->
                     topViewModel.hideTopBar()
-                    navController.navigate("fullscreen/carousel/${itemId}")
+                    wallpaperViewModel.initFullScreenDataSourceByList(carouselWallpapers)
+                    navController.navigate("fullscreen/${itemId}")
                 },
                 onColorTagsChanged = { tags ->
                     colorBrowseList = tags
@@ -152,8 +157,11 @@ fun WallpaperCarousel(
     // Check if the list is empty first
     if (filterWallpapers.isEmpty()) { return }
 
+    val context = LocalContext.current
     // Use the saved page index from ViewModel
     val currentPage by wallpaperViewModel.currentCarouselPage.collectAsState()
+    val imageCacheList = PaletteWallApplication.imageCacheList
+    val imageLoader = remember { ImageLoader(context) }
 
     val pagerState = rememberPagerState(
         initialPage = currentPage,
@@ -187,8 +195,6 @@ fun WallpaperCarousel(
     }
 
     val scope = rememberCoroutineScope()
-
-    val context: Context = LocalContext.current
     val database = remember { WallpaperDatabase.getDatabase(context) }
     val dao = remember { database.likedWallpaperDao() }
     val coroutineScope = rememberCoroutineScope()
@@ -222,42 +228,27 @@ fun WallpaperCarousel(
                     }
                     .aspectRatio(0.50f)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color.Gray)
+                    .background(Color.DarkGray)
                     .clickable { onWallpaperSelected(itemId) }
             ) {
                 val imageUrl = filterWallpapers[page].imageList.firstOrNull {
                     it.type == "LD" && it.link.isNotEmpty()
                 }?.link ?: ""
 
-                // Create the image painter with state
-                val painter = rememberAsyncImagePainter(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(imageUrl)
-                        .crossfade(true)
-                        .diskCachePolicy(CachePolicy.ENABLED)
-                        .memoryCachePolicy(CachePolicy.ENABLED)
-                        .size(Size.ORIGINAL)
-                        .build()
-                )
+                val blurImageUrl = filterWallpapers[page].imageList.firstOrNull {
+                    it.type == "BL" && it.link.isNotEmpty()
+                }?.link ?: ""
 
-                // Check the state of the painter
-                val painterState = painter.state
+                val imageSource = imageUrl.getImageSourceFromAssets(context, imageCacheList)
+                val blurSource = blurImageUrl.getImageSourceFromAssets(context, imageCacheList)
 
-                // Show skeleton loader while loading
-                if (painterState is AsyncImagePainter.State.Loading ||
-                    painterState is AsyncImagePainter.State.Error) {
-                    ImageSkeletonLoader(
-                        modifier = Modifier.fillMaxSize()
+                Box(modifier = Modifier.fillMaxSize()) {
+                    ProgressiveImageLoaderBest(
+                        blurImageUrl = blurSource,
+                        fullImageSource = imageSource,
+                        imageLoader = imageLoader
                     )
                 }
-
-                // Show the image
-                Image(
-                    painter = painter,
-                    contentDescription = "Wallpaper ${page + 1}",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
 
                 val isLiked by dao.isWallpaperLiked(itemId).collectAsState(initial = false)
 
@@ -319,10 +310,12 @@ fun WallpaperCarousel(
                         it.type == "LD" && it.link.isNotEmpty()
                     }?.link ?: ""
 
+                    val imageSource = imageUrl.getImageSourceFromAssets(context, imageCacheList)
+
                     // Create the thumbnail painter with state
                     val thumbnailPainter = rememberAsyncImagePainter(
                         model = ImageRequest.Builder(LocalContext.current)
-                            .data(imageUrl)
+                            .data(imageSource)
                             .crossfade(true)
                             .diskCachePolicy(CachePolicy.ENABLED)
                             .memoryCachePolicy(CachePolicy.ENABLED)

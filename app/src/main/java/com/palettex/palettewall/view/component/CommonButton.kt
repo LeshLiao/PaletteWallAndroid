@@ -24,18 +24,20 @@ fun CommonButton(
     text: String,
     textColor: Color = Color.Blue,
     backgroundColor: Color = Color.White,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Card(
-        modifier = Modifier
-            .throttleClick { onClick() }
-            .fillMaxWidth()
-            .height(46.dp)
-            .padding(horizontal = 10.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = backgroundColor
-        ),
-        shape = RoundedCornerShape(10.dp)
+        modifier =
+            Modifier
+                .throttleClick { onClick() }
+                .fillMaxWidth()
+                .height(46.dp)
+                .padding(horizontal = 10.dp),
+        colors =
+            CardDefaults.cardColors(
+                containerColor = backgroundColor,
+            ),
+        shape = RoundedCornerShape(10.dp),
     ) {
         Row(
             modifier = Modifier.fillMaxSize(),
@@ -46,7 +48,7 @@ fun CommonButton(
                 text = text,
                 color = textColor,
                 fontWeight = FontWeight.W500,
-                fontSize = 16.sp
+                fontSize = 16.sp,
             )
         }
     }
