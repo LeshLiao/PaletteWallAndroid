@@ -1,9 +1,15 @@
 *.iml
 .gradle
 local.properties
-.idea
+.idea/
 .DS_Store
 build
 captures
 .externalNativeBuild
 app/release
+
+# Ignore all files in BL/
+app/src/main/assets/cached_images/BL/*
+
+# But keep the .gitkeep file
+!app/src/main/assets/cached_images/BL/.gitkeep

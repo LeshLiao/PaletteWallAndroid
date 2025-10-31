@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
@@ -17,6 +18,9 @@ class TopBarViewModel : ViewModel() {
     private val queue = mutableListOf<Float>()
     private val queueSize = 5
     private val threshold = 3f
+
+    private val _topBarTitle = MutableStateFlow("PaletteX")
+    val topBarTitle: StateFlow<String> = _topBarTitle
 
     fun onScroll(deltaY: Float) {
         // Ignore values that are too large
@@ -51,5 +55,9 @@ class TopBarViewModel : ViewModel() {
 
     fun showTopBar() {
         isTopBarVisible = true
+    }
+
+    fun setTopBarTitle(title: String) {
+        _topBarTitle.value = title
     }
 }

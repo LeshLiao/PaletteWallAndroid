@@ -9,14 +9,14 @@ plugins {
 
 android {
     namespace = "com.palettex.palettewall"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.palettex.palettewall"
         minSdk = 30
-        targetSdk = 34
-        versionCode = 223
-        versionName = "2.23"
+        targetSdk = 35
+        versionCode = 300
+        versionName = "3.00"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -94,17 +94,23 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.coil.compose)
     implementation(libs.play.services.ads.lite)
+
+    // Unit tests
     testImplementation(libs.junit)
+
+    // Android instrumented tests
+    androidTestImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation("androidx.test.espresso:espresso-contrib:3.5.1")
-    androidTestImplementation("androidx.test.espresso:espresso-intents:3.5.1")
     androidTestImplementation("androidx.test:runner:1.5.2")
     androidTestImplementation("androidx.test:rules:1.5.0")
     androidTestImplementation("androidx.test.ext:junit-ktx:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-contrib:3.5.1")
+    androidTestImplementation("androidx.test.espresso:espresso-intents:3.5.1")
     androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.5.4")
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
+
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
