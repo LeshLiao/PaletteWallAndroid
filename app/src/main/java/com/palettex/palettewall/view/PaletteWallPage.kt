@@ -45,6 +45,7 @@ fun PaletteWallPage(
     drawerState: DrawerState = rememberDrawerState(initialValue = DrawerValue.Closed),
     startDestination: String = "Home"
 ) {
+    val appVersion by wallpaperViewModel.versionName.collectAsState()
     val isFullScreen by wallpaperViewModel.isFullScreen.collectAsState()
     val snackBarHostState = remember { SnackbarHostState() }
     var topOffset by remember { mutableStateOf(0.dp) }
@@ -98,7 +99,7 @@ fun PaletteWallPage(
                     AboutUs(navController)
                 }
                 composable("Settings") {
-                    SettingsPage(topOffset, bottomOffset, isDarkModeEnabled, isPremium, onDarkModeToggle)
+                    SettingsPage(topOffset, bottomOffset, isDarkModeEnabled, isPremium, appVersion, onDarkModeToggle)
                 }
                 composable(
                     route = "fullscreen/{itemId}",

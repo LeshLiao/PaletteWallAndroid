@@ -9,12 +9,12 @@ plugins {
 
 android {
     namespace = "com.palettex.palettewall"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.palettex.palettewall"
         minSdk = 30
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 223
         versionName = "2.23"
 

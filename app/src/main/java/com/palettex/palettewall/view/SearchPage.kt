@@ -1,6 +1,7 @@
 package com.palettex.palettewall.view
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -24,6 +26,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -53,6 +57,7 @@ import com.palettex.palettewall.PaletteWallApplication
 import com.palettex.palettewall.R
 import com.palettex.palettewall.utils.getImageSourceFromAssets
 import com.palettex.palettewall.view.component.ProgressiveImageLoaderBest
+import com.palettex.palettewall.view.utility.throttleClick
 import com.palettex.palettewall.viewmodel.SearchViewModel
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
 
@@ -84,85 +89,67 @@ fun SearchPage(
                 state = listState
             ) {
                 item {
-                    Box(
-                        modifier = Modifier.fillMaxWidth()
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        IconButton(
-                            modifier = Modifier
-                                .align(Alignment.CenterStart)
-                                .padding(16.dp),
-                            onClick = {
-                                outerNav.popBackStack()
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back",
-                                tint = MaterialTheme.colorScheme.primary
+                        OutlinedTextField(
+                            value = searchQuery,
+                            onValueChange = { searchViewModel.updateSearchQuery(it) },
+                            modifier = Modifier.weight(1f),
+                            placeholder = {
+                                Text(
+                                    text = "Search wallpapers...",
+                                    color = Color.Gray
+                                )
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = "Search",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            },
+                            trailingIcon = {
+                                if (searchQuery.isNotEmpty()) {
+                                    IconButton(onClick = { searchViewModel.clearSearch() }) {
+                                        Icon(
+                                            imageVector = Icons.Default.Clear,
+                                            contentDescription = "Clear",
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                }
+                            },
+                            colors = TextFieldDefaults.colors(
+                                focusedTextColor = MaterialTheme.colorScheme.primary,
+                                unfocusedTextColor = MaterialTheme.colorScheme.primary,
+                                focusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                                unfocusedIndicatorColor = MaterialTheme.colorScheme.primary
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(
+                                imeAction = ImeAction.Search
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onSearch = {
+                                    keyboardController?.hide()
+                                }
                             )
-                        }
-
+                        )
                         Text(
-                            modifier = Modifier
-                                .align(Alignment.Center)
-                                .padding(16.dp),
-                            text = "Search",
-                            fontSize = 26.sp,
+                            modifier = Modifier.throttleClick {
+                                outerNav.popBackStack()
+                            },
+                            text = "Cancel",
+                            fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
-                }
-
-                item {
-                    OutlinedTextField(
-                        value = searchQuery,
-                        onValueChange = { searchViewModel.updateSearchQuery(it) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        placeholder = {
-                            Text(
-                                text = "Search wallpapers...",
-                                color = Color.Gray
-                            )
-                        },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Search,
-                                contentDescription = "Search",
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        },
-                        trailingIcon = {
-                            if (searchQuery.isNotEmpty()) {
-                                IconButton(onClick = { searchViewModel.clearSearch() }) {
-                                    Icon(
-                                        imageVector = Icons.Default.Clear,
-                                        contentDescription = "Clear",
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                            }
-                        },
-                        colors = TextFieldDefaults.colors(
-                            focusedTextColor = MaterialTheme.colorScheme.primary,
-                            unfocusedTextColor = MaterialTheme.colorScheme.primary,
-                            focusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-                            unfocusedIndicatorColor = MaterialTheme.colorScheme.primary
-                        ),
-                        shape = RoundedCornerShape(12.dp),
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(
-                            imeAction = ImeAction.Search
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onSearch = {
-                                keyboardController?.hide()
-                            }
-                        )
-                    )
                 }
 
                 if (isLoading) {
@@ -249,7 +236,7 @@ fun SearchPage(
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             rowItems.forEach { wallpaper ->
-                                Box(
+                                Card(
                                     modifier = Modifier
                                         .weight(1f)
                                         .fillMaxHeight()
@@ -258,6 +245,10 @@ fun SearchPage(
                                             wallpaperViewModel.initFullScreenDataSourceByList(searchResults)
                                             outerNav.navigate("fullscreen/${wallpaper.itemId}")
                                         },
+                                        shape = RoundedCornerShape(10.dp),
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = Color(0xFF111111)
+                                        )
                                 ) {
                                     val imageUrl = wallpaper.imageList.firstOrNull {
                                         it.type == "LD" && it.link.isNotEmpty()
@@ -276,20 +267,19 @@ fun SearchPage(
                                             fullImageSource = imageSource,
                                             imageLoader = imageLoader
                                         )
-                                    }
-
-                                    if (!wallpaper.freeDownload) {
-                                        Box(
-                                            modifier = Modifier
-                                                .align(Alignment.BottomEnd)
-                                                .padding(6.dp)
-                                        ) {
-                                            Image(
-                                                painterResource(R.drawable.diamond),
-                                                contentDescription = "",
-                                                contentScale = ContentScale.Crop,
-                                                modifier = Modifier.size(18.dp)
-                                            )
+                                        if (!wallpaper.freeDownload) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .align(Alignment.BottomEnd)
+                                                    .padding(6.dp)
+                                            ) {
+                                                Image(
+                                                    painterResource(R.drawable.diamond),
+                                                    contentDescription = "",
+                                                    contentScale = ContentScale.Crop,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                            }
                                         }
                                     }
                                 }

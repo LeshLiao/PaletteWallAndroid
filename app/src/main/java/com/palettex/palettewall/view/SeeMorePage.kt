@@ -25,6 +25,7 @@ import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -51,6 +52,7 @@ import com.palettex.palettewall.PaletteWallApplication
 import com.palettex.palettewall.R
 import com.palettex.palettewall.utils.getImageSourceFromAssets
 import com.palettex.palettewall.view.component.ProgressiveImageLoaderBest
+import com.palettex.palettewall.view.utility.throttleClick
 import com.palettex.palettewall.viewmodel.SeeMoreViewModel
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
 
@@ -115,13 +117,15 @@ fun SeeMorePage(
                     Box(
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        IconButton(
+                        Card(
                             modifier = Modifier
                                 .align(Alignment.CenterStart)
-                                .padding(16.dp),
-                            onClick = {
-                                outerNav.popBackStack()
-                            }
+                                .padding(16.dp).throttleClick {
+                                    outerNav.popBackStack()
+                                },
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.background
+                            )
                         ) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -224,7 +228,7 @@ fun SeeMorePage(
                                 .padding(vertical = 16.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            androidx.compose.material3.CircularProgressIndicator(
+                            CircularProgressIndicator(
                                 color = MaterialTheme.colorScheme.primary
                             )
                         }

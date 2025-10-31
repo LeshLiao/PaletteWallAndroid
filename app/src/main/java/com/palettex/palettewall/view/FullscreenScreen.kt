@@ -301,8 +301,8 @@ fun FullscreenScreen(
             onAdWatchedAndStartDownload = {
                 Log.d("GDT","onAdWatchedAndStartDownload() click!!!!!!")
                 wallpaperViewModel.updateDownloadBtnStatus(1)
-                wallpaperViewModel.getDownloadListLinkByItemId(currentItemId)?.let {
-                    downloadImage(context, it) { msg ->
+                wallpaperViewModel.getDownloadListLinkByItemId(currentItemId)?.let { link ->
+                    downloadImage(context, link) { msg ->
                         Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
                     }
                     wallpaperViewModel.firebaseDownloadFreeEvent(currentItemId)

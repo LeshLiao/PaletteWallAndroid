@@ -230,7 +230,7 @@ class MainActivity : ComponentActivity() {
     private fun initializeVersionName() {
         try {
             val pInfo = packageManager.getPackageInfo(packageName, 0)
-            wallpaperViewModel.setVersionName(pInfo.versionName)
+            wallpaperViewModel.setVersionName(pInfo.versionName.toString())
             Log.d(TAG, "version=${pInfo.versionName}")
         } catch (e: PackageManager.NameNotFoundException) {
             Log.e(TAG, "Version name not found", e)

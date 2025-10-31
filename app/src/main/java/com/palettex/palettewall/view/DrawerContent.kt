@@ -115,14 +115,6 @@ fun DrawerContentUI(
                 .clickable { onAboutUsClick() }
         )
 
-        Text(
-            text = "Build Version: $versionName",
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .clickable { onVersionClick() }
-        )
-
         if (isPremium) {
             Text(
                 text = "✨ You are a Premium Member",

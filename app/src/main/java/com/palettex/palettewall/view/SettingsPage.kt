@@ -49,6 +49,7 @@ fun SettingsPage(
     bottomOffset: Dp,
     isDarkModeEnabled: Boolean,
     isPremium: Boolean,
+    appVersion: String,
     onDarkModeToggle: (Boolean) -> Unit
 ) {
     val listState = rememberLazyListState()
@@ -85,8 +86,7 @@ fun SettingsPage(
 
                         Card(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 32.dp),
+                                .fillMaxWidth(),
                             colors = CardDefaults.cardColors(
                                 containerColor = MaterialTheme.colorScheme.tertiaryContainer
                             ),
@@ -202,6 +202,8 @@ fun SettingsPage(
                             }
                         }
 
+                        Spacer(modifier = Modifier.height(24.dp))
+
                         // LEGAL Section
                         Text(
                             text = "LEGAL",
@@ -281,9 +283,49 @@ fun SettingsPage(
                                 }
                             }
                         }
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        // Information Section
+                        Text(
+                            text = "INFORMATION",
+                            fontSize = 14.sp,
+                            color = Color.Gray,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Column {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {}
+                                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Info,
+                                        contentDescription = "version",
+                                        tint = MaterialTheme.colorScheme.tertiary,
+                                        modifier = Modifier.size(28.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(16.dp))
+                                    Text(
+                                        text = "App Version: $appVersion",
+                                        fontSize = 16.sp,
+                                        color = MaterialTheme.colorScheme.tertiary
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
-
                 item {
                     Spacer(modifier = Modifier.height(160.dp))
                 }
@@ -301,6 +343,7 @@ fun SettingsPagePreviewDark() {
             bottomOffset = 1.dp,
             isDarkModeEnabled = true,
             isPremium = true,
+            appVersion = "1.00",
             onDarkModeToggle = {}
         )
     }
@@ -315,6 +358,7 @@ fun SettingsPagePreviewLight() {
             bottomOffset = 1.dp,
             isDarkModeEnabled = false,
             isPremium = false,
+            appVersion = "1.00",
             onDarkModeToggle = {}
         )
     }
