@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -99,6 +100,7 @@ fun BottomBarBox(
             NavigationBar(containerColor = MaterialTheme.colorScheme.background) {
                 items.forEachIndexed { index, item ->
                     NavigationBarItem(
+                        modifier = Modifier.testTag("testTag_$item"),
                         icon = {
                             Icon(
                                 imageVector = when (item) {

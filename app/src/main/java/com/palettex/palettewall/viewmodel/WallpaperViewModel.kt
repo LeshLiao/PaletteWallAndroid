@@ -166,9 +166,9 @@ open class WallpaperViewModel(
         initializeCatalogs(
             listOf(
                 CatalogConfig(title = "Anime", key = "anime"),
+                CatalogConfig(title = "Space", key = "space"),
                 CatalogConfig(title = "Minimalistic", key = "minimalistic"),
                 CatalogConfig(title = "Nature", key = "nature"),
-                CatalogConfig(title = "Space", key = "space"),
                 CatalogConfig(title = "Landscape", key = "landscape")
             )
         )

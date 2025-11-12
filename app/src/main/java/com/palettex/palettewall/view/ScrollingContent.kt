@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -173,7 +174,10 @@ fun ScrollingContent(
             .pullRefresh(pullRefreshState)
     ) {
 
-        LazyColumn(state = listState) {
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.testTag("wallpaper_list")
+        ) {
             item { Spacer(modifier = Modifier.height(80.dp).fillMaxWidth()) }
             item { Spacer(modifier = Modifier.height(16.dp)) }
 

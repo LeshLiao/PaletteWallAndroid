@@ -7,6 +7,7 @@ build
 captures
 .externalNativeBuild
 app/release
+app/debug
 
 # Ignore all files in BL/
 app/src/main/assets/cached_images/BL/*

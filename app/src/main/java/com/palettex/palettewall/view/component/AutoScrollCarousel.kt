@@ -20,6 +20,8 @@ import androidx.compose.ui.unit.dp
 import coil.ImageLoader
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
+import com.palettex.palettewall.PaletteWallApplication
+import com.palettex.palettewall.utils.getImageSourceFromAssets
 import com.palettex.palettewall.view.component.ProgressiveImageLoaderBest
 import com.palettex.palettewall.view.utility.throttleClick
 import kotlinx.coroutines.delay
@@ -40,6 +42,7 @@ fun AutoScrollCarousel(
     var isUserScrolling by remember { mutableStateOf(false) }
     var isAutoScrolling by remember { mutableStateOf(false) }
     val imageLoader = remember { ImageLoader(context) }
+    val imageCacheList = PaletteWallApplication.imageCacheList
 
     // Track scroll position to update indicator
     LaunchedEffect(listState) {
@@ -80,7 +83,7 @@ fun AutoScrollCarousel(
     }
 
     Column(
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth().padding(top = 6.dp)
     ) {
         LazyRow(
             state = listState,
@@ -91,9 +94,12 @@ fun AutoScrollCarousel(
                 lazyListState = listState
             )
         ) {
+
             items(items.size) { index ->
+                val imageUrl = items[index]
+                val imageSource = imageUrl.getImageSourceFromAssets(context, imageCacheList)
                 CarouselItem(
-                    imageUrl = items[index],
+                    imageUrl = imageSource,
                     modifier = Modifier
                         .fillParentMaxWidth(1f) // Takes full parent width minus padding
                         .padding(horizontal = (itemSpacing / 2).dp)
