@@ -26,7 +26,8 @@
 - **Async:** Kotlin Coroutines  
 - **Local Storage:** Room Database  
 - **Networking:** Retrofit  
-- **Monetization:** Google AdMob, Google Pay  
+- **Monetization:** Google AdMob, Google Pay
+- **Instrumented test:** Compose UI Test
 - **Backend Services:** Firebase Storage, Firebase Remote Config  
 
 ### Backend
