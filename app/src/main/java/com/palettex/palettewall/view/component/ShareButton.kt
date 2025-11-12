@@ -13,6 +13,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
 import kotlinx.coroutines.launch
@@ -27,7 +28,7 @@ fun ShareButton(
     val coroutineScope = rememberCoroutineScope()
 
     IconButton(
-        modifier = Modifier.padding(4.dp),
+        modifier = Modifier.padding(4.dp).testTag("testTag_sharing"),
         onClick = {
             coroutineScope.launch {
                 if (currentImage != null) {

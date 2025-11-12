@@ -1,6 +1,7 @@
 package com.palettex.palettewall.view.component
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -21,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -96,6 +98,7 @@ private fun ColorBox(
 ) {
     Box(
         modifier = Modifier
+            .testTag("testTag_colorBox_" + color.toHexString())
             .size(40.dp)
             .clip(RoundedCornerShape(4.dp))
             .background(color)
@@ -131,6 +134,17 @@ private fun ColorBox(
             }
         }
     }
+}
+
+fun Color.toHexString(): String {
+    // Color values are in 0..1 range, convert to 0..255
+    val alpha = (alpha * 255).toInt()
+    val red = (red * 255).toInt()
+    val green = (green * 255).toInt()
+    val blue = (blue * 255).toInt()
+
+    // Format as 0xAARRGGBB
+    return "0x%02X%02X%02X%02X".format(alpha, red, green, blue)
 }
 
 @Preview(showBackground = true)
