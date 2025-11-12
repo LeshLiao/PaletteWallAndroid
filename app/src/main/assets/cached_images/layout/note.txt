@@ -1,0 +1,9 @@
+(1) upload christmas.jpg to firebase.
+
+(2) copy image url to backend
+https://firebasestorage.googleapis.com/v0/b/palettex-37930.appspot.com/o/images%2Flayout%2Fchristmas.jpg?alt=media&token=65a8d20d-c68f-4ef7-93fd-d06e5840ca31
+
+(3) change file name to: images_layout_christmas.jpg
+
+(4) copy it to cached images/layout/images_layout_christmas.jpg 
+wq
