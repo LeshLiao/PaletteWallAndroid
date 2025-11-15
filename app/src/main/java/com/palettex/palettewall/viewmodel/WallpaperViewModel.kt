@@ -22,6 +22,7 @@ import com.palettex.palettewall.model.PaginatedResponse
 import com.palettex.palettewall.model.WallpaperItem
 import com.palettex.palettewall.network.RetrofitInstance
 import com.palettex.palettewall.utils.getImageSourceFromAssets
+import com.palettex.palettewall.utils.handleImageInfo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -361,25 +362,13 @@ open class WallpaperViewModel(
     }
 
     fun getImageInfoByItemId(itemId: String): String {
-        val wallpaperItem = _fullScreenWallpapers.value.find { it.itemId == itemId }
+        val wallpaperItem = _fullScreenWallpapers.value
+            .find { it.itemId == itemId } ?: return ""
 
-        val colorTags = wallpaperItem?.tags?.filter { it.contains("#") }
-            ?.map { tag ->
-                tag.split("%").firstOrNull() ?: tag
-            }
-            ?.distinct() // Remove duplicates
-            ?.joinToString(", ") // Convert list to string
-
-        val imageName = wallpaperItem?.name ?: ""
-
-        // Properly format the return string
-        val imageInfo = if (colorTags.isNullOrEmpty()) {
-            imageName
-        } else {
-            "$imageName\nColors: $colorTags"
-        }
-
-        return imageInfo
+        return handleImageInfo(
+            name = wallpaperItem.name,
+            tags = wallpaperItem.tags
+        )
     }
 
     fun fetchWallpaperBy(param: String) {
