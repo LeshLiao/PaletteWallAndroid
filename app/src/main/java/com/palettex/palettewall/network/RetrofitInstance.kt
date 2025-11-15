@@ -2,9 +2,10 @@ package com.palettex.palettewall.network
 
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import com.palettex.palettewall.BuildConfig
 
 object RetrofitInstance {
-    private const val BASE_URL = "https://online-store-service.onrender.com/api/"
+    private val BASE_URL = BuildConfig.BASE_URL
 
     val api: WallpaperApiService by lazy {
         Retrofit.Builder()

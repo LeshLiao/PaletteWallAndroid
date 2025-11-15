@@ -17,33 +17,28 @@ android {
         targetSdk = 35
         versionCode = 303
         versionName = "3.03"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
     }
 
+    signingConfigs {
+        create("release") {
+            val localPropertiesFile = rootProject.file("local.properties")
+            if (localPropertiesFile.exists()) {
+                val properties = Properties()
+                localPropertiesFile.inputStream().use { properties.load(it) }
 
-        android {
-            signingConfigs {
-                create("release") {
-                    val localPropertiesFile = rootProject.file("local.properties")
-                    if (localPropertiesFile.exists()) {
-                        val properties = Properties()
-                        localPropertiesFile.inputStream().use { properties.load(it) }
-
-                        storeFile = file(properties.getProperty("STORE_FILE") ?: "")
-                        storePassword = properties.getProperty("STORE_PASSWORD") ?: ""
-                        keyAlias = properties.getProperty("KEY_ALIAS") ?: ""
-                        keyPassword = properties.getProperty("KEY_PASSWORD") ?: ""
-                    } else {
-                        println("Warning: local.properties file is missing.")
-                    }
-                }
+                storeFile = file(properties.getProperty("STORE_FILE") ?: "")
+                storePassword = properties.getProperty("STORE_PASSWORD") ?: ""
+                keyAlias = properties.getProperty("KEY_ALIAS") ?: ""
+                keyPassword = properties.getProperty("KEY_PASSWORD") ?: ""
+            } else {
+                println("Warning: local.properties file is missing.")
             }
         }
-
+    }
 
     buildTypes {
         debug {
@@ -51,7 +46,7 @@ android {
             isDebuggable = true
         }
         release {
-             signingConfig = signingConfigs.getByName("release")
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -60,6 +55,45 @@ android {
             buildConfigField("boolean", "DEBUG_MODE", "false")
         }
     }
+
+    // Product Flavors (KTS syntax)
+    flavorDimensions += "env"
+
+    productFlavors {
+        create("dev") {
+            dimension = "env"
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+
+            resValue("string", "app_name", "PaletteX-d")
+            // buildConfigField("String", "BASE_URL", "\"https://dev.online-store-service.onrender.com/api/\"")
+            buildConfigField("String", "BASE_URL", "\"https://online-store-service.onrender.com/api/\"")
+        }
+
+        create("staging") {
+            dimension = "env"
+            applicationIdSuffix = ".staging"
+            versionNameSuffix = "-staging"
+
+            resValue("string", "app_name", "PaletteX-s")
+            // buildConfigField("String", "BASE_URL", "\"https://staging.online-store-service.onrender.com/api/\"")
+            buildConfigField("String", "BASE_URL", "\"https://online-store-service.onrender.com/api/\"")
+        }
+
+        create("prod") {
+            dimension = "env"
+
+            resValue("string", "app_name", "PaletteX")
+            buildConfigField("String", "BASE_URL", "\"https://online-store-service.onrender.com/api/\"")
+        }
+    }
+
+    // ----------------------------
+    // Resource Overrides
+    // ----------------------------
+    sourceSets["dev"].res.srcDirs("src/dev/res")
+    sourceSets["staging"].res.srcDirs("src/staging/res")
+    sourceSets["prod"].res.srcDirs("src/prod/res")
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -94,11 +128,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.coil.compose)
     implementation(libs.play.services.ads.lite)
-
-    // Unit tests
     testImplementation(libs.junit)
-
-    // Android instrumented tests
     androidTestImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -110,34 +140,24 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.5.4")
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
-
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
-
     implementation(libs.lifecycle.viewmodel.compose)
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
     implementation(kotlin("script-runtime"))
-
     implementation(libs.play.services.ads)
-
     implementation(platform("com.google.firebase:firebase-bom:33.3.0"))
     implementation("com.google.firebase:firebase-analytics")
-    implementation ("com.google.firebase:firebase-messaging")
+    implementation("com.google.firebase:firebase-messaging")
     implementation("com.google.firebase:firebase-config")
-
-    implementation (libs.androidx.foundation)
-    implementation (libs.coil.compose.v222)
-
-    implementation ("androidx.compose.material:material:1.5.4")
-    implementation ("com.google.firebase:firebase-analytics-ktx")
-
-    implementation ("com.android.billingclient:billing-ktx:6.1.0")
-
-    // Play In-App Update library (replacing the deprecated Play Core library)
+    implementation(libs.androidx.foundation)
+    implementation(libs.coil.compose.v222)
+    implementation("androidx.compose.material:material:1.5.4")
+    implementation("com.google.firebase:firebase-analytics-ktx")
+    implementation("com.android.billingclient:billing-ktx:6.1.0")
     implementation("com.google.android.play:app-update:2.1.0")
     implementation("com.google.android.play:app-update-ktx:2.1.0")
 }
