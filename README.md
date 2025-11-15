@@ -3,6 +3,7 @@
 **Palettex** offers a vast collection of carefully curated wallpapers across categories like Nature, Abstract, Anime, and more. With smooth navigation, color-based search, and frequent updates, you'll always find the perfect wallpaper to match your style.  
 
 📲 **Download on Google Play:**  
+
 <a href="https://play.google.com/store/apps/details?id=com.palettex.palettewall" target="_blank">
   <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Get it on Google Play" width="200"/>
 </a>
