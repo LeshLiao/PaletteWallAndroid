@@ -25,17 +25,37 @@ android {
 
     signingConfigs {
         create("release") {
-            val localPropertiesFile = rootProject.file("local.properties")
-            if (localPropertiesFile.exists()) {
-                val properties = Properties()
-                localPropertiesFile.inputStream().use { properties.load(it) }
+            // Try environment variables first (for CI), then fall back to local.properties
+            val keystorePath = System.getenv("BITRISEIO_ANDROID_KEYSTORE_URL")
+                ?: System.getenv("KEYSTORE_PATH")
+            val keystorePassword = System.getenv("BITRISEIO_ANDROID_KEYSTORE_PASSWORD")
+                ?: System.getenv("KEYSTORE_PASSWORD")
+            val keyAliasName = System.getenv("BITRISEIO_ANDROID_KEYSTORE_ALIAS")
+                ?: System.getenv("KEY_ALIAS")
+            val keyAliasPassword = System.getenv("BITRISEIO_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD")
+                ?: System.getenv("KEY_PASSWORD")
 
-                storeFile = file(properties.getProperty("STORE_FILE") ?: "")
-                storePassword = properties.getProperty("STORE_PASSWORD") ?: ""
-                keyAlias = properties.getProperty("KEY_ALIAS") ?: ""
-                keyPassword = properties.getProperty("KEY_PASSWORD") ?: ""
+            if (keystorePath != null && keystorePassword != null &&
+                keyAliasName != null && keyAliasPassword != null) {
+                // CI environment (Bitrise)
+                storeFile = file(keystorePath)
+                storePassword = keystorePassword
+                keyAlias = keyAliasName
+                keyPassword = keyAliasPassword
             } else {
-                println("Warning: local.properties file is missing.")
+                // Local development - try local.properties
+                val localPropertiesFile = rootProject.file("local.properties")
+                if (localPropertiesFile.exists()) {
+                    val properties = Properties()
+                    localPropertiesFile.inputStream().use { properties.load(it) }
+
+                    storeFile = file(properties.getProperty("STORE_FILE") ?: "")
+                    storePassword = properties.getProperty("STORE_PASSWORD") ?: ""
+                    keyAlias = properties.getProperty("KEY_ALIAS") ?: ""
+                    keyPassword = properties.getProperty("KEY_PASSWORD") ?: ""
+                } else {
+                    println("Warning: No signing configuration found")
+                }
             }
         }
     }
