@@ -26,8 +26,13 @@ android {
     signingConfigs {
         create("release") {
             // Try environment variables first (for CI), then fall back to local.properties
-            val keystorePath = System.getenv("BITRISEIO_ANDROID_KEYSTORE_URL")
-                ?: System.getenv("KEYSTORE_PATH")
+
+//            val keystorePath = System.getenv("BITRISEIO_ANDROID_KEYSTORE_URL")
+//                ?: System.getenv("KEYSTORE_PATH")
+
+            val keystorePath = System.getenv("BITRISE_KEYSTORE_PATH")
+                ?: System.getenv("HOME")?.let { "$it/keystores/keystore.jks" }
+
             val keystorePassword = System.getenv("BITRISEIO_ANDROID_KEYSTORE_PASSWORD")
                 ?: System.getenv("KEYSTORE_PASSWORD")
             val keyAliasName = System.getenv("BITRISEIO_ANDROID_KEYSTORE_ALIAS")
