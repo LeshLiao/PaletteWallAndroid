@@ -31,7 +31,7 @@ android {
 //                ?: System.getenv("KEYSTORE_PATH")
 
             val keystorePath = System.getenv("BITRISE_KEYSTORE_PATH")
-                ?: System.getenv("HOME")?.let { "$it/keystores/keystore.jks" }
+                ?: System.getenv("HOME")?.let { "$it/keystores/palettewallkey" }
 
             val keystorePassword = System.getenv("BITRISEIO_ANDROID_KEYSTORE_PASSWORD")
                 ?: System.getenv("KEYSTORE_PASSWORD")
