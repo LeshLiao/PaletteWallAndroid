@@ -25,43 +25,22 @@ android {
 
     signingConfigs {
         create("release") {
-            // Try environment variables first (for CI), then fall back to local.properties
+            // Only configure signing if keystore file exists (local development)
+            val localPropertiesFile = rootProject.file("local.properties")
+            if (localPropertiesFile.exists()) {
+                val properties = Properties()
+                localPropertiesFile.inputStream().use { properties.load(it) }
 
-//            val keystorePath = System.getenv("BITRISEIO_ANDROID_KEYSTORE_URL")
-//                ?: System.getenv("KEYSTORE_PATH")
-
-            val keystorePath = System.getenv("BITRISE_KEYSTORE_PATH")
-                ?: System.getenv("HOME")?.let { "$it/keystores/palettewallkey" }
-
-            val keystorePassword = System.getenv("BITRISEIO_ANDROID_KEYSTORE_PASSWORD")
-                ?: System.getenv("KEYSTORE_PASSWORD")
-            val keyAliasName = System.getenv("BITRISEIO_ANDROID_KEYSTORE_ALIAS")
-                ?: System.getenv("KEY_ALIAS")
-            val keyAliasPassword = System.getenv("BITRISEIO_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD")
-                ?: System.getenv("KEY_PASSWORD")
-
-            if (keystorePath != null && keystorePassword != null &&
-                keyAliasName != null && keyAliasPassword != null) {
-                // CI environment (Bitrise)
-                storeFile = file(keystorePath)
-                storePassword = keystorePassword
-                keyAlias = keyAliasName
-                keyPassword = keyAliasPassword
-            } else {
-                // Local development - try local.properties
-                val localPropertiesFile = rootProject.file("local.properties")
-                if (localPropertiesFile.exists()) {
-                    val properties = Properties()
-                    localPropertiesFile.inputStream().use { properties.load(it) }
-
-                    storeFile = file(properties.getProperty("STORE_FILE") ?: "")
+                val keystorePath = properties.getProperty("STORE_FILE")
+                if (keystorePath != null && File(keystorePath).exists()) {
+                    storeFile = file(keystorePath)
                     storePassword = properties.getProperty("STORE_PASSWORD") ?: ""
                     keyAlias = properties.getProperty("KEY_ALIAS") ?: ""
                     keyPassword = properties.getProperty("KEY_PASSWORD") ?: ""
-                } else {
-                    println("Warning: No signing configuration found")
                 }
             }
+            // If no local.properties(Bitrise CD), signing config will be empty
+            // The Android Sign step will handle signing in CI
         }
     }
 
