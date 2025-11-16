@@ -15,13 +15,15 @@ android {
         applicationId = "com.palettex.palettewall"
         minSdk = 30
         targetSdk = 35
-        versionCode = 1        // Bitrise sets the actual versionCode
-        versionName = "0.0.0"  // Bitrise injects versionName from Git tag(set manually)
+        versionCode = 1
+        versionName = "0.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
     }
+    // versionCode: Bitrise sets the actual versionCode
+    // versionName: Bitrise injects versionName from Git tag(set manually)
 
     signingConfigs {
         create("release") {
