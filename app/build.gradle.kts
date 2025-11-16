@@ -25,7 +25,7 @@ android {
 
     signingConfigs {
         create("release") {
-            // Only configure signing if keystore file exists (local development)
+            // local builds: Only configure signing if keystore file exists
             val localPropertiesFile = rootProject.file("local.properties")
             if (localPropertiesFile.exists()) {
                 val properties = Properties()
@@ -39,8 +39,8 @@ android {
                     keyPassword = properties.getProperty("KEY_PASSWORD") ?: ""
                 }
             }
-            // If no local.properties(Bitrise CD), signing config will be empty
-            // The Android Sign step will handle signing in CI
+            // If no local.properties, signing config will be empty
+            // Bitrise CD: The Android Sign step will handle signing in CI
         }
     }
 
@@ -50,7 +50,18 @@ android {
             isDebuggable = true
         }
         release {
-            signingConfig = signingConfigs.getByName("release")
+            // local builds: Only use signing config if keystore is configured
+            // Bitrise won't sign it on "Android Build" step.
+            val localPropertiesFile = rootProject.file("local.properties")
+            if (localPropertiesFile.exists()) {
+                val properties = Properties()
+                localPropertiesFile.inputStream().use { properties.load(it) }
+                val keystorePath = properties.getProperty("STORE_FILE")
+                if (keystorePath != null && File(keystorePath).exists()) {
+                    signingConfig = signingConfigs.getByName("release")
+                }
+            }
+
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
