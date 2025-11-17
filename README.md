@@ -30,6 +30,7 @@
 - **Monetization:** Google AdMob, Google Pay
 - **Instrumented test:** Compose UI Test
 - **Backend Services:** Firebase Storage, Firebase Remote Config  
+- **CI/CD Pipeline:** Bitrise (automated builds, tests, and AAB generation)
 
 ### Backend
 - **Server:** Express.js  
