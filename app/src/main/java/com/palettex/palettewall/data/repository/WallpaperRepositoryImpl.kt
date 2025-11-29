@@ -1,8 +1,8 @@
 package com.palettex.palettewall.data.repository
 
-import com.palettex.palettewall.data.local.ImageCacheDataSource
+import com.palettex.palettewall.data.local.datasource.ImageCacheDataSource
 import com.palettex.palettewall.data.remote.api.WallpaperApiService
-import com.palettex.palettewall.data.remote.dto.mappers.toDomain
+import com.palettex.palettewall.data.remote.mappers.toDomain
 import com.palettex.palettewall.domain.model.WallpaperItem
 import com.palettex.palettewall.domain.repository.WallpaperRepository
 import kotlinx.coroutines.Dispatchers

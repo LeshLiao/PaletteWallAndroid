@@ -1,0 +1,149 @@
+package com.palettex.palettewall.ui.screens.home
+
+import android.content.Context
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
+import com.palettex.palettewall.PaletteWallApplication
+import com.palettex.palettewall.R
+import com.palettex.palettewall.data.local.database.WallpaperDatabase
+import com.palettex.palettewall.ui.components.getImageSourceFromAssets
+import com.palettex.palettewall.ui.screens.home.TopBarViewModel
+import com.palettex.palettewall.ui.screens.home.HomeViewModel
+
+@Composable
+fun LikeCollection(
+    topViewModel: TopBarViewModel,
+    wallpaperViewModel: HomeViewModel,
+    navController: NavController,
+    topOffset: Dp,
+    bottomOffset: Dp,
+    context: Context = LocalContext.current
+) {
+    val database = remember { WallpaperDatabase.getDatabase(context) }
+    val dao = remember { database.likedWallpaperDao() }
+    val likedItemsDb by dao.getAllLikedWallpapers().collectAsState(initial = emptyList())
+    val topSystemOffset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    val carouselAllWallpapers by wallpaperViewModel.carouselAllWallpapers.collectAsState()
+    val likeWallpapers by wallpaperViewModel.likeWallpapers.collectAsState()
+    val imageCacheList = PaletteWallApplication.imageCacheList
+
+    LaunchedEffect(likedItemsDb, carouselAllWallpapers) {
+        wallpaperViewModel.initLikeCollection(likedItemsDb)
+    }
+
+    LaunchedEffect(Unit) {
+        if (carouselAllWallpapers.isEmpty()) {
+            wallpaperViewModel.fetchAllWallpapersToCarouselAll()
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(top = topOffset, bottom = bottomOffset)
+    ) {
+        if (likeWallpapers.isEmpty()) {
+            EmptyBox()
+        } else {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(likeWallpapers.size) { index ->
+                    val wallpaper = likeWallpapers[index]
+                    val imageUrl = likeWallpapers[index].imageList.firstOrNull {
+                        it.type == "HD" && it.link.isNotEmpty()
+                    }?.link ?: ""
+
+                    val imageSource = imageUrl.getImageSourceFromAssets(context, imageCacheList)
+
+                    AsyncImage(
+                        model = imageSource,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .aspectRatio(9f / 18f)
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable {
+                                topViewModel.hideTopBar()
+                                wallpaperViewModel.initFullScreenDataSourceByList(likeWallpapers)
+                                navController.navigate("fullscreen/${wallpaper.itemId}")
+                            },
+                        contentScale = ContentScale.Crop
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun EmptyBox() {
+    Column( modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.background),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                modifier = Modifier.size(136.dp).background(MaterialTheme.colorScheme.background)
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.icon_empty_box),
+                    modifier = Modifier.fillMaxSize(),
+                    contentDescription = "Back",
+                    tint = Color.Gray
+                )
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewEmptyBox() {
+    val navController = rememberNavController()
+    val mockTopBarViewModel = TopBarViewModel().apply {}
+    val mockHomeViewModel = HomeViewModel().apply {}
+    LikeCollection(mockTopBarViewModel, mockHomeViewModel, navController, 100.dp, 100.dp)
+}

@@ -17,16 +17,3 @@ data class WallpaperDto(
     val updatedAt: String,
     val version: Int
 )
-
-data class ImageItemDto(
-    val type: String,
-    val resolution: String,
-    val link: String,
-    val blob: String
-)
-
-data class DownloadItemDto(
-    val size: String,
-    val ext: String,
-    val link: String
-)

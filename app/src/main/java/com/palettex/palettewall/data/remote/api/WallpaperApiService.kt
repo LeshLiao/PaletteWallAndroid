@@ -1,12 +1,12 @@
 package com.palettex.palettewall.data.remote.api
 
-import com.palettex.palettewall.data.BoardItem
-import com.palettex.palettewall.data.LogEventRequest
+import com.palettex.palettewall.data.remote.dto.AppSettings
+import com.palettex.palettewall.data.remote.dto.BoardItem
+import com.palettex.palettewall.data.remote.dto.CatalogItem
+import com.palettex.palettewall.data.remote.dto.LogEventRequest
+import com.palettex.palettewall.data.remote.dto.PaginatedResponse
 import com.palettex.palettewall.data.remote.dto.WallpaperDto
 import com.palettex.palettewall.domain.model.WallpaperItem
-import com.palettex.palettewall.model.AppSettings
-import com.palettex.palettewall.model.CatalogItem
-import com.palettex.palettewall.model.PaginatedResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
