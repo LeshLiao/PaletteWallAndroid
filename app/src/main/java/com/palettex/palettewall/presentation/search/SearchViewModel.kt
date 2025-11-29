@@ -1,9 +1,10 @@
-package com.palettex.palettewall.viewmodel
+package com.palettex.palettewall.presentation.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.palettex.palettewall.model.WallpaperItem
-import com.palettex.palettewall.network.RetrofitInstance
+import com.palettex.palettewall.domain.model.WallpaperItem
+import com.palettex.palettewall.domain.usecase.WallpaperUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,27 +13,40 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
+data class SearchUiState(
+    val query: String = "",
+    val results: List<WallpaperItem> = emptyList(),
+    val isLoading: Boolean = false,
+    val error: String? = null
+)
+
+@HiltViewModel
 @OptIn(FlowPreview::class)
-class SearchViewModel : ViewModel() {
+class SearchViewModel @Inject constructor(
+    private val wallpaperUseCase: WallpaperUseCase
+) : ViewModel() {
+
+    private val _uiState = MutableStateFlow(SearchUiState())
+    val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
 
     private val _searchQuery = MutableStateFlow("")
-    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+    val searchQuery = _searchQuery.asStateFlow()
 
     private val _searchResults = MutableStateFlow<List<WallpaperItem>>(emptyList())
-    val searchResults: StateFlow<List<WallpaperItem>> = _searchResults.asStateFlow()
+    val searchResults = _searchResults.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+    val isLoading = _isLoading.asStateFlow()
 
     private val _errorMessage = MutableStateFlow<String?>(null)
-    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
+    val errorMessage = _errorMessage.asStateFlow()
 
     init {
-        // Set up debounced search
         viewModelScope.launch {
             searchQuery
-                .debounce(500) // Wait 500ms after user stops typing
+                .debounce(500)
                 .filter { it.trim().isNotEmpty() }
                 .distinctUntilChanged()
                 .collect { query ->
@@ -53,19 +67,22 @@ class SearchViewModel : ViewModel() {
         _isLoading.value = true
         _errorMessage.value = null
 
-        try {
-            val results = RetrofitInstance.api.getWallpapersBySearch(query)
-            _searchResults.value = results
+        val result = wallpaperUseCase.search(query)
 
-            if (results.isEmpty()) {
-                _errorMessage.value = "No results found for \"$query\""
+        result
+            .onSuccess { wallpapers ->
+                _searchResults.value = wallpapers
+
+                if (wallpapers.isEmpty()) {
+                    _errorMessage.value = "No results found for \"$query\""
+                }
             }
-        } catch (e: Exception) {
-            _errorMessage.value = "Search failed: ${e.message}"
-            _searchResults.value = emptyList()
-        } finally {
-            _isLoading.value = false
-        }
+            .onFailure { error ->
+                _errorMessage.value = "Search failed: ${error.message}"
+                _searchResults.value = emptyList()
+            }
+
+        _isLoading.value = false
     }
 
     fun clearSearch() {

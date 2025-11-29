@@ -1,11 +1,12 @@
-package com.palettex.palettewall.network
+package com.palettex.palettewall.data.remote.api
 
 import com.palettex.palettewall.data.BoardItem
 import com.palettex.palettewall.data.LogEventRequest
+import com.palettex.palettewall.data.remote.dto.WallpaperDto
+import com.palettex.palettewall.domain.model.WallpaperItem
 import com.palettex.palettewall.model.AppSettings
 import com.palettex.palettewall.model.CatalogItem
 import com.palettex.palettewall.model.PaginatedResponse
-import com.palettex.palettewall.model.WallpaperItem
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -14,7 +15,8 @@ import retrofit2.http.Query
 
 interface WallpaperApiService {
     @GET("items/photoType/static")
-    suspend fun getWallpapers(): List<WallpaperItem>
+    suspend fun
+            getWallpapers(): List<WallpaperItem>
 
     @GET("items/wallpapers/popular")
     suspend fun getPopular(
@@ -30,7 +32,6 @@ interface WallpaperApiService {
     @GET("items/tag/Painting")
     suspend fun getPainting(): List<WallpaperItem>
 
-    // Function to dynamically pass a parameter
     @GET("items/tag/{param}")
     suspend fun getWallpaperBy(@Path("param") param: String): List<WallpaperItem>
 
@@ -56,5 +57,5 @@ interface WallpaperApiService {
     @GET("items/search/{searchTerm}")
     suspend fun getWallpapersBySearch(
         @Path("searchTerm") searchTerm: String
-    ): List<WallpaperItem>
+    ): List<WallpaperDto>
 }

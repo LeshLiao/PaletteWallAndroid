@@ -19,7 +19,7 @@ import com.palettex.palettewall.data.LogEventRequest
 import com.palettex.palettewall.model.AppSettings
 import com.palettex.palettewall.model.CatalogItem
 import com.palettex.palettewall.model.PaginatedResponse
-import com.palettex.palettewall.model.WallpaperItem
+import com.palettex.palettewall.domain.model.WallpaperItem
 import com.palettex.palettewall.network.RetrofitInstance
 import com.palettex.palettewall.utils.getImageSourceFromAssets
 import com.palettex.palettewall.utils.handleImageInfo

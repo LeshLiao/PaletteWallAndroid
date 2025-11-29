@@ -24,8 +24,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.ImageLoader
 import com.palettex.palettewall.PaletteWallApplication
-import com.palettex.palettewall.model.ImageItem
-import com.palettex.palettewall.model.WallpaperItem
+import com.palettex.palettewall.domain.model.ImageItem
+import com.palettex.palettewall.domain.model.WallpaperItem
 import com.palettex.palettewall.utils.getImageSourceFromAssets
 
 @Composable

@@ -1,4 +1,4 @@
-package com.palettex.palettewall.model
+package com.palettex.palettewall.domain.model
 
 data class WallpaperItem(
     val id: String,
@@ -17,4 +17,17 @@ data class WallpaperItem(
     val createdAt: String,
     val updatedAt: String,
     val version: Int
+)
+
+data class ImageItem(
+    val type: String,
+    val resolution: String,
+    val link: String,
+    val blob: String
+)
+
+data class DownloadItem(
+    val size: String,
+    val ext: String,
+    val link: String
 )

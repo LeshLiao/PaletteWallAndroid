@@ -38,10 +38,12 @@ import com.palettex.palettewall.viewmodel.BillingViewModel
 import com.palettex.palettewall.viewmodel.SettingsViewModel
 import com.palettex.palettewall.viewmodel.TopBarViewModel
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     companion object {
         private const val TAG = "MainActivity" + "_GDT"

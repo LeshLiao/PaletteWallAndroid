@@ -1,7 +1,6 @@
 package com.palettex.palettewall.view
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -23,7 +21,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
@@ -49,25 +46,25 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.ImageLoader
 import com.palettex.palettewall.PaletteWallApplication
 import com.palettex.palettewall.R
+import com.palettex.palettewall.presentation.search.SearchViewModel
 import com.palettex.palettewall.utils.getImageSourceFromAssets
 import com.palettex.palettewall.view.component.ProgressiveImageLoaderBest
 import com.palettex.palettewall.view.utility.throttleClick
-import com.palettex.palettewall.viewmodel.SearchViewModel
 import com.palettex.palettewall.viewmodel.WallpaperViewModel
 
 @Composable
 fun SearchPage(
     wallpaperViewModel: WallpaperViewModel,
-    outerNav: NavController
+    outerNav: NavController,
+    searchViewModel: SearchViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    val searchViewModel: SearchViewModel = viewModel()
     val keyboardController = LocalSoftwareKeyboardController.current
 
     val listState = rememberLazyListState()

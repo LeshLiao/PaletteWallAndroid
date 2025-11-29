@@ -3,7 +3,7 @@ package com.palettex.palettewall.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.palettex.palettewall.model.WallpaperItem
+import com.palettex.palettewall.domain.model.WallpaperItem
 import com.palettex.palettewall.network.RetrofitInstance
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

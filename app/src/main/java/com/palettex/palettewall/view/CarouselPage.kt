@@ -53,7 +53,7 @@ import coil.size.Size
 import com.palettex.palettewall.PaletteWallApplication
 import com.palettex.palettewall.R
 import com.palettex.palettewall.data.WallpaperDatabase
-import com.palettex.palettewall.model.WallpaperItem
+import com.palettex.palettewall.domain.model.WallpaperItem
 import com.palettex.palettewall.utils.getImageSourceFromAssets
 import com.palettex.palettewall.view.component.ColorPaletteMatrix
 import com.palettex.palettewall.view.component.ImageSkeletonLoader
