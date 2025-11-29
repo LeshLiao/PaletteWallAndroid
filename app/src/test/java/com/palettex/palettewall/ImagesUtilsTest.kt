@@ -1,6 +1,6 @@
 package com.palettex.palettewall
 
-import com.palettex.palettewall.utils.handleImageInfo
+import com.palettex.palettewall.domain.utils.handleImageInfo
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
