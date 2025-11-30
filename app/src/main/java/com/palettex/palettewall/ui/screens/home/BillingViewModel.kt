@@ -3,15 +3,20 @@ package com.palettex.palettewall.ui.screens.home
 import android.app.Activity
 import android.content.Context
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.android.billingclient.api.*
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import android.util.Log
+import javax.inject.Inject
 
-class BillingViewModel(private val context: Context) : ViewModel() {
+@HiltViewModel
+class BillingViewModel @Inject constructor(
+    @ApplicationContext private val context: Context
+) : ViewModel() {
     private lateinit var billingClient: BillingClient
     private val _isPremium = MutableStateFlow(false)
     val isPremium: StateFlow<Boolean> = _isPremium
@@ -165,16 +170,6 @@ class BillingViewModel(private val context: Context) : ViewModel() {
         super.onCleared()
         if (::billingClient.isInitialized) {
             billingClient.endConnection()
-        }
-    }
-
-    class Factory(private val context: Context) : ViewModelProvider.Factory {
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(BillingViewModel::class.java)) {
-                @Suppress("UNCHECKED_CAST")
-                return BillingViewModel(context) as T
-            }
-            throw IllegalArgumentException("Unknown ViewModel class")
         }
     }
 }

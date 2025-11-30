@@ -1,5 +1,6 @@
 package com.palettex.palettewall.ui.screens.search
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.palettex.palettewall.domain.model.WallpaperItem
@@ -28,6 +29,10 @@ class SearchViewModel @Inject constructor(
     private val wallpaperUseCase: WallpaperUseCase
 ) : ViewModel() {
 
+    companion object {
+        private const val TAG = "SearchViewModel" + "_GDT"
+    }
+
     private val _uiState = MutableStateFlow(SearchUiState())
     val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
 
@@ -44,6 +49,7 @@ class SearchViewModel @Inject constructor(
     val errorMessage = _errorMessage.asStateFlow()
 
     init {
+        Log.d(TAG,"SearchViewModel init{}")
         viewModelScope.launch {
             searchQuery
                 .debounce(500)
@@ -53,6 +59,11 @@ class SearchViewModel @Inject constructor(
                     performSearch(query)
                 }
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        Log.d(TAG,"SearchViewModel onCleared{}")
     }
 
     fun updateSearchQuery(query: String) {

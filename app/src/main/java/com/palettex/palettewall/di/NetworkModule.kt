@@ -1,5 +1,8 @@
 package com.palettex.palettewall.di
 
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.ktx.analytics
+import com.google.firebase.ktx.Firebase
 import com.palettex.palettewall.BuildConfig
 import com.palettex.palettewall.data.remote.api.WallpaperApiService
 import dagger.Module
@@ -40,5 +43,11 @@ object NetworkModule {
     @Singleton
     fun provideWallpaperApiService(retrofit: Retrofit): WallpaperApiService {
         return retrofit.create(WallpaperApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFirebaseAnalytics(): FirebaseAnalytics {
+        return Firebase.analytics
     }
 }

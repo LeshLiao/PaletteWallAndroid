@@ -146,10 +146,3 @@ fun Color.toHexString(): String {
     // Format as 0xAARRGGBB
     return "0x%02X%02X%02X%02X".format(alpha, red, green, blue)
 }
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewColorPaletteMatrix() {
-    val mockHomeViewModel = HomeViewModel().apply {}
-    ColorPaletteMatrix(mockHomeViewModel)
-}

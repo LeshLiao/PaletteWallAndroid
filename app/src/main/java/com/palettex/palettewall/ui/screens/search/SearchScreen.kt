@@ -60,9 +60,9 @@ import com.palettex.palettewall.ui.screens.home.HomeViewModel
 
 @Composable
 fun SearchPage(
+    searchViewModel: SearchViewModel,
     wallpaperViewModel: HomeViewModel,
-    outerNav: NavController,
-    searchViewModel: SearchViewModel = hiltViewModel()
+    outerNav: NavController
 ) {
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current

@@ -138,12 +138,3 @@ fun EmptyBox() {
         }
     }
 }
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewEmptyBox() {
-    val navController = rememberNavController()
-    val mockTopBarViewModel = TopBarViewModel().apply {}
-    val mockHomeViewModel = HomeViewModel().apply {}
-    LikeCollection(mockTopBarViewModel, mockHomeViewModel, navController, 100.dp, 100.dp)
-}
