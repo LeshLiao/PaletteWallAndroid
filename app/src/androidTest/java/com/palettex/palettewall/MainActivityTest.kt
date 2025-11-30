@@ -14,6 +14,17 @@ class MainActivityTest {
     val composeTestRule = createAndroidComposeRule<MainActivity>()
 
     @Test
+    fun testStartApps() {
+        // Wait for app initialization
+        composeTestRule.waitUntil(timeoutMillis = 10000) {
+            composeTestRule
+                .onAllNodesWithText("PaletteX")
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+        }
+    }
+
+    @Test
     fun testScrollingInWallpaperList() {
         // Wait for app initialization
         composeTestRule.waitUntil(timeoutMillis = 10000) {

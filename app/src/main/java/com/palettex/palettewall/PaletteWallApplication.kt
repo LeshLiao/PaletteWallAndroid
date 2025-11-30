@@ -2,8 +2,10 @@ package com.palettex.palettewall
 
 import android.app.Application
 import android.util.Log
-import com.palettex.palettewall.data.ImageCacheList
+import com.palettex.palettewall.data.local.model.ImageCacheList
+import dagger.hilt.android.HiltAndroidApp
 
+@HiltAndroidApp
 class PaletteWallApplication : Application() {
 
     companion object {

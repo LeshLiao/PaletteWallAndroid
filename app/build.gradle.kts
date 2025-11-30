@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.ksp.android)
+    alias(libs.plugins.hilt)
     id("com.google.gms.google-services")
 }
 
@@ -177,4 +178,9 @@ dependencies {
     implementation("com.android.billingclient:billing-ktx:6.1.0")
     implementation("com.google.android.play:app-update:2.1.0")
     implementation("com.google.android.play:app-update-ktx:2.1.0")
+
+    // Hilt
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+    implementation(libs.hilt.navigation.compose)
 }

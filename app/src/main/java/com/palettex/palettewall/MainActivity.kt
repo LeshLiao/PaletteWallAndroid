@@ -13,8 +13,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Surface
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.ads.MobileAds
 import com.google.android.play.core.appupdate.AppUpdateInfo
@@ -32,26 +36,26 @@ import com.google.firebase.remoteconfig.ktx.remoteConfig
 import com.google.firebase.remoteconfig.ktx.remoteConfigSettings
 import com.palettex.palettewall.data.PaletteRemoteConfig
 import com.palettex.palettewall.ui.theme.PaletteWallTheme
-import com.palettex.palettewall.view.OuterPage
-import com.palettex.palettewall.viewmodel.AdManager
-import com.palettex.palettewall.viewmodel.BillingViewModel
-import com.palettex.palettewall.viewmodel.SettingsViewModel
-import com.palettex.palettewall.viewmodel.TopBarViewModel
-import com.palettex.palettewall.viewmodel.WallpaperViewModel
+import com.palettex.palettewall.ui.navigation.NavigationPage
+import com.palettex.palettewall.ui.screens.home.AdManager
+import com.palettex.palettewall.ui.screens.home.BillingViewModel
+import com.palettex.palettewall.ui.screens.settings.SettingsViewModel
+import com.palettex.palettewall.ui.screens.home.TopBarViewModel
+import com.palettex.palettewall.ui.screens.home.HomeViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     companion object {
         private const val TAG = "MainActivity" + "_GDT"
     }
-    private val wallpaperViewModel: WallpaperViewModel by viewModels()
+    private val wallpaperViewModel: HomeViewModel by viewModels()
     private val topViewModel: TopBarViewModel by viewModels()
     private val settingsViewModel: SettingsViewModel by viewModels()
-    private val billingViewModel: BillingViewModel by viewModels {
-        BillingViewModel.Factory(this)
-    }
+    private val billingViewModel: BillingViewModel by viewModels()
 
     // App update related variables
     private lateinit var appUpdateManager: AppUpdateManager
@@ -89,15 +93,20 @@ class MainActivity : ComponentActivity() {
             val isDarkTheme by settingsViewModel.isDarkThemeEnabled.collectAsState()
 
             PaletteWallTheme(darkTheme = isDarkTheme) {
-                OuterPage(
-                    wallpaperViewModel = wallpaperViewModel,
-                    billingViewModel = billingViewModel,
-                    topViewModel = topViewModel,
-                    isDarkModeEnabled = isDarkTheme,
-                    onDarkModeToggle = { it ->
-                        settingsViewModel.toggleDarkTheme(it)
-                    }
-                )
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background,
+                ) {
+                    NavigationPage(
+                        wallpaperViewModel = wallpaperViewModel,
+                        billingViewModel = billingViewModel,
+                        topViewModel = topViewModel,
+                        isDarkModeEnabled = isDarkTheme,
+                        onDarkModeToggle = { it ->
+                            settingsViewModel.toggleDarkTheme(it)
+                        }
+                    )
+                }
             }
         }
     }
