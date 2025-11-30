@@ -44,8 +44,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.ImageLoader
 import com.palettex.palettewall.PaletteWallApplication
@@ -64,7 +64,7 @@ fun SeeMorePage(
     outerNav: NavController
 ) {
     val context = LocalContext.current
-    val seeMoreViewModel: SeeMoreViewModel = viewModel()
+    val seeMoreViewModel: SeeMoreViewModel = hiltViewModel()
 
     val listState = rememberLazyListState()
     val imageLoader = remember { ImageLoader(context) }

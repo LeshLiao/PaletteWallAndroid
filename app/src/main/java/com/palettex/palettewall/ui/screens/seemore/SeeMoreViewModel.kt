@@ -4,13 +4,18 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.palettex.palettewall.domain.model.WallpaperItem
-import com.palettex.palettewall.data.remote.RetrofitInstance
+import com.palettex.palettewall.data.remote.api.WallpaperApiService
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class SeeMoreViewModel : ViewModel() {
+@HiltViewModel
+class SeeMoreViewModel @Inject constructor(
+    private val apiService: WallpaperApiService
+) : ViewModel() {
     companion object {
         private val TAG = SeeMoreViewModel::class.java.simpleName + "_GDT"
         private const val PAGE_SIZE = 36
@@ -43,7 +48,7 @@ class SeeMoreViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 _isLoading.value = true
-                val result = RetrofitInstance.api.getWallpapersByPage(
+                val result = apiService.getWallpapersByPage(
                     page = currentPage,
                     pageSize = PAGE_SIZE,
                     catalog = currentCatalog
@@ -71,7 +76,7 @@ class SeeMoreViewModel : ViewModel() {
                 _isRefreshing.value = true
                 resetPagination()
 
-                val result = RetrofitInstance.api.getWallpapersByPage(
+                val result = apiService.getWallpapersByPage(
                     page = 0,
                     pageSize = PAGE_SIZE,
                     catalog = currentCatalog

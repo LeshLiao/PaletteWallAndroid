@@ -8,8 +8,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.firebase.analytics.ktx.analytics
-import com.google.firebase.ktx.Firebase
 import com.palettex.palettewall.BuildConfig
 import com.palettex.palettewall.data.remote.dto.BoardItem
 import com.palettex.palettewall.data.remote.dto.CatalogConfig
@@ -20,9 +18,16 @@ import com.palettex.palettewall.data.remote.dto.AppSettings
 import com.palettex.palettewall.data.remote.dto.CatalogItem
 import com.palettex.palettewall.data.remote.dto.PaginatedResponse
 import com.palettex.palettewall.domain.model.WallpaperItem
-import com.palettex.palettewall.data.remote.RetrofitInstance
+import com.palettex.palettewall.domain.usecase.GetAllWallpapersUseCase
+import com.palettex.palettewall.domain.usecase.GetAppSettingsUseCase
+import com.palettex.palettewall.domain.usecase.GetBoardsUseCase
+import com.palettex.palettewall.domain.usecase.GetCatalogsUseCase
+import com.palettex.palettewall.domain.usecase.GetPopularWallpapersUseCase
+import com.palettex.palettewall.domain.usecase.GetWallpapersByPageUseCase
+import com.palettex.palettewall.domain.usecase.SendLogEventUseCase
 import com.palettex.palettewall.ui.components.getImageSourceFromAssets
 import com.palettex.palettewall.domain.utils.handleImageInfo
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -32,9 +37,18 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Locale
 import kotlin.math.sqrt
+import javax.inject.Inject
 
-open class HomeViewModel(
-    private val analytics: FirebaseAnalytics = Firebase.analytics
+@HiltViewModel
+open class HomeViewModel @Inject constructor(
+    private val analytics: FirebaseAnalytics,
+    private val getPopularWallpapersUseCase: GetPopularWallpapersUseCase,
+    private val getAllWallpapersUseCase: GetAllWallpapersUseCase,
+    private val getWallpapersByPageUseCase: GetWallpapersByPageUseCase,
+    private val getCatalogsUseCase: GetCatalogsUseCase,
+    private val getBoardsUseCase: GetBoardsUseCase,
+    private val getAppSettingsUseCase: GetAppSettingsUseCase,
+    private val sendLogEventUseCase: SendLogEventUseCase
 ) : ViewModel() {
 
     companion object {
@@ -252,26 +266,27 @@ open class HomeViewModel(
 
     private fun fetchPopularWallpapers() {
         viewModelScope.launch {
-            try {
-                val popularWallpapers = RetrofitInstance.api.getPopular(16)
-                _popularWallpapers.value = popularWallpapers
-            } catch (e: Exception) {
-                Log.e(TAG, "Error fetching wallpapers: ${e.message}")
-            }
+            getPopularWallpapersUseCase(16)
+                .onSuccess { popularWallpapers ->
+                    _popularWallpapers.value = popularWallpapers
+                }
+                .onFailure { error ->
+                    Log.e(TAG, "Error fetching popular wallpapers: ${error.message}")
+                }
         }
     }
 
     fun fetchAllWallpapersToCarouselAll() {
         viewModelScope.launch {
-            try {
-                val allWallpapers = RetrofitInstance.api.getWallpapers().shuffled()
-                _carouselAllWallpapers.value = allWallpapers
-
-                // Calculate and print most common 20 tags (excluding color tags)
-                // printMostCommonTags(allWallpapers)
-            } catch (e: Exception) {
-                Log.e(TAG, "Error fetching wallpapers: ${e.message}")
-            }
+            getAllWallpapersUseCase()
+                .onSuccess { allWallpapers ->
+                    _carouselAllWallpapers.value = allWallpapers.shuffled()
+                    // Calculate and print most common 20 tags (excluding color tags)
+                    // printMostCommonTags(allWallpapers)
+                }
+                .onFailure { error ->
+                    Log.e(TAG, "Error fetching all wallpapers: ${error.message}")
+                }
         }
     }
 
@@ -386,52 +401,57 @@ open class HomeViewModel(
 
     private fun getCatalogs() {
         viewModelScope.launch {
-            try {
-                _catalogs.value = RetrofitInstance.api.getCatalogs()
-            } catch (e: Exception) {
-                Log.e(TAG, "Error(getCatalogs):$e")
-            }
+            getCatalogsUseCase()
+                .onSuccess { catalogs ->
+                    _catalogs.value = catalogs
+                }
+                .onFailure { error ->
+                    Log.e(TAG, "Error(getCatalogs): ${error.message}")
+                }
         }
     }
 
     private fun getBoards() {
         viewModelScope.launch {
-            try {
-                _boards.value = RetrofitInstance.api.getBoards()
-            } catch (e: Exception) {
-                Log.e(TAG, "Error(getBoards):$e")
-            }
+            getBoardsUseCase()
+                .onSuccess { boards ->
+                    _boards.value = boards
+                }
+                .onFailure { error ->
+                    Log.e(TAG, "Error(getBoards): ${error.message}")
+                }
         }
     }
 
     private fun getAppSettings() {
         viewModelScope.launch {
-            try {
-                _appSettings.value = RetrofitInstance.api.getAppSettings()
-            } catch (e: Exception) {
-                Log.e(TAG, "Error(getAppSettings):$e")
-            }
+            getAppSettingsUseCase()
+                .onSuccess { settings ->
+                    _appSettings.value = settings
+                }
+                .onFailure { error ->
+                    Log.e(TAG, "Error(getAppSettings): ${error.message}")
+                }
         }
     }
 
     fun sendLogEvent(itemId: String, eventType: String) {
         viewModelScope.launch {
-            try {
-                val request = LogEventRequest(
-                    itemId = itemId,
-                    appVersion = _versionName.value,
-                    eventType = eventType,
-                    manufacturer = Build.MANUFACTURER,
-                    model = Build.MODEL,
-                    release = Build.VERSION.RELEASE,
-                    sdk = Build.VERSION.SDK_INT.toString(),
-                    country = Locale.getDefault().country,
-                )
+            val request = LogEventRequest(
+                itemId = itemId,
+                appVersion = _versionName.value,
+                eventType = eventType,
+                manufacturer = Build.MANUFACTURER,
+                model = Build.MODEL,
+                release = Build.VERSION.RELEASE,
+                sdk = Build.VERSION.SDK_INT.toString(),
+                country = Locale.getDefault().country,
+            )
 
-                RetrofitInstance.api.sendLogEvent(request)
-            } catch (e: Exception) {
-                Log.e(TAG, "Error sendLogEvent(): $e")
-            }
+            sendLogEventUseCase(request)
+                .onFailure { error ->
+                    Log.e(TAG, "Error sendLogEvent(): ${error.message}")
+                }
         }
     }
 
@@ -630,38 +650,22 @@ open class HomeViewModel(
     }
 
     private suspend fun fetchWallpapers(page: Int, pageSize: Int): PaginatedResponse {
-        return try {
-            val catalog = _currentCatalog.value
-            if (catalog == "Wallpapers" || catalog.isEmpty()) {
-                RetrofitInstance.api.getWallpapersByPage(
-                    page = page,
-                    pageSize = pageSize,
-                    catalog = ""
-                )
-            } else {
-                RetrofitInstance.api.getWallpapersByPage(
-                    page = page,
-                    pageSize = pageSize,
-                    catalog = catalog     // set filter by tag
-                )
+        val catalog = _currentCatalog.value
+        val catalogParam = if (catalog == "Wallpapers" || catalog.isEmpty()) "" else catalog
+
+        return getWallpapersByPageUseCase(page, pageSize, catalogParam)
+            .getOrElse { error ->
+                Log.e(TAG, "Error fetching wallpapers: ${error.message}")
+                PaginatedResponse(emptyList(), page, 1, 0, false)
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error fetching wallpapers: ${e.message}")
-            PaginatedResponse(emptyList(), page, 1, 0, false)
-        }
     }
 
     private suspend fun fetchSpecificWallpapers(page: Int, pageSize: Int, catalog : String): PaginatedResponse {
-        return try {
-            RetrofitInstance.api.getWallpapersByPage(
-                page = page,
-                pageSize = pageSize,
-                catalog = catalog     // set filter by tag
-            )
-        } catch (e: Exception) {
-            Log.e(TAG, "Error fetching wallpapers: ${e.message}")
-            PaginatedResponse(emptyList(), page, 1, 0, false)
-        }
+        return getWallpapersByPageUseCase(page, pageSize, catalog)
+            .getOrElse { error ->
+                Log.e(TAG, "Error fetching specific wallpapers: ${error.message}")
+                PaginatedResponse(emptyList(), page, 1, 0, false)
+            }
     }
 
     // Replace your loadMoreWallpapers function with this improved version

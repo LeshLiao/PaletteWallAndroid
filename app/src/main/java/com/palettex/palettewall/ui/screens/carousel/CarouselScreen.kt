@@ -347,11 +347,3 @@ fun WallpaperCarousel(
         Spacer(modifier = Modifier.height(bottomOffset))
     }
 }
-@Preview(showBackground = true)
-@Composable
-fun PreviewTestCarousel() {
-    val navController = rememberNavController()
-    val mockHomeViewModel = HomeViewModel().apply {}
-    val mockTopBarViewModel = TopBarViewModel().apply {}
-    CarouselPage(100.dp, 100.dp, navController , mockHomeViewModel, mockTopBarViewModel)
-}

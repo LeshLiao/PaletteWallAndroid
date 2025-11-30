@@ -55,9 +55,7 @@ class MainActivity : ComponentActivity() {
     private val wallpaperViewModel: HomeViewModel by viewModels()
     private val topViewModel: TopBarViewModel by viewModels()
     private val settingsViewModel: SettingsViewModel by viewModels()
-    private val billingViewModel: BillingViewModel by viewModels {
-        BillingViewModel.Factory(this)
-    }
+    private val billingViewModel: BillingViewModel by viewModels()
 
     // App update related variables
     private lateinit var appUpdateManager: AppUpdateManager

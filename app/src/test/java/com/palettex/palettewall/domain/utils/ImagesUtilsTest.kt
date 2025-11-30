@@ -1,7 +1,6 @@
-package com.palettex.palettewall
+package com.palettex.palettewall.domain.utils
 
-import com.palettex.palettewall.domain.utils.handleImageInfo
-import org.junit.Assert.assertEquals
+import org.junit.Assert
 import org.junit.Test
 
 class ImagesUtilsTest {
@@ -19,14 +18,14 @@ class ImagesUtilsTest {
             Catalog: Nature, Landscape
         """.trimIndent()
 
-        assertEquals(expected, result)
+        Assert.assertEquals(expected, result)
     }
 
     @Test
     fun `handleImageInfo returns only name when no tags`() {
         val result = handleImageInfo("Wallpaper", emptyList())
 
-        assertEquals("Wallpaper", result)
+        Assert.assertEquals("Wallpaper", result)
     }
 
     @Test
@@ -40,7 +39,7 @@ class ImagesUtilsTest {
             Catalog: Abstract
         """.trimIndent()
 
-        assertEquals(expected, result)
+        Assert.assertEquals(expected, result)
     }
 
     @Test
@@ -56,7 +55,7 @@ class ImagesUtilsTest {
             Catalog: Nature
         """.trimIndent()
 
-        assertEquals(expected, result)
+        Assert.assertEquals(expected, result)
     }
 
     @Test
@@ -71,6 +70,6 @@ class ImagesUtilsTest {
             Colors: #FF0000, #00FF00
         """.trimIndent()
 
-        assertEquals(expected, result)
+        Assert.assertEquals(expected, result)
     }
 }
