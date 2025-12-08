@@ -1,8 +1,6 @@
 package com.palettex.palettewall.ui.components
 
 
-import android.app.Activity
-import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -17,29 +15,20 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.palettex.palettewall.R
 import com.palettex.palettewall.ui.screens.home.BillingViewModel
-import com.palettex.palettewall.ui.screens.home.HomeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun PremiumModal(
+fun AvailableDownloadPremiumModal(
     billingViewModel: BillingViewModel,
     onDismissRequest: () -> Unit = {},
     onAdWatchedAndStartDownload: () -> Unit
 ) {
-    val isPremium by billingViewModel.isPremium.collectAsState()
 
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true  // Avoid partially expanded state
