@@ -1,5 +1,7 @@
 package com.palettex.palettewall.ui.components
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,30 +11,34 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.ImageLoader
 import com.palettex.palettewall.PaletteWallApplication
+import com.palettex.palettewall.R
 import com.palettex.palettewall.domain.model.ImageItem
 import com.palettex.palettewall.domain.model.WallpaperItem
-import com.palettex.palettewall.ui.components.getImageSourceFromAssets
 
 @Composable
 fun RowWallpapers(
     title: String,
     wallpapers: List<WallpaperItem>,
     onSeeMore: () -> Unit,
+    showDiamond: Boolean = true,
     onClick: (itemId: String) -> Unit
 ) {
     val context = LocalContext.current
@@ -70,7 +76,7 @@ fun RowWallpapers(
                     val imageSource = imageUrl.getImageSourceFromAssets(context, imageCacheList)
                     val blurSource = blurImageUrl.getImageSourceFromAssets(context, imageCacheList)
 
-                    Card(
+                    Box(
                         modifier = Modifier
                             .fillMaxHeight()
                             .aspectRatio(0.5f)
@@ -78,12 +84,10 @@ fun RowWallpapers(
                             .clickable {
                                 onClick(wallpaper.itemId)
                             }
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color(0xFF111111))
                             .testTag("wallpaper_card"),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = CardDefaults.cardColors(
-                            // containerColor = MaterialTheme.colorScheme.background
-                            containerColor = Color(0xFF111111)
-                        )
+                        contentAlignment = Alignment.Center,
                     ) {
                         Box(modifier = Modifier.fillMaxSize()) {
                             ProgressiveImageLoaderBest(
@@ -91,6 +95,29 @@ fun RowWallpapers(
                                 fullImageSource = imageSource,
                                 imageLoader = imageLoader
                             )
+                        }
+
+                        if (showDiamond) {
+                            Box(
+                                modifier = Modifier.align(Alignment.BottomEnd)
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .height(40.dp)
+                                        .width(40.dp),
+                                    verticalArrangement = Arrangement.Center,
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    if (!wallpaper.freeDownload) {
+                                        Image(
+                                            painter = painterResource(R.drawable.diamond),
+                                            contentDescription = null,
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }

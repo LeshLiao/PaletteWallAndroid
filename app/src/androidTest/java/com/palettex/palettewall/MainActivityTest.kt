@@ -95,20 +95,10 @@ class MainActivityTest {
         // Wait for the "Go Premium" button to appear
         composeTestRule.waitUntil(timeoutMillis = 5000) {
             composeTestRule
-                .onAllNodesWithText(composeTestRule.activity.getString(R.string.go_premium))
+                .onAllNodesWithText(composeTestRule.activity.getString(R.string.show_ad_free_download))
                 .fetchSemanticsNodes()
                 .isNotEmpty()
         }
-
-        // Click the "Go Premium" button
-        composeTestRule.onNodeWithText(composeTestRule.activity.getString(R.string.go_premium))
-            .assertIsDisplayed()
-            .assertIsEnabled()
-            .performClick()
-
-        // Verify we're still in the fullscreen view
-        composeTestRule.onNodeWithTag("download_button")
-            .assertExists()
 
         Thread.sleep(2000)
     }

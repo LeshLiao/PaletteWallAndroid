@@ -51,7 +51,7 @@ fun NormalModal(
     wallpaperViewModel: HomeViewModel,
     billingViewModel: BillingViewModel,
     loadingAds: () -> Unit,
-    showSubscriptions: () -> Unit,
+    showPayment: () -> Unit,
     onAdWatchedAndStartDownload: () -> Unit
 ) {
     val isPremium by billingViewModel.isPremium.collectAsState()
@@ -168,8 +168,9 @@ fun NormalModal(
                             }
                         }
                     }
-                    Spacer(Modifier.height(1.dp))
-                    CommonButton(stringResource(R.string.go_premium)) { showSubscriptions() }
+                    // NOTE: Change it to one time purchase instead of Subscription
+                    // Spacer(Modifier.height(1.dp))
+                    // CommonButton(stringResource(R.string.go_premium)) { showSubscriptions() }
                     Spacer(Modifier.height(8.dp))
                     CommonButton(stringResource(R.string.cancel)) { onDismissRequest() }
                 } else {
@@ -196,7 +197,7 @@ fun NormalModal(
                 }
             } else {
                 Spacer(Modifier.height(1.dp))
-                CommonButton(stringResource(R.string.go_premium)) { showSubscriptions() }
+                CommonButton(stringResource(R.string.get_this_wallpaper)) { showPayment() }
                 Spacer(Modifier.height(8.dp))
                 CommonButton(stringResource(R.string.cancel)) { onDismissRequest() }
             }
