@@ -62,16 +62,13 @@ import com.palettex.palettewall.R
 import com.palettex.palettewall.data.local.database.WallpaperDatabase
 import com.palettex.palettewall.ui.components.LikeButton
 import com.palettex.palettewall.ui.components.NormalModal
-import com.palettex.palettewall.ui.components.PremiumModal
+import com.palettex.palettewall.ui.components.OneTimePurchaseModal
+import com.palettex.palettewall.ui.components.AvailableDownloadPremiumModal
 import com.palettex.palettewall.ui.components.ProgressiveImageLoaderBest
 import com.palettex.palettewall.ui.components.ShareButton
 import com.palettex.palettewall.ui.components.ShowDownloadDialog
 import com.palettex.palettewall.ui.components.SubscriptionModal
 import com.palettex.palettewall.ui.components.utility.throttleClick
-import com.palettex.palettewall.ui.screens.home.AndroidDownloader
-import com.palettex.palettewall.ui.screens.home.BillingViewModel
-import com.palettex.palettewall.ui.screens.home.TopBarViewModel
-import com.palettex.palettewall.ui.screens.home.HomeViewModel
 import kotlin.math.abs
 
 @SuppressLint("UnrememberedMutableState")
@@ -90,8 +87,9 @@ fun FullscreenScreen(
     var msg by remember { mutableStateOf("") }
     var currentItemId by remember { mutableStateOf(itemId) }
     var showNormalModel by remember { mutableStateOf(false) }
-    var showPremiumModel by remember { mutableStateOf(false) }
+    var showAvailableDownloadPremiumModel by remember { mutableStateOf(false) }
     var showSubscriptionMenu by remember { mutableStateOf(false) }
+    var showOneTimePurchaseMenu by remember { mutableStateOf(false) }
     var isButtonVisible by remember { mutableStateOf(true) }
     val downloadBtnStatus by wallpaperViewModel.downloadBtnStatus.collectAsState()
     val loadAdsBtnStatus by wallpaperViewModel.loadAdsBtnStatus.collectAsState()
@@ -99,6 +97,9 @@ fun FullscreenScreen(
     val currentBlurImage by wallpaperViewModel.currentBlurImage.collectAsState()
     val isCurrentFreeDownload by wallpaperViewModel.isCurrentFreeDownload.collectAsState()
     val isPremium by billingViewModel.isPremium.collectAsState()
+
+    val isAlreadyPurchase by billingViewModel.isAlreadyPurchase.collectAsState()
+
     val fullScreenWallpapers by wallpaperViewModel.fullScreenWallpapers.collectAsState()
     val coroutineScope = rememberCoroutineScope()
     val database = remember { WallpaperDatabase.getDatabase(context) }
@@ -114,12 +115,16 @@ fun FullscreenScreen(
     LaunchedEffect(itemId) {
         Log.d("GDT", "currentItemId = $currentItemId")
         wallpaperViewModel.setThumbnailImageByItemId(currentItemId, "HD", context, cache)
+        // Set the current product ID to check if it's already purchased
+        billingViewModel.setCurrentProductId(currentItemId)
     }
 
     LaunchedEffect(currentItemId) {
         wallpaperViewModel.updateDownloadBtnStatus(0)
         wallpaperViewModel.updateLoadAdsBtnStatus(false)
         wallpaperViewModel.setFullScreenStatus(true)
+        // Update the current product ID when itemId changes (e.g., when swiping)
+        billingViewModel.setCurrentProductId(currentItemId)
     }
 
     DisposableEffect(currentItemId) {
@@ -211,6 +216,8 @@ fun FullscreenScreen(
                                     .align(Alignment.BottomCenter)
                             ) {
                                 val imageTitle = wallpaperViewModel.getImageInfoByItemId(currentItemId)
+                                Log.d("GDT","image info=")
+                                Log.d("GDT",imageTitle)
                                 ImageInformation(imageTitle)
                             }
                         }
@@ -250,8 +257,8 @@ fun FullscreenScreen(
                                             AnimatedFloatingActionButton(
                                                 onClick = {
                                                     if (downloadBtnStatus == 0) {
-                                                        if (isPremium) {
-                                                            showPremiumModel = true
+                                                        if (isPremium || isAlreadyPurchase) {
+                                                            showAvailableDownloadPremiumModel = true
                                                         } else {
                                                             showNormalModel = true
                                                         }
@@ -295,9 +302,10 @@ fun FullscreenScreen(
             wallpaperViewModel = wallpaperViewModel,
             billingViewModel = billingViewModel,
             loadingAds = { wallpaperViewModel.updateLoadAdsBtnStatus(true) },
-            showSubscriptions = {
+            showPayment = {
                 showNormalModel = false
-                showSubscriptionMenu = true
+                // showSubscriptionMenu = true
+                showOneTimePurchaseMenu = true
             },
             onAdWatchedAndStartDownload = {
                 Log.d("GDT","onAdWatchedAndStartDownload() click!!!!!!")
@@ -315,10 +323,10 @@ fun FullscreenScreen(
         )
     }
 
-    if (showPremiumModel) {
-        PremiumModal(
+    if (showAvailableDownloadPremiumModel) {
+        AvailableDownloadPremiumModal(
             billingViewModel = billingViewModel,
-            onDismissRequest = { showPremiumModel = false },
+            onDismissRequest = { showAvailableDownloadPremiumModel = false },
             onAdWatchedAndStartDownload = {
                 Log.d("GDT","onAdWatchedAndStartDownload() click!!!!!!")
                 wallpaperViewModel.updateDownloadBtnStatus(1)
@@ -339,6 +347,15 @@ fun FullscreenScreen(
         SubscriptionModal(
             context = context,
             onDismissRequest = { showSubscriptionMenu = false },
+            billingViewModel = billingViewModel
+        )
+    }
+
+    if (showOneTimePurchaseMenu) {
+        OneTimePurchaseModal(
+            context = context,
+            onDismissRequest = { showOneTimePurchaseMenu = false },
+            currentItemId = currentItemId,
             billingViewModel = billingViewModel
         )
     }
