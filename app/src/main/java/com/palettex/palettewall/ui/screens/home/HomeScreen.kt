@@ -93,7 +93,7 @@ fun PaletteWallPage(
                     CarouselPage(topOffset, bottomOffset, navController, wallpaperViewModel, topViewModel)
                 }
                 composable("Favorite") {
-                    LikeCollection(topViewModel, wallpaperViewModel, navController, topOffset, bottomOffset)
+                    LikeCollection(topViewModel, wallpaperViewModel, navController, topOffset, bottomOffset, billingViewModel)
                 }
                 composable("AboutUs") {
                     AboutUs(navController)

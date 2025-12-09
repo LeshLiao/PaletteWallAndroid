@@ -39,6 +39,7 @@ fun RowWallpapers(
     wallpapers: List<WallpaperItem>,
     onSeeMore: () -> Unit,
     showDiamond: Boolean = true,
+    isShowLabel: Boolean = false,
     onClick: (itemId: String) -> Unit
 ) {
     val context = LocalContext.current
@@ -48,6 +49,7 @@ fun RowWallpapers(
     Column {
         Titles(
             title = title,
+            isShowLabel = isShowLabel,
             modifier = Modifier.padding(16.dp, 6.dp, 16.dp, 4.dp)
         ) {
             onSeeMore()

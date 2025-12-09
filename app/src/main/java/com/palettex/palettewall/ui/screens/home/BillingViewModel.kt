@@ -91,6 +91,9 @@ class BillingViewModel @Inject constructor(
                 }
             }
 
+            // mock purchased data test
+            // purchasedIds.add("20251101_0859_1ae4cbbe")
+
             _purchasedProductIds.value = purchasedIds
             Log.d("GDT", "All purchased product IDs: ${purchasedIds.joinToString()}")
 
@@ -103,14 +106,18 @@ class BillingViewModel @Inject constructor(
                 purchase.products.any {
                     it == "monthly_premium" ||
                     it == "weekly_premium"
-                } &&
-                        purchase.purchaseState == Purchase.PurchaseState.PURCHASED
+                } && purchase.purchaseState == Purchase.PurchaseState.PURCHASED
             }
 
             _isPremium.value = hasPremium
 //            _isPremium.value = true // TODO: test
         }
     }
+
+    private val subscriptionProductIds = setOf(
+        "weekly_premium",
+        "monthly_premium"
+    )
 
     private suspend fun handlePurchase(purchase: Purchase) {
         if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
@@ -130,7 +137,11 @@ class BillingViewModel @Inject constructor(
             // Update isAlreadyPurchase based on current product ID
             updateIsAlreadyPurchase()
 
-            _isPremium.value = true
+            val isSubscriptionPurchase = productIds.any { it in subscriptionProductIds }
+
+            if (isSubscriptionPurchase) {
+                _isPremium.value = true
+            }
 
             if (!purchase.isAcknowledged) {
                 val acknowledgePurchaseParams = AcknowledgePurchaseParams.newBuilder()

@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
+//import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -50,6 +51,7 @@ import coil.ImageLoader
 import com.palettex.palettewall.PaletteWallApplication
 import com.palettex.palettewall.R
 import com.palettex.palettewall.data.local.database.WallpaperDatabase
+import com.palettex.palettewall.ui.components.AutoScrollImagePager
 import com.palettex.palettewall.ui.components.getImageSourceFromAssets
 import com.palettex.palettewall.ui.components.ProgressiveImageLoaderBest
 import com.palettex.palettewall.ui.components.RowWallpapers
@@ -183,10 +185,11 @@ fun ScrollingContent(
 
             item {
                 if (boards.isNotEmpty()) {
-                    AutoScrollCarousel(
-                        items = boards.map { it.photoUrl },
-                        autoScrollDelay = 3000L,
-                        itemSpacing = 12,
+                    AutoScrollImagePager(
+                        images = boards.map { it.photoUrl },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 12.dp, horizontal = 8.dp),
                         onItemClick = { index ->
                             val board = boards[index]
                             when (board.action) {
@@ -220,6 +223,7 @@ fun ScrollingContent(
                             RowWallpapers(
                                 title = config.title,
                                 wallpapers = catalogItems,
+                                isShowLabel = (config.title == "Anime"),
                                 onSeeMore = {
                                     outerNav.navigate("see_more/${config.key}")
                                 }
