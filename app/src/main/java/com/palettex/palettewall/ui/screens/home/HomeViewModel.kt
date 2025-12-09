@@ -80,8 +80,8 @@ open class HomeViewModel @Inject constructor(
     private val _carouselAllWallpapers = MutableStateFlow<List<WallpaperItem>>(emptyList())
     val carouselAllWallpapers: StateFlow<List<WallpaperItem>> = _carouselAllWallpapers
 
-    private val _likeWallpapers = MutableStateFlow<List<WallpaperItem>>(emptyList())
-    val likeWallpapers: StateFlow<List<WallpaperItem>> = _likeWallpapers
+    private val _collectionWallpapers = MutableStateFlow<List<WallpaperItem>>(emptyList())
+    val collectionWallpapers: StateFlow<List<WallpaperItem>> = _collectionWallpapers
 
     private val _downloadBtnStatus = MutableStateFlow(0)
     val downloadBtnStatus: StateFlow<Int> = _downloadBtnStatus
@@ -157,7 +157,7 @@ open class HomeViewModel @Inject constructor(
         }
         .stateIn(
             viewModelScope,
-            SharingStarted.WhileSubscribed(5000L),
+            SharingStarted.WhileSubscribed(60000L), // Wait 60 seconds before stopping flow (allows pending API refresh)
             false
         )
 
@@ -320,12 +320,18 @@ open class HomeViewModel @Inject constructor(
         Log.d(TAG, "=".repeat(60))
     }
 
-    fun initLikeCollection(likeList: List<LikedWallpaper>) {
+    fun initCollections(likeList: List<LikedWallpaper>, purchasedList: Set<String>) {
         // Log.d("GDT", "initLikeCollection")
         viewModelScope.launch {
-            // Check if either list is empty to avoid unnecessary processing
-            if (likeList.isEmpty() || _carouselAllWallpapers.value.isEmpty()) {
-                _likeWallpapers.value = emptyList()
+            // Check if both lists are empty to avoid unnecessary processing
+            if (likeList.isEmpty() && purchasedList.isEmpty()) {
+                _collectionWallpapers.value = emptyList()
+                return@launch
+            }
+
+            // Wait for carouselAllWallpapers to be loaded
+            if (_carouselAllWallpapers.value.isEmpty()) {
+                _collectionWallpapers.value = emptyList()
                 return@launch
             }
 
@@ -334,13 +340,22 @@ open class HomeViewModel @Inject constructor(
 
             // Map each liked wallpaper to its corresponding WallpaperItem
             // This preserves the exact order from the database (newest first)
-            val orderedWallpapers = likeList.mapNotNull { likedWallpaper ->
+            val likedWallpapers = likeList.mapNotNull { likedWallpaper ->
                 wallpaperItemsMap[likedWallpaper.wallpaperId]
             }
 
-            // Set the ordered matched wallpapers to _likeWallpapers
-            _likeWallpapers.value = orderedWallpapers
-            // Log.d(TAG, "Liked wallpapers initialized with ${orderedWallpapers.size} items in timestamp order")
+            // Map purchased wallpapers
+            val purchasedWallpapers = purchasedList.mapNotNull { itemId ->
+                wallpaperItemsMap[itemId]
+            }
+
+            // Combine both lists, removing duplicates (in case a wallpaper is both liked and purchased)
+            // Liked wallpapers come first to preserve their timestamp order
+            val combinedWallpapers = (purchasedWallpapers + likedWallpapers).distinctBy { it.itemId }
+
+            // Set the combined list to _collectionWallpapers
+            _collectionWallpapers.value = combinedWallpapers
+            // Log.d(TAG, "Collection wallpapers initialized with ${combinedWallpapers.size} items (${likedWallpapers.size} liked, ${purchasedWallpapers.size} purchased)")
         }
     }
 

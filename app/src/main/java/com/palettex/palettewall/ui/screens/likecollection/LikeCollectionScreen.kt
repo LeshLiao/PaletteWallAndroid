@@ -1,6 +1,7 @@
 package com.palettex.palettewall.ui.screens.home
 
 import android.content.Context
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -18,6 +19,8 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -32,18 +35,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.palettex.palettewall.PaletteWallApplication
 import com.palettex.palettewall.R
 import com.palettex.palettewall.data.local.database.WallpaperDatabase
 import com.palettex.palettewall.ui.components.getImageSourceFromAssets
-import com.palettex.palettewall.ui.screens.home.TopBarViewModel
-import com.palettex.palettewall.ui.screens.home.HomeViewModel
 
 @Composable
 fun LikeCollection(
@@ -52,6 +51,7 @@ fun LikeCollection(
     navController: NavController,
     topOffset: Dp,
     bottomOffset: Dp,
+    billingViewModel: BillingViewModel,
     context: Context = LocalContext.current
 ) {
     val database = remember { WallpaperDatabase.getDatabase(context) }
@@ -59,11 +59,12 @@ fun LikeCollection(
     val likedItemsDb by dao.getAllLikedWallpapers().collectAsState(initial = emptyList())
     val topSystemOffset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val carouselAllWallpapers by wallpaperViewModel.carouselAllWallpapers.collectAsState()
-    val likeWallpapers by wallpaperViewModel.likeWallpapers.collectAsState()
+    val collectionWallpapers by wallpaperViewModel.collectionWallpapers.collectAsState()
+    val purchasedWallpapers by billingViewModel.purchasedProductIds.collectAsState()
     val imageCacheList = PaletteWallApplication.imageCacheList
 
-    LaunchedEffect(likedItemsDb, carouselAllWallpapers) {
-        wallpaperViewModel.initLikeCollection(likedItemsDb)
+    LaunchedEffect(likedItemsDb, carouselAllWallpapers, purchasedWallpapers) {
+        wallpaperViewModel.initCollections(likedItemsDb, purchasedWallpapers)
     }
 
     LaunchedEffect(Unit) {
@@ -78,7 +79,7 @@ fun LikeCollection(
             .background(MaterialTheme.colorScheme.background)
             .padding(top = topOffset, bottom = bottomOffset)
     ) {
-        if (likeWallpapers.isEmpty()) {
+        if (collectionWallpapers.isEmpty()) {
             EmptyBox()
         } else {
             LazyVerticalGrid(
@@ -88,27 +89,48 @@ fun LikeCollection(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(likeWallpapers.size) { index ->
-                    val wallpaper = likeWallpapers[index]
-                    val imageUrl = likeWallpapers[index].imageList.firstOrNull {
+                items(collectionWallpapers.size) { index ->
+                    val wallpaper = collectionWallpapers[index]
+                    val imageUrl = collectionWallpapers[index].imageList.firstOrNull {
                         it.type == "HD" && it.link.isNotEmpty()
                     }?.link ?: ""
 
                     val imageSource = imageUrl.getImageSourceFromAssets(context, imageCacheList)
 
-                    AsyncImage(
-                        model = imageSource,
-                        contentDescription = null,
+                    Box(
                         modifier = Modifier
                             .aspectRatio(9f / 18f)
                             .clip(RoundedCornerShape(8.dp))
-                            .clickable {
-                                topViewModel.hideTopBar()
-                                wallpaperViewModel.initFullScreenDataSourceByList(likeWallpapers)
-                                navController.navigate("fullscreen/${wallpaper.itemId}")
-                            },
-                        contentScale = ContentScale.Crop
-                    )
+                    ) {
+                        AsyncImage(
+                            model = imageSource,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clickable {
+                                    topViewModel.hideTopBar()
+                                    wallpaperViewModel.initFullScreenDataSourceByList(collectionWallpapers)
+                                    navController.navigate("fullscreen/${wallpaper.itemId}")
+                                },
+                            contentScale = ContentScale.Crop
+                        )
+
+                        if (purchasedWallpapers.contains(wallpaper.itemId)) {
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.BottomEnd)
+                                    .size(56.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Image(
+                                    painterResource(R.drawable.icon_purchased),
+                                    contentDescription = "",
+                                    contentScale = ContentScale.Fit,
+                                    modifier = Modifier.size(32.dp)
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
