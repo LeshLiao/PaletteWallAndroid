@@ -26,9 +26,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.palettex.palettewall.ui.screens.home.BillingViewModel
-import com.palettex.palettewall.ui.screens.home.TopBarViewModel
-import com.palettex.palettewall.ui.screens.home.HomeViewModel
 import kotlinx.coroutines.CoroutineScope
 
 @Composable
@@ -87,7 +84,7 @@ fun PaletteWallPage(
                 startDestination = startDestination,
             ) {
                 composable("Home") {
-                    ScrollingContent(bottomOffset, topViewModel, outerNav, navController, wallpaperViewModel, billingViewModel)
+                    MainPageContent(bottomOffset, topViewModel, outerNav, navController, wallpaperViewModel, billingViewModel)
                 }
                 composable("Carousel") {
                     CarouselPage(topOffset, bottomOffset, navController, wallpaperViewModel, topViewModel)
