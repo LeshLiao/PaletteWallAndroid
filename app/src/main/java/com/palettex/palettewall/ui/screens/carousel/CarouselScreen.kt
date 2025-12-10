@@ -30,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,6 +57,7 @@ import com.palettex.palettewall.data.local.database.WallpaperDatabase
 import com.palettex.palettewall.domain.model.WallpaperItem
 import com.palettex.palettewall.ui.components.getImageSourceFromAssets
 import com.palettex.palettewall.ui.components.ColorPaletteMatrix
+import com.palettex.palettewall.ui.components.FilterChipRow
 import com.palettex.palettewall.ui.components.ImageSkeletonLoader
 import com.palettex.palettewall.ui.components.LikeButton
 import com.palettex.palettewall.ui.components.ProgressiveImageLoaderBest
@@ -81,6 +83,7 @@ fun CarouselPage(
     var colorSelectedList by remember { mutableStateOf<List<Color>>(emptyList()) }
     var colorBrowseList by remember { mutableStateOf<List<Color>>(emptyList()) }
     var carouselPagerState: PagerState? by remember { mutableStateOf(null) }
+    val selectedTags by wallpaperViewModel.selectedTags.collectAsState()
     val scope = rememberCoroutineScope()
 
     DisposableEffect(Unit) {
@@ -121,8 +124,25 @@ fun CarouselPage(
     Column {
         Spacer(modifier = Modifier.height(topOffset))
         ColorPaletteMatrix(wallpaperViewModel)
+
 //        ColorInfoDisplay(colorSelectedList) // Palette selected color
 //        ColorInfoDisplay(colorBrowseList) // Carousel Target color
+
+        val filters = listOf("Anime", "Nature", "Landscape", "Abstract", "Minimalistic", "Space", "Flowers")
+
+        FilterChipRow(
+            filters = filters,
+            selectedFilters = selectedTags,
+            onFilterSelected = { filter ->
+                val newSelectedTags = if (filter in selectedTags) {
+                    selectedTags - filter
+                } else {
+                    selectedTags + filter
+                }
+                wallpaperViewModel.setSelectedTags(newSelectedTags)
+            }
+        )
+
         Box(modifier = Modifier.fillMaxSize()) {
             WallpaperCarousel(
                 filterWallpapers = carouselWallpapers,

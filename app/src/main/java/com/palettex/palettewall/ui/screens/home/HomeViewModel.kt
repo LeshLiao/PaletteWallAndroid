@@ -133,6 +133,10 @@ open class HomeViewModel @Inject constructor(
     private val _catalogConfigs = MutableStateFlow<List<CatalogConfig>>(emptyList())
     val catalogConfigs: StateFlow<List<CatalogConfig>> = _catalogConfigs.asStateFlow()
 
+    // Add these properties to HomeViewModel
+    private val _selectedTags = MutableStateFlow<List<String>>(emptyList())
+    val selectedTags: StateFlow<List<String>> = _selectedTags.asStateFlow()
+
     // Pagination properties
     private var currentPage = 1
     private var isLastPage = false
@@ -541,15 +545,83 @@ open class HomeViewModel @Inject constructor(
             }
     }
 
-    private val FILTER_OUT_NUBMER = 20
+    private val FILTER_OUT_NUBMER = 30
+
+    // Update the filtering logic
+    // Update the filtering logic with AND logic for tags
     fun updateFilteredWallpapers() {
         viewModelScope.launch {
             val first = firstSelectedColor.value
             val second = secondSelectedColor.value
+            val tags = _selectedTags.value
 
             val filteredList = when {
+                // Has both colors and tags
+                first != null && second != null && tags.isNotEmpty() -> {
+                    _carouselAllWallpapers.value
+                        .filter { wallpaper ->
+                            // Check if wallpaper contains ALL selected tags (AND logic)
+                            tags.all { selectedTag ->
+                                wallpaper.tags.any { wallpaperTag ->
+                                    wallpaperTag.equals(selectedTag, ignoreCase = true)
+                                }
+                            }
+                        }
+                        .map { wallpaper ->
+                            val wallpaperColors = getWallpaperColors(wallpaper)
+                            val similarity = calculateDualColorSimilarity(first, second, wallpaperColors)
+                            wallpaper to similarity
+                        }
+                        .sortedBy { it.second }
+                        .take(FILTER_OUT_NUBMER)
+                        .map { it.first }
+                }
+                // Has first color and tags
+                first != null && tags.isNotEmpty() -> {
+                    _carouselAllWallpapers.value
+                        .filter { wallpaper ->
+                            // ALL selected tags must be present
+                            tags.all { selectedTag ->
+                                wallpaper.tags.any { wallpaperTag ->
+                                    wallpaperTag.equals(selectedTag, ignoreCase = true)
+                                }
+                            }
+                        }
+                        .map { wallpaper ->
+                            val wallpaperColors = getWallpaperColors(wallpaper)
+                            val similarity = wallpaperColors.minOfOrNull {
+                                calculateColorSimilarity(first, it)
+                            } ?: Double.MAX_VALUE
+                            wallpaper to similarity
+                        }
+                        .sortedBy { it.second }
+                        .take(FILTER_OUT_NUBMER)
+                        .map { it.first }
+                }
+                // Has second color and tags
+                second != null && tags.isNotEmpty() -> {
+                    _carouselAllWallpapers.value
+                        .filter { wallpaper ->
+                            // ALL selected tags must be present
+                            tags.all { selectedTag ->
+                                wallpaper.tags.any { wallpaperTag ->
+                                    wallpaperTag.equals(selectedTag, ignoreCase = true)
+                                }
+                            }
+                        }
+                        .map { wallpaper ->
+                            val wallpaperColors = getWallpaperColors(wallpaper)
+                            val similarity = wallpaperColors.minOfOrNull {
+                                calculateColorSimilarity(second, it)
+                            } ?: Double.MAX_VALUE
+                            wallpaper to similarity
+                        }
+                        .sortedBy { it.second }
+                        .take(FILTER_OUT_NUBMER)
+                        .map { it.first }
+                }
+                // Has both colors only
                 first != null && second != null -> {
-                    // Filter by both colors
                     _carouselAllWallpapers.value
                         .map { wallpaper ->
                             val wallpaperColors = getWallpaperColors(wallpaper)
@@ -560,8 +632,8 @@ open class HomeViewModel @Inject constructor(
                         .take(FILTER_OUT_NUBMER)
                         .map { it.first }
                 }
+                // Has first color only
                 first != null -> {
-                    // Filter by first color only
                     _carouselAllWallpapers.value
                         .map { wallpaper ->
                             val wallpaperColors = getWallpaperColors(wallpaper)
@@ -574,8 +646,8 @@ open class HomeViewModel @Inject constructor(
                         .take(FILTER_OUT_NUBMER)
                         .map { it.first }
                 }
+                // Has second color only
                 second != null -> {
-                    // Filter by second color only
                     _carouselAllWallpapers.value
                         .map { wallpaper ->
                             val wallpaperColors = getWallpaperColors(wallpaper)
@@ -588,13 +660,33 @@ open class HomeViewModel @Inject constructor(
                         .take(FILTER_OUT_NUBMER)
                         .map { it.first }
                 }
+                // Has tags only
+                tags.isNotEmpty() -> {
+                    _carouselAllWallpapers.value
+                        .filter { wallpaper ->
+                            // ALL selected tags must be present (AND logic)
+                            tags.all { selectedTag ->
+                                wallpaper.tags.any { wallpaperTag ->
+                                    wallpaperTag.equals(selectedTag, ignoreCase = true)
+                                }
+                            }
+                        }
+                        .shuffled()
+                        .take(FILTER_OUT_NUBMER)
+                }
+                // No filters - show random wallpapers
                 else -> {
-                    // No color selected - show 30 random wallpapers
                     _carouselAllWallpapers.value.shuffled().take(30)
                 }
             }
             _carouselWallpapers.value = filteredList
         }
+    }
+
+    // Add method to update selected tags
+    fun setSelectedTags(tags: List<String>) {
+        _selectedTags.value = tags
+        updateFilteredWallpapers()
     }
 
     // Update the color setter methods to trigger filtering
