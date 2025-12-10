@@ -94,6 +94,7 @@ fun FullscreenScreen(
     val downloadBtnStatus by wallpaperViewModel.downloadBtnStatus.collectAsState()
     val loadAdsBtnStatus by wallpaperViewModel.loadAdsBtnStatus.collectAsState()
     val currentImage by wallpaperViewModel.currentImage.collectAsState()
+    val shareSdCurrentImage by wallpaperViewModel.shareSdCurrentImage.collectAsState()
     val currentBlurImage by wallpaperViewModel.currentBlurImage.collectAsState()
     val isCurrentFreeDownload by wallpaperViewModel.isCurrentFreeDownload.collectAsState()
     val isPremium by billingViewModel.isPremium.collectAsState()
@@ -246,7 +247,7 @@ fun FullscreenScreen(
                                     verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    ShareButton(currentItemId, wallpaperViewModel, currentImage)
+                                    ShareButton(currentItemId, wallpaperViewModel, shareSdCurrentImage)
                                     Spacer(Modifier.size(16.dp))
                                     Column(
                                         modifier = Modifier.width(52.dp),

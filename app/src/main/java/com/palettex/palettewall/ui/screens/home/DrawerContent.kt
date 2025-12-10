@@ -26,6 +26,7 @@ import androidx.navigation.NavController
 import com.palettex.palettewall.ui.components.utility.throttleClick
 import com.palettex.palettewall.ui.screens.home.BillingViewModel
 import com.palettex.palettewall.ui.screens.home.HomeViewModel
+import com.palettex.palettewall.ui.theme.PhilosopherFontFamily
 import kotlinx.coroutines.launch
 
 @Composable
@@ -149,6 +150,7 @@ fun CatalogItem(
         Text(
             text = name.replaceFirstChar { it.uppercase() },
             color = MaterialTheme.colorScheme.primary,
+            fontFamily = PhilosopherFontFamily,
             modifier = Modifier
                 .padding(horizontal = 28.dp, vertical = 10.dp)
                 .throttleClick {

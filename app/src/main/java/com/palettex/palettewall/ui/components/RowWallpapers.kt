@@ -32,6 +32,7 @@ import com.palettex.palettewall.PaletteWallApplication
 import com.palettex.palettewall.R
 import com.palettex.palettewall.domain.model.ImageItem
 import com.palettex.palettewall.domain.model.WallpaperItem
+import com.palettex.palettewall.ui.components.utility.throttleClick
 
 @Composable
 fun RowWallpapers(
@@ -83,7 +84,7 @@ fun RowWallpapers(
                             .fillMaxHeight()
                             .aspectRatio(0.5f)
                             //.border(2.dp, rainbowColor, RoundedCornerShape(8.dp))
-                            .clickable {
+                            .throttleClick{
                                 onClick(wallpaper.itemId)
                             }
                             .clip(RoundedCornerShape(8.dp))

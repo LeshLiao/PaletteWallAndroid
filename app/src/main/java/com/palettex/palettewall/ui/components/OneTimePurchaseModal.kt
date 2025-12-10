@@ -17,7 +17,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsIgnoringVisibility
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -63,7 +65,7 @@ fun OneTimePurchaseModal(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
         scrimColor = Color.Black.copy(alpha = 0.5f), // Let gray area cover top system bar
-        windowInsets = WindowInsets.navigationBars // Let gray area cover top system bar
+        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing)
     ) {
         Card(
             modifier = Modifier
