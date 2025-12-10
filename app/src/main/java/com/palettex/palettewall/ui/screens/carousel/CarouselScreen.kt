@@ -280,6 +280,7 @@ fun WallpaperCarousel(
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        /*
         // Thumbnail LazyRow
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -344,6 +345,9 @@ fun WallpaperCarousel(
                 }
             }
         }
+
+
+         */
         Spacer(modifier = Modifier.height(bottomOffset))
     }
 }
