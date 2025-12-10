@@ -44,8 +44,10 @@ import com.palettex.palettewall.ui.screens.home.BillingViewModel
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -85,7 +87,7 @@ fun SubscriptionModal(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
         scrimColor = Color.Black.copy(alpha = 0.5f), // Let gray area cover top system bar
-        windowInsets = WindowInsets.navigationBars // Let gray area cover top system bar
+        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing)
     ) {
         SubscriptionOptions(
             weeklyPrice = weeklyPrice,

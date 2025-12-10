@@ -52,6 +52,7 @@ import com.palettex.palettewall.PaletteWallApplication
 import com.palettex.palettewall.R
 import com.palettex.palettewall.data.local.database.WallpaperDatabase
 import com.palettex.palettewall.ui.components.AutoScrollImagePager
+import com.palettex.palettewall.ui.components.Material3Carousel
 import com.palettex.palettewall.ui.components.getImageSourceFromAssets
 import com.palettex.palettewall.ui.components.ProgressiveImageLoaderBest
 import com.palettex.palettewall.ui.components.RowWallpapers
@@ -204,6 +205,10 @@ fun ScrollingContent(
                         }
                     )
                 }
+            }
+
+            item {
+                Material3Carousel()
             }
 
             if (showPopular) {
