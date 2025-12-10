@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.palettex.palettewall.ui.components.utility.throttleClick
+import com.palettex.palettewall.ui.theme.PhilosopherFontFamily
 
 @Composable
 fun Titles(
@@ -45,6 +46,7 @@ fun Titles(
                 text = title,
                 fontSize = fontSize,
                 fontWeight = FontWeight.W600,
+                fontFamily = PhilosopherFontFamily,
                 color = MaterialTheme.colorScheme.primary,
             )
 

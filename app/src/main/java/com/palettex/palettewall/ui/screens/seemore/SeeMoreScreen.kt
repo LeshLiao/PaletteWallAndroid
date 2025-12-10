@@ -55,6 +55,7 @@ import com.palettex.palettewall.ui.components.ProgressiveImageLoaderBest
 import com.palettex.palettewall.ui.components.utility.throttleClick
 import com.palettex.palettewall.ui.screens.seemore.SeeMoreViewModel
 import com.palettex.palettewall.ui.screens.home.HomeViewModel
+import com.palettex.palettewall.ui.theme.PhilosopherFontFamily
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -142,6 +143,7 @@ fun SeeMorePage(
                                 .align(Alignment.Center)
                                 .padding(16.dp),
                             text = title,
+                            fontFamily = PhilosopherFontFamily,
                             fontSize = 26.sp,
                             color = MaterialTheme.colorScheme.primary
                         )

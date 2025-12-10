@@ -27,12 +27,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight.Companion.Bold
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.palettex.palettewall.ui.components.utility.throttleClick
-import com.palettex.palettewall.ui.screens.home.TopBarViewModel
-import com.palettex.palettewall.ui.screens.home.HomeViewModel
+import com.palettex.palettewall.ui.theme.PhilosopherFontFamily
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -68,11 +68,13 @@ fun HomeTopBar(
             title = {
                 Text(
                     text = topTitle,
+                    fontWeight = Bold,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth().throttleClick {
                         wallpaperViewModel.setCurrentCatalog("Wallpapers")
                         wallpaperViewModel.scrollToTop()
                     },
+                    fontFamily = PhilosopherFontFamily,
                     color = MaterialTheme.colorScheme.primary
                 )
             },
