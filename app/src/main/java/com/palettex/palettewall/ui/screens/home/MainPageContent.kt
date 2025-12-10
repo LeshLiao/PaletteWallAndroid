@@ -1,11 +1,11 @@
 package com.palettex.palettewall.ui.screens.home
 
-import AutoScrollCarousel
 import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -20,13 +20,11 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
-//import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -45,25 +43,25 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.ImageLoader
 import com.palettex.palettewall.PaletteWallApplication
 import com.palettex.palettewall.R
 import com.palettex.palettewall.data.local.database.WallpaperDatabase
+import com.palettex.palettewall.data.remote.dto.CatalogConfig
 import com.palettex.palettewall.ui.components.AutoScrollImagePager
 import com.palettex.palettewall.ui.components.Material3Carousel
-import com.palettex.palettewall.ui.components.getImageSourceFromAssets
 import com.palettex.palettewall.ui.components.ProgressiveImageLoaderBest
 import com.palettex.palettewall.ui.components.RowWallpapers
-import com.palettex.palettewall.ui.screens.home.BillingViewModel
-import com.palettex.palettewall.ui.screens.home.TopBarViewModel
-import com.palettex.palettewall.ui.screens.home.HomeViewModel
+import com.palettex.palettewall.ui.components.Titles
+import com.palettex.palettewall.ui.components.getImageSourceFromAssets
 import kotlinx.coroutines.flow.distinctUntilChanged
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun ScrollingContent(
+fun MainPageContent(
     bottomOffset: Dp,
     topViewModel: TopBarViewModel,
     outerNav: NavController,
@@ -79,17 +77,12 @@ fun ScrollingContent(
     val wallpapers by wallpaperViewModel.wallpapers.collectAsState()
     val currentCatalog by wallpaperViewModel.currentCatalog.collectAsState()
     val isRemoteConfigInitialized by wallpaperViewModel.isRemoteConfigInitialized.collectAsState()
-    val isPremium by billingViewModel.isPremium.collectAsState()
     val isLoading by wallpaperViewModel.isLoading.collectAsStateWithLifecycle()
-
-    val popularWallpapers by wallpaperViewModel.popularWallpapers.collectAsState()
     val catalogConfigs by wallpaperViewModel.catalogConfigs.collectAsState()
     val catalogWallpapers by wallpaperViewModel.catalogWallpapers.collectAsState()
     val imageCacheList = PaletteWallApplication.imageCacheList
-
     val boards by wallpaperViewModel.boards.collectAsState()
 
-    // Add pull-to-refresh state
     val refreshing by remember { mutableStateOf(false) }
     val pullRefreshState = rememberPullRefreshState(
         refreshing = refreshing,
@@ -102,7 +95,6 @@ fun ScrollingContent(
     var showPopular by remember { mutableStateOf(false) }
     val scrollToTopTrigger by wallpaperViewModel.scrollToTopTrigger.collectAsState()
     val database = remember { WallpaperDatabase.getDatabase(context) }
-    val dao = remember { database.likedWallpaperDao() }
 
     LaunchedEffect(isRemoteConfigInitialized) {
         wallpaperViewModel.setFullScreenWallpaper(wallpapers)
@@ -112,16 +104,10 @@ fun ScrollingContent(
         snapshotFlow { listState.firstVisibleItemScrollOffset }
             .distinctUntilChanged()
             .collect { currentScrollOffset ->
-                val delta = currentScrollOffset - lastScrollOffset.intValue
-
-                // Scroll handling for top bar visibility, TBC: Temporarily Stop hide it.
-                // topViewModel.onScroll(delta.toFloat())
-
                 // Check if scrolled to the top (first item and no offset)
                 if (listState.firstVisibleItemIndex <= 1) {
                     topViewModel.showTopBar()
                 }
-
                 lastScrollOffset.intValue = currentScrollOffset
             }
     }
@@ -131,29 +117,19 @@ fun ScrollingContent(
         snapshotFlow {
             // Get the last visible item index
             val lastVisibleItemIndex = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-
-            // Get the total number of items currently rendered
             val totalItemsCount = listState.layoutInfo.totalItemsCount
-
-            // Log for debugging
-            // Log.d("GDT", "lastVisibleItemIndex=$lastVisibleItemIndex totalItemsCount=$totalItemsCount")
-
-            // Check if we're near the end of the list
-            // We need to consider if we're viewing the last 2-3 items
             lastVisibleItemIndex >= totalItemsCount - 12
         }
-            .distinctUntilChanged()
-            .collect { isNearBottom ->
-                // Log.d("GDT", "isNearBottom=$isNearBottom isLoading=$isLoading wallpaperCount=${wallpapers.size}")
-
-                // Only trigger loading more if:
-                // 1. We're near the bottom
-                // 2. We're not already loading
-                // 3. We have already loaded some wallpapers (to avoid double-loading on init)
-                if (isNearBottom && !isLoading && wallpapers.isNotEmpty()) {
-                    wallpaperViewModel.loadMoreWallpapers()
-                }
+        .distinctUntilChanged()
+        .collect { isNearBottom ->
+            // Only trigger loading more if:
+            // 1. We're near the bottom
+            // 2. We're not already loading
+            // 3. We have already loaded some wallpapers (to avoid double-loading on init)
+            if (isNearBottom && !isLoading && wallpapers.isNotEmpty()) {
+                wallpaperViewModel.loadMoreWallpapers()
             }
+        }
     }
 
     LaunchedEffect(currentCatalog) {
@@ -176,12 +152,13 @@ fun ScrollingContent(
             .fillMaxSize()
             .pullRefresh(pullRefreshState)
     ) {
-
         LazyColumn(
             state = listState,
             modifier = Modifier.testTag("wallpaper_list")
         ) {
+
             item { Spacer(modifier = Modifier.height(80.dp).fillMaxWidth()) }
+
             item { Spacer(modifier = Modifier.height(16.dp)) }
 
             item {
@@ -190,7 +167,7 @@ fun ScrollingContent(
                         images = boards.map { it.photoUrl },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 12.dp, horizontal = 8.dp),
+                            .padding(top = 12.dp, bottom = 2.dp, start = 8.dp, end = 8.dp),
                         onItemClick = { index ->
                             val board = boards[index]
                             when (board.action) {
@@ -207,36 +184,62 @@ fun ScrollingContent(
                 }
             }
 
+            val newCatalogConfig = CatalogConfig(title = "Anime", key = "anime")
+
             item {
-                Material3Carousel()
+                val catalogItems = catalogWallpapers[newCatalogConfig.key] ?: emptyList()
+                RowWallpapers(
+                    title = newCatalogConfig.title,
+                    wallpapers = catalogItems,
+                    isShowLabel = true,
+                    onSeeMore = {
+                        outerNav.navigate("see_more/${newCatalogConfig.key}")
+                    }
+                ) { itemId ->
+                    topViewModel.hideTopBar()
+                    wallpaperViewModel.initFullScreenDataSourceByList(catalogItems)
+                    navController.navigate("fullscreen/${itemId}")
+                }
             }
 
-            if (showPopular) {
-//                item {
-//                    RowWallpapers("Popular Wallpapers", popularWallpapers) { itemId ->
-//                        topViewModel.hideTopBar()
-//                        wallpaperViewModel.initFullScreenDataSourceByList(popularWallpapers)
-//                        navController.navigate("fullscreen/${itemId}")
-//                    }
-//                }
+            item {
+                Column(
+                    modifier = Modifier.padding(start = 2.dp, bottom = 4.dp)
+                ) {
+                    Titles(
+                        title = "Collections",
+                        fontSize = 18.sp,
+                        isShowViewMore = false,
+                        modifier = Modifier.padding(
+                            start = 16.dp, top = 6.dp, end = 16.dp, bottom = 6.dp
+                        ),
+                        onSeeMore = {}
+                    )
+                }
+            }
 
-                catalogConfigs.forEach { config ->
-                    val catalogItems = catalogWallpapers[config.key] ?: emptyList()
+            item { Material3Carousel(outerNav) }
 
-                    if (catalogItems.isNotEmpty()) {
-                        item {
-                            RowWallpapers(
-                                title = config.title,
-                                wallpapers = catalogItems,
-                                isShowLabel = (config.title == "Anime"),
-                                onSeeMore = {
-                                    outerNav.navigate("see_more/${config.key}")
-                                }
-                            ) { itemId ->
-                                topViewModel.hideTopBar()
-                                wallpaperViewModel.initFullScreenDataSourceByList(catalogItems)
-                                navController.navigate("fullscreen/${itemId}")
+            item { Spacer(Modifier.height(8.dp)) }
+
+            catalogConfigs.forEach { config ->
+
+                if (config.key == newCatalogConfig.key) return@forEach // skip "anime"
+
+                val catalogItems = catalogWallpapers[config.key] ?: emptyList()
+
+                if (catalogItems.isNotEmpty()) {
+                    item {
+                        RowWallpapers(
+                            title = config.title,
+                            wallpapers = catalogItems,
+                            onSeeMore = {
+                                outerNav.navigate("see_more/${config.key}")
                             }
+                        ) { itemId ->
+                            topViewModel.hideTopBar()
+                            wallpaperViewModel.initFullScreenDataSourceByList(catalogItems)
+                            navController.navigate("fullscreen/${itemId}")
                         }
                     }
                 }
@@ -264,7 +267,6 @@ fun ScrollingContent(
                                 },
                             shape = RoundedCornerShape(10.dp),
                             colors = CardDefaults.cardColors(
-                                //containerColor = MaterialTheme.colorScheme.background
                                 containerColor = Color(0xFF111111)
                             )
                         ) {

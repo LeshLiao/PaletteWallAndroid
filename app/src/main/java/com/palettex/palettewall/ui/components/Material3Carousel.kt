@@ -22,37 +22,49 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.palettex.palettewall.data.remote.dto.CatalogConfig
+import com.palettex.palettewall.ui.components.utility.throttleClick
 
 data class CarouselItem(
     val imageUrl: String,
-    val title: String
+    val title: String,
+    val key: String
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Material3Carousel() {
+fun Material3Carousel(
+    outerNav: NavController,
+) {
+
     val carouselItems = listOf(
         CarouselItem(
-            imageUrl = "https://fastly.picsum.photos/id/387/600/400.jpg?hmac=eMC7zbZnTh1bCidirECGPd8Ne0gcKlNOLmYI1VICf7E",
-            title = "Mountain View"
+            imageUrl = "https://firebasestorage.googleapis.com/v0/b/palettex-37930.appspot.com/o/images%2Flayout%2Fcollection_mountains.jpg?alt=media&token=0a79ea6c-754d-4f57-aa39-f1d7299c5644",
+            title = "Mountains",
+            key = "mountains"
         ),
         CarouselItem(
-            imageUrl = "https://fastly.picsum.photos/id/863/600/400.jpg?hmac=47WltmH3OOJMxS-RPQeo3XPJDTj_UmC0hycyGBcgLvE",
-            title = "Ocean Sunset"
+            imageUrl = "https://firebasestorage.googleapis.com/v0/b/palettex-37930.appspot.com/o/images%2Flayout%2Fcollection_forest.jpg?alt=media&token=c67832fb-13a4-44b9-aa45-0c49266f081d",
+            title = "Forest",
+            key = "forest"
         ),
         CarouselItem(
-            imageUrl = "https://fastly.picsum.photos/id/162/600/400.jpg?hmac=bzRv5N9MHV0XJ_J9y_MIs5wOEmeD0ZLtQakfcNJ-0yo",
-            title = "Forest Path"
+            imageUrl = "https://firebasestorage.googleapis.com/v0/b/palettex-37930.appspot.com/o/images%2Flayout%2Fcollection_sunset.jpg?alt=media&token=b9a6d6a3-2a0f-4077-934d-a47d4d4371a0",
+            title = "Sunset",
+            key = "sunset"
         ),
         CarouselItem(
-            imageUrl = "https://fastly.picsum.photos/id/429/600/400.jpg?hmac=D82_XrRqUkACPSkK_5Lpb5D-gOW_9MHS7cXbPk6zKnQ",
-            title = "City Lights"
+            imageUrl = "https://firebasestorage.googleapis.com/v0/b/palettex-37930.appspot.com/o/images%2Flayout%2Fcollection_flowers.jpg?alt=media&token=d0c56259-7441-4b64-a9c9-cde2964f9eed",
+            title = "Flowers",
+            key = "flowers"
         ),
         CarouselItem(
-            imageUrl = "https://fastly.picsum.photos/id/401/600/400.jpg?hmac=5ZHOTXoYjt3gFCdkLGFHPXbWULVfWBes7qlIEMze3Qw",
-            title = "Desert Landscape"
+            imageUrl = "https://firebasestorage.googleapis.com/v0/b/palettex-37930.appspot.com/o/images%2Flayout%2Fcollection_sky.jpg?alt=media&token=28004b27-68ad-4341-b561-c031db217749",
+            title = "Sky",
+            key = "sky"
         )
     )
 
@@ -62,13 +74,15 @@ fun Material3Carousel() {
             .fillMaxWidth()
             .height(100.dp),
         preferredItemWidth = 300.dp,
-        itemSpacing = 8.dp,
-        contentPadding = PaddingValues(horizontal = 16.dp)
+        itemSpacing = 10.dp,
+        contentPadding = PaddingValues(horizontal = 10.dp)
     ) { i ->
         val item = carouselItems[i]
 
         Box(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize().throttleClick {
+                outerNav.navigate("see_more/${item.key}")
+            }
         ) {
             // Background Image
             AsyncImage(
@@ -91,7 +105,7 @@ fun Material3Carousel() {
                         Brush.verticalGradient(
                             colors = listOf(
                                 Color.Transparent,
-                                Color.Black.copy(alpha = 0.7f)
+                                Color.Black.copy(alpha = 0.8f)
                             )
                         )
                     )
@@ -101,9 +115,11 @@ fun Material3Carousel() {
             Text(
                 text = item.title,
                 modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(start = 24.dp, bottom = 6.dp),
-                color = Color.White,
+                    //.align(Alignment.BottomStart)
+                    .align(Alignment.BottomEnd)
+                    //.padding(start = 32.dp, bottom = 8.dp),
+                    .padding(end = 32.dp, bottom = 6.dp),
+                color = Color.White.copy(alpha = 0.5f),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
             )

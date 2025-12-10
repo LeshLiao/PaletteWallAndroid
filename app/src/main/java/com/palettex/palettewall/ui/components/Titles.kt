@@ -19,6 +19,7 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.palettex.palettewall.ui.components.utility.throttleClick
@@ -27,7 +28,9 @@ import com.palettex.palettewall.ui.components.utility.throttleClick
 fun Titles(
     title: String,
     modifier: Modifier,
+    fontSize: TextUnit = 18.sp,
     isShowLabel: Boolean = false,
+    isShowViewMore: Boolean = true,
     onSeeMore: () -> Unit
 ) {
     Row(
@@ -40,7 +43,7 @@ fun Titles(
         ) {
             Text(
                 text = title,
-                fontSize = 18.sp,
+                fontSize = fontSize,
                 fontWeight = FontWeight.W600,
                 color = MaterialTheme.colorScheme.primary,
             )
@@ -52,35 +55,36 @@ fun Titles(
             }
         }
 
-        Row (
-            modifier = Modifier.throttleClick{
-                onSeeMore()
-            },
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                modifier = Modifier.padding(end = 4.dp),
-                text = "view more",
-                fontSize = 12.sp,
-                fontWeight = FontWeight.W500,
-                color = MaterialTheme.colorScheme.primary,
-            )
+        if (isShowViewMore) {
+            Row(
+                modifier = Modifier.throttleClick {
+                    onSeeMore()
+                },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    modifier = Modifier.padding(end = 4.dp),
+                    text = "view more",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.W500,
+                    color = MaterialTheme.colorScheme.primary,
+                )
 
-            Icon(
-                modifier = Modifier
-                    //.padding(end = 8.dp)
-                    .size(12.dp)
-                    //.align(Alignment.Bottom)
-                    .drawWithContent {
-                        drawContent()
-                        drawContent() // Draw twice for bold effect
-                    },
-                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                contentDescription = "Back",
-                tint = Color.White
-            )
+                Icon(
+                    modifier = Modifier
+                        //.padding(end = 8.dp)
+                        .size(12.dp)
+                        //.align(Alignment.Bottom)
+                        .drawWithContent {
+                            drawContent()
+                            drawContent() // Draw twice for bold effect
+                        },
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                    contentDescription = "Back",
+                    tint = Color.White
+                )
+            }
         }
-
     }
 }
 

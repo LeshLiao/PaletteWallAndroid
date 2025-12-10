@@ -165,7 +165,7 @@ fun SeeMorePage(
                                     .weight(1f)
                                     .fillMaxHeight()
                                     .aspectRatio(9f / 16f)
-                                    .clickable {
+                                    .throttleClick{
                                         wallpaperViewModel.initFullScreenDataSourceByList(wallpapers)
                                         outerNav.navigate("fullscreen/${wallpaper.itemId}")
                                     },

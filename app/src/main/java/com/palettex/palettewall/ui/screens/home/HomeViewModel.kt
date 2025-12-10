@@ -107,6 +107,9 @@ open class HomeViewModel @Inject constructor(
     private val _currentImage = MutableStateFlow("")
     var currentImage: StateFlow<String> = _currentImage
 
+    private val _shareSdCurrentImage = MutableStateFlow("")
+    var shareSdCurrentImage: StateFlow<String> = _shareSdCurrentImage
+
     private val _currentBlurImage = MutableStateFlow("")
     var currentBlurImage: StateFlow<String> = _currentBlurImage
 
@@ -382,11 +385,16 @@ open class HomeViewModel @Inject constructor(
                 it.type == "BL" && it.link.isNotEmpty()
             }?.link ?: ""
 
+            val sdImageUrl = wallpaper.imageList.firstOrNull {
+                it.type == "SD" && it.link.isNotEmpty()
+            }?.link ?: ""
+
             val imageSource = imageUrl.getImageSourceFromAssets(context, imageCacheList)
             val blurSource = blurImageUrl.getImageSourceFromAssets(context, imageCacheList)
 
             _currentBlurImage.value = blurSource
             _currentImage.value = imageSource
+            _shareSdCurrentImage.value = sdImageUrl
         }
     }
 
