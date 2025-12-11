@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -60,10 +61,11 @@ fun AutoScrollImagePager(
             val actualIndex = page % actualImageCount
             val imageUrl = images[actualIndex]
             val imageSource = imageUrl.getImageSourceFromAssets(context, imageCacheList)
-            Card(
+            Box (
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(16f / 6f)
+                    .clip(RoundedCornerShape(8.dp))
                     .throttleClick{
                         onItemClick(actualIndex)
                     }
@@ -76,7 +78,7 @@ fun AutoScrollImagePager(
                     )
                 }
 //                AsyncImage(
-//                    model = images[actualIndex],
+//                    model = imageSource,
 //                    contentDescription = "Image $actualIndex",
 //                    modifier = Modifier.fillMaxSize(),
 //                    contentScale = ContentScale.Crop

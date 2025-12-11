@@ -5,6 +5,6 @@
 
     <!-- Splash Screen Theme -->
     <style name="SplashTheme" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:windowBackground">@color/black</item> <!-- Set background to black -->
+        <item name="android:windowBackground">@color/background_dark_blue</item>
     </style>
 </resources>

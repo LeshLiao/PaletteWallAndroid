@@ -52,10 +52,12 @@ import com.palettex.palettewall.R
 import com.palettex.palettewall.data.local.database.WallpaperDatabase
 import com.palettex.palettewall.data.remote.dto.CatalogConfig
 import com.palettex.palettewall.ui.components.AutoScrollImagePager
+import com.palettex.palettewall.ui.components.AutoScrollImagePagerSkeleton
 import com.palettex.palettewall.ui.components.Material3Carousel
 import com.palettex.palettewall.ui.components.ProgressiveImageLoaderBest
 import com.palettex.palettewall.ui.components.RowWallpapers
 import com.palettex.palettewall.ui.components.Titles
+import com.palettex.palettewall.ui.components.TitlesSkeleton
 import com.palettex.palettewall.ui.components.getImageSourceFromAssets
 import kotlinx.coroutines.flow.distinctUntilChanged
 
@@ -162,7 +164,13 @@ fun MainPageContent(
             item { Spacer(modifier = Modifier.height(16.dp)) }
 
             item {
-                if (boards.isNotEmpty()) {
+                if (boards.isEmpty() || isLoading) {
+                    Column(
+                        modifier = Modifier.padding(top = 12.dp, bottom = 2.dp, start = 8.dp, end = 8.dp),
+                    ) {
+                        AutoScrollImagePagerSkeleton()
+                    }
+                } else {
                     AutoScrollImagePager(
                         images = boards.map { it.photoUrl },
                         modifier = Modifier
@@ -187,18 +195,22 @@ fun MainPageContent(
             val newCatalogConfig = CatalogConfig(title = "Anime", key = "anime")
 
             item {
-                val catalogItems = catalogWallpapers[newCatalogConfig.key] ?: emptyList()
-                RowWallpapers(
-                    title = newCatalogConfig.title,
-                    wallpapers = catalogItems,
-                    isShowLabel = true,
-                    onSeeMore = {
-                        outerNav.navigate("see_more/${newCatalogConfig.key}")
+                if (isLoading) {
+                    RowWallpapersSkeleton()
+                } else {
+                    val catalogItems = catalogWallpapers[newCatalogConfig.key] ?: emptyList()
+                    RowWallpapers(
+                        title = newCatalogConfig.title,
+                        wallpapers = catalogItems,
+                        isShowLabel = true,
+                        onSeeMore = {
+                            outerNav.navigate("see_more/${newCatalogConfig.key}")
+                        }
+                    ) { itemId ->
+                        topViewModel.hideTopBar()
+                        wallpaperViewModel.initFullScreenDataSourceByList(catalogItems)
+                        navController.navigate("fullscreen/${itemId}")
                     }
-                ) { itemId ->
-                    topViewModel.hideTopBar()
-                    wallpaperViewModel.initFullScreenDataSourceByList(catalogItems)
-                    navController.navigate("fullscreen/${itemId}")
                 }
             }
 
@@ -206,19 +218,35 @@ fun MainPageContent(
                 Column(
                     modifier = Modifier.padding(start = 2.dp, bottom = 4.dp)
                 ) {
-                    Titles(
-                        title = "Collections",
-                        fontSize = 18.sp,
-                        isShowViewMore = false,
-                        modifier = Modifier.padding(
-                            start = 16.dp, top = 6.dp, end = 16.dp, bottom = 6.dp
-                        ),
-                        onSeeMore = {}
-                    )
+                    if (isLoading) {
+                        TitlesSkeleton(
+                            modifier = Modifier.padding(
+                                start = 16.dp, top = 6.dp, end = 16.dp, bottom = 6.dp
+                            ),
+                            isShowLabel = false,
+                            isShowViewMore = false
+                        )
+                    } else {
+                        Titles(
+                            title = "Collections",
+                            fontSize = 18.sp,
+                            isShowViewMore = false,
+                            modifier = Modifier.padding(
+                                start = 16.dp, top = 6.dp, end = 16.dp, bottom = 6.dp
+                            ),
+                            onSeeMore = {}
+                        )
+                    }
                 }
             }
 
-            item { Material3Carousel(outerNav) }
+            item {
+                if (isLoading) {
+                    Material3CarouselSkeleton()
+                } else {
+                    Material3Carousel(outerNav)
+                }
+            }
 
             item { Spacer(Modifier.height(8.dp)) }
 
