@@ -26,6 +26,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.palettex.palettewall.ui.screens.filter.FilterPage
 import kotlinx.coroutines.CoroutineScope
 
 @Composable
@@ -87,7 +88,7 @@ fun PaletteWallPage(
                     MainPageContent(bottomOffset, topViewModel, outerNav, navController, wallpaperViewModel, billingViewModel)
                 }
                 composable("Carousel") {
-                    CarouselPage(topOffset, bottomOffset, navController, wallpaperViewModel, topViewModel)
+                    FilterPage(topOffset, bottomOffset, navController, wallpaperViewModel, topViewModel)
                 }
                 composable("Favorite") {
                     LikeCollection(topViewModel, wallpaperViewModel, navController, topOffset, bottomOffset, billingViewModel)
