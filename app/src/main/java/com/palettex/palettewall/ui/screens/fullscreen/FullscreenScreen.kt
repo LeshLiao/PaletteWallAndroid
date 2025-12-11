@@ -12,6 +12,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
@@ -33,6 +34,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -52,8 +54,11 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.ImageLoader
 import com.palettex.palettewall.BuildConfig
@@ -68,6 +73,8 @@ import com.palettex.palettewall.ui.components.ProgressiveImageLoaderBest
 import com.palettex.palettewall.ui.components.ShareButton
 import com.palettex.palettewall.ui.components.ShowDownloadDialog
 import com.palettex.palettewall.ui.components.SubscriptionModal
+import com.palettex.palettewall.ui.components.utility.getCurrentDate
+import com.palettex.palettewall.ui.components.utility.getCurrentTime
 import com.palettex.palettewall.ui.components.utility.throttleClick
 import kotlin.math.abs
 
@@ -112,6 +119,10 @@ fun FullscreenScreen(
     }
     var showInformation by remember { mutableStateOf(false) }
     val cache = PaletteWallApplication.imageCacheList
+
+    // Get current time and date once at initialization
+    val currentTime = remember { getCurrentTime() }
+    val currentDate = remember { getCurrentDate() }
 
     LaunchedEffect(itemId) {
         Log.d("GDT", "currentItemId = $currentItemId")
@@ -177,7 +188,7 @@ fun FullscreenScreen(
 
                 Column() {
                     val boxHeight = LocalConfiguration.current.screenHeightDp.dp * 1 / 8
-                    Row(
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(boxHeight * 2)
@@ -185,17 +196,43 @@ fun FullscreenScreen(
                             .throttleClick {
                                 viewModel.showTopBar()
                                 outerNav?.popBackStack()
-                            },
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                            }
                     ) {
                         if (isButtonVisible) {
-                            GetBackButton() // left side
-                            InfoButton(
-                                onClick = {
-                                    showInformation = !showInformation // Toggle the state
-                                }
-                            ) // right side
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .align(Alignment.Center),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                GetBackButton() // left side
+                                InfoButton(
+                                    onClick = {
+                                        showInformation = !showInformation // Toggle the state
+                                    }
+                                ) // right side
+                            }
+                        }
+
+                        if (!isButtonVisible) {
+                            Column(
+                                modifier = Modifier.align(Alignment.BottomCenter),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = currentDate,
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White.copy(alpha = 0.8f)
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = currentTime,
+                                    fontSize = 80.sp,
+                                    color = Color.White.copy(alpha = 0.8f)
+                                )
+                            }
                         }
                     }
 
