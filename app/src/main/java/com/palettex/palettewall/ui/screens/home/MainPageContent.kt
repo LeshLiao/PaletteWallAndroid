@@ -173,6 +173,7 @@ fun MainPageContent(
                 } else {
                     AutoScrollImagePager(
                         images = boards.map { it.photoUrl },
+                        titles = boards.map { it.title },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 12.dp, bottom = 2.dp, start = 8.dp, end = 8.dp),

@@ -8,24 +8,31 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.ImageLoader
 import coil.compose.AsyncImage
 import com.palettex.palettewall.PaletteWallApplication
 import com.palettex.palettewall.ui.components.utility.throttleClick
+import com.palettex.palettewall.ui.theme.PhilosopherFontFamily
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
 fun AutoScrollImagePager(
     images: List<String>,
+    titles: List<String>,
     modifier: Modifier = Modifier,
     autoScrollDuration: Long = 3000L,
     onItemClick: (Int) -> Unit
@@ -60,6 +67,7 @@ fun AutoScrollImagePager(
             // Calculate the actual image index using modulo
             val actualIndex = page % actualImageCount
             val imageUrl = images[actualIndex]
+            val title = titles.getOrNull(actualIndex) ?: ""
             val imageSource = imageUrl.getImageSourceFromAssets(context, imageCacheList)
             Box (
                 modifier = Modifier
@@ -83,6 +91,25 @@ fun AutoScrollImagePager(
 //                    modifier = Modifier.fillMaxSize(),
 //                    contentScale = ContentScale.Crop
 //                )
+
+                // Title Text on top
+                if (title.isNotEmpty()) {
+                    Text(
+                        text = title,
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(horizontal = 16.dp, vertical = 14.dp)
+                            .background(
+                                color = Color.Black.copy(alpha = 0.2f),
+                                shape = RoundedCornerShape(6.dp)
+                            )
+                            .padding(horizontal = 6.dp),
+                        color = Color.White.copy(alpha = 0.9f),
+                        fontSize = 12.sp,
+                        fontFamily = PhilosopherFontFamily,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
 
