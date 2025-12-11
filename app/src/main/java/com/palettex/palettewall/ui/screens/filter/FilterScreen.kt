@@ -115,7 +115,11 @@ fun FilterPage(
 //        ColorInfoDisplay(colorSelectedList) // Palette selected color
 //        ColorInfoDisplay(colorBrowseList) // Carousel Target color
 
-        val filters = listOf("Anime", "Nature", "Landscape", "Abstract", "Minimalistic", "Space", "Flowers")
+        val filters = listOf(
+            "Anime", "Nature", "Landscape", "Abstract", "Minimalistic", "Space",
+            "Flowers", "Mountains", "Forest", "Stars", "Sunset", "Sky", "Clouds", "Flower",
+            "Water", "Night", "Architecture", "Road", "Mountain", "Leaves"
+        )
 
         FilterChipRow(
             filters = filters,
@@ -127,6 +131,11 @@ fun FilterPage(
                     selectedTags + filter
                 }
                 wallpaperViewModel.setSelectedTags(newSelectedTags)
+            },
+            onClearFilters = {
+                wallpaperViewModel.setFirstSelectedColor(null)
+                wallpaperViewModel.setSecondSelectedColor(null)
+                wallpaperViewModel.setSelectedTags(emptyList())
             }
         )
 
