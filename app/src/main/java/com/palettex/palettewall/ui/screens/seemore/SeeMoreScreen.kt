@@ -1,7 +1,6 @@
 package com.palettex.palettewall.ui.screens.home
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -27,7 +26,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -52,9 +50,9 @@ import com.palettex.palettewall.PaletteWallApplication
 import com.palettex.palettewall.R
 import com.palettex.palettewall.ui.components.getImageSourceFromAssets
 import com.palettex.palettewall.ui.components.ProgressiveImageLoaderBest
+import com.palettex.palettewall.ui.components.GridRowSkeleton
 import com.palettex.palettewall.ui.components.utility.throttleClick
 import com.palettex.palettewall.ui.screens.seemore.SeeMoreViewModel
-import com.palettex.palettewall.ui.screens.home.HomeViewModel
 import com.palettex.palettewall.ui.theme.PhilosopherFontFamily
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -150,72 +148,86 @@ fun SeeMorePage(
                     }
                 }
 
-                // Grid items
-                itemsIndexed(
-                    items = wallpapers.chunked(3),
-                    key = { index, _ -> index }
-                ) { index, rowItems ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(6.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        rowItems.forEach { wallpaper ->
-                            Card(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .fillMaxHeight()
-                                    .aspectRatio(9f / 16f)
-                                    .throttleClick{
-                                        wallpaperViewModel.initFullScreenDataSourceByList(wallpapers)
-                                        outerNav.navigate("fullscreen/${wallpaper.itemId}")
-                                    },
-                                shape = RoundedCornerShape(10.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = Color(0xFF111111)
-                                )
-                            ) {
-                                val imageUrl = wallpaper.imageList.firstOrNull {
-                                    it.type == "LD" && it.link.isNotEmpty()
-                                }?.link ?: ""
+                // Show skeleton rows when loading initial data
+                if (isLoading && wallpapers.isEmpty()) {
+                    items(6) { // Show 6 skeleton rows
+                        GridRowSkeleton()
+                    }
+                } else {
 
-                                val blurImageUrl = wallpaper.imageList.firstOrNull {
-                                    it.type == "BL" && it.link.isNotEmpty()
-                                }?.link ?: ""
+                    // Grid items
+                    itemsIndexed(
+                        items = wallpapers.chunked(3),
+                        key = { index, _ -> index }
+                    ) { index, rowItems ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(6.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            rowItems.forEach { wallpaper ->
+                                Card(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .fillMaxHeight()
+                                        .aspectRatio(9f / 16f)
+                                        .throttleClick {
+                                            wallpaperViewModel.initFullScreenDataSourceByList(
+                                                wallpapers
+                                            )
+                                            outerNav.navigate("fullscreen/${wallpaper.itemId}")
+                                        },
+                                    shape = RoundedCornerShape(10.dp),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = Color(0xFF111111)
+                                    )
+                                ) {
+                                    val imageUrl = wallpaper.imageList.firstOrNull {
+                                        it.type == "LD" && it.link.isNotEmpty()
+                                    }?.link ?: ""
 
-                                val imageSource = imageUrl.getImageSourceFromAssets(context, imageCacheList)
-                                val blurSource = blurImageUrl.getImageSourceFromAssets(context, imageCacheList)
+                                    val blurImageUrl = wallpaper.imageList.firstOrNull {
+                                        it.type == "BL" && it.link.isNotEmpty()
+                                    }?.link ?: ""
 
-                                Box(modifier = Modifier.fillMaxSize()) {
-                                    ProgressiveImageLoaderBest(
-                                        blurImageUrl = blurSource,
-                                        fullImageSource = imageSource,
-                                        imageLoader = imageLoader
+                                    val imageSource =
+                                        imageUrl.getImageSourceFromAssets(context, imageCacheList)
+                                    val blurSource = blurImageUrl.getImageSourceFromAssets(
+                                        context,
+                                        imageCacheList
                                     )
 
-                                    if (!wallpaper.freeDownload) {
-                                        Box(
-                                            modifier = Modifier
-                                                .align(Alignment.BottomEnd)
-                                                .padding(6.dp)
-                                        ) {
-                                            Image(
-                                                painterResource(R.drawable.diamond),
-                                                contentDescription = "",
-                                                contentScale = ContentScale.Crop,
-                                                modifier = Modifier.size(18.dp)
-                                            )
+                                    Box(modifier = Modifier.fillMaxSize()) {
+                                        ProgressiveImageLoaderBest(
+                                            blurImageUrl = blurSource,
+                                            fullImageSource = imageSource,
+                                            imageLoader = imageLoader
+                                        )
+
+                                        if (!wallpaper.freeDownload) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .align(Alignment.BottomEnd)
+                                                    .padding(6.dp)
+                                            ) {
+                                                Image(
+                                                    painterResource(R.drawable.diamond),
+                                                    contentDescription = "",
+                                                    contentScale = ContentScale.Crop,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                            }
                                         }
                                     }
                                 }
                             }
-                        }
 
-                        // Fill remaining space if row has less than 3 items
-                        if (rowItems.size < 3) {
-                            repeat(3 - rowItems.size) {
-                                Spacer(modifier = Modifier.weight(1f))
+                            // Fill remaining space if row has less than 3 items
+                            if (rowItems.size < 3) {
+                                repeat(3 - rowItems.size) {
+                                    Spacer(modifier = Modifier.weight(1f))
+                                }
                             }
                         }
                     }

@@ -1,9 +1,7 @@
-package com.palettex.palettewall.ui.screens.home
+package com.palettex.palettewall.ui.screens.filter
 
-import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,10 +12,8 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
@@ -30,7 +26,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,17 +35,10 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import coil.ImageLoader
-import coil.compose.AsyncImagePainter
-import coil.compose.rememberAsyncImagePainter
-import coil.request.CachePolicy
-import coil.request.ImageRequest
-import coil.size.Size
 import com.palettex.palettewall.PaletteWallApplication
 import com.palettex.palettewall.R
 import com.palettex.palettewall.data.local.database.WallpaperDatabase
@@ -58,17 +46,16 @@ import com.palettex.palettewall.domain.model.WallpaperItem
 import com.palettex.palettewall.ui.components.getImageSourceFromAssets
 import com.palettex.palettewall.ui.components.ColorPaletteMatrix
 import com.palettex.palettewall.ui.components.FilterChipRow
-import com.palettex.palettewall.ui.components.ImageSkeletonLoader
 import com.palettex.palettewall.ui.components.LikeButton
 import com.palettex.palettewall.ui.components.ProgressiveImageLoaderBest
 import com.palettex.palettewall.ui.screens.home.AdManager
-import com.palettex.palettewall.ui.screens.home.TopBarViewModel
 import com.palettex.palettewall.ui.screens.home.HomeViewModel
+import com.palettex.palettewall.ui.screens.home.TopBarViewModel
 import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
 
 @Composable
-fun CarouselPage(
+fun FilterPage(
     topOffset: Dp,
     bottomOffset: Dp,
     navController: NavController,
@@ -128,7 +115,11 @@ fun CarouselPage(
 //        ColorInfoDisplay(colorSelectedList) // Palette selected color
 //        ColorInfoDisplay(colorBrowseList) // Carousel Target color
 
-        val filters = listOf("Anime", "Nature", "Landscape", "Abstract", "Minimalistic", "Space", "Flowers")
+        val filters = listOf(
+            "Anime", "Nature", "Landscape", "Abstract", "Minimalistic", "Space",
+            "Flowers", "Mountains", "Forest", "Stars", "Sunset", "Sky", "Clouds", "Flower",
+            "Water", "Night", "Architecture", "Road", "Mountain", "Leaves"
+        )
 
         FilterChipRow(
             filters = filters,
@@ -140,6 +131,11 @@ fun CarouselPage(
                     selectedTags + filter
                 }
                 wallpaperViewModel.setSelectedTags(newSelectedTags)
+            },
+            onClearFilters = {
+                wallpaperViewModel.setFirstSelectedColor(null)
+                wallpaperViewModel.setSecondSelectedColor(null)
+                wallpaperViewModel.setSelectedTags(emptyList())
             }
         )
 
