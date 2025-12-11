@@ -175,7 +175,7 @@ dependencies {
     implementation(libs.coil.compose.v222)
     implementation("androidx.compose.material:material:1.5.4")
     implementation("com.google.firebase:firebase-analytics-ktx")
-    implementation("com.android.billingclient:billing-ktx:6.1.0")
+    implementation(libs.billing.ktx)
     implementation("com.google.android.play:app-update:2.1.0")
     implementation("com.google.android.play:app-update-ktx:2.1.0")
 

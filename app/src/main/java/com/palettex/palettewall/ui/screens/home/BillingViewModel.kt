@@ -49,7 +49,11 @@ class BillingViewModel @Inject constructor(
         Log.d("GDT", "setupBillingClient()")
         billingClient = BillingClient.newBuilder(context)
             .setListener(purchasesUpdatedListener)
-            .enablePendingPurchases()
+            .enablePendingPurchases(
+                PendingPurchasesParams.newBuilder()
+                    .enableOneTimeProducts()  // Enable support for one-time purchases
+                    .build()
+            )
             .build()
 
         billingClient.startConnection(object : BillingClientStateListener {
